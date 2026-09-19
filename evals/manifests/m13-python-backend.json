@@ -1,0 +1,41 @@
+{
+  "id": "m13-python-backend",
+  "version": "1.0.0",
+  "milestone": "M13",
+  "taskRange": "T220-T226",
+  "liveJevRequests": 0,
+  "parser": "cpython-stdlib-ast",
+  "printer": "cpython-stdlib-ast-unparse",
+  "compileAdapter": "python-compile-exec",
+  "dynamicUnannotatedType": "unknown",
+  "lowerCorpus": [
+    "pure-arithmetic",
+    "conditional-validation",
+    "collection-filter-map",
+    "state-mutation",
+    "error-handling",
+    "async-call",
+    "multi-function-module",
+    "simple-generic-function"
+  ],
+  "crossBackendSemanticFixtures": [
+    "pure-arithmetic",
+    "conditional-validation",
+    "error-handling",
+    "async-call",
+    "multi-function-module",
+    "simple-generic-function"
+  ],
+  "assertions": [
+    "python-parse-lift",
+    "python-pir-validation",
+    "python-lower-print-compile",
+    "dynamic-unknown-preservation",
+    "optional-annotation-lift",
+    "source-binding-preservation",
+    "normalized-diagnostics",
+    "minimal-source-patch",
+    "deterministic-format",
+    "typescript-python-portable-semantic-equivalence"
+  ]
+}
