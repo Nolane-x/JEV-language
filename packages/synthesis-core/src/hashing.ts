@@ -14,15 +14,16 @@ const jsonValue = (value: unknown): JsonValue =>
 export const hashSynthesisState = (
   state: Pick<
     SynthesisState,
-    "program" | "openHoles" | "obligations" | "accumulatedCost" | "depth"
+    "program" | "openHoles" | "obligations" | "verifierFacts"
   >,
 ): SynthesisStateId =>
   sha256(
     canonicalJson({
       program: jsonValue(state.program),
       openHoles: [...state.openHoles].sort(),
-      obligations: jsonValue(state.obligations),
-      accumulatedCost: state.accumulatedCost,
-      depth: state.depth,
+      obligations: jsonValue(
+        [...state.obligations].sort((a, b) => a.id.localeCompare(b.id)),
+      ),
+      verifierFacts: [...state.verifierFacts].sort(),
     }),
   );
