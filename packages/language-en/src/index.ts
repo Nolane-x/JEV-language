@@ -11,10 +11,10 @@ import type {
   LanguageConformanceManifest,
   LanguagePackManifest,
   PunctuationProvider,
-  type LanguagePackConformanceProfile,
-  type LanguagePackFeatureManifest,
-  type LocaleFormattingProfile,
-  type NumberRenderingStrategy,
+  LanguagePackConformanceProfile,
+  LanguagePackFeatureManifest,
+  LocaleFormattingProfile,
+  NumberRenderingStrategy,
 } from "../../language-pack-core/src/index.ts";
 import {
   LanguageNeutralLexiconIndex,
