@@ -21,6 +21,7 @@ import type {
 import {
   validateGraphTopology,
   validateScopeGraph,
+  validateTemporalModalGraph,
   type CyclePermissionRegistry,
   type Diagnostic,
   type GraphSnapshot,
@@ -538,6 +539,9 @@ const ontologyRefs = (node: JsgNode): OntologyRefUse[] => {
     case "event":
       return [
         { kind: "concept", ref: node.predicate },
+        ...(node.eventClass === undefined
+          ? []
+          : [{ kind: "concept" as const, ref: node.eventClass }]),
         ...roles(node.roles.map((binding) => binding.role)),
         ...concepts(valueConcepts),
       ];
@@ -825,6 +829,16 @@ export const createCoreInvariantRegistry = (): SemanticInvariantRegistry => {
     },
   });
   if (!quantities.ok) throw quantities.error;
+
+  const temporalModal = registry.register({
+    id: "core.temporal-modal-conditional-consistency",
+    description:
+      "Temporal objects, event token/type separation, modality, and conditional metadata must remain internally consistent.",
+    check({ snapshot }) {
+      return validateTemporalModalGraph(snapshot);
+    },
+  });
+  if (!temporalModal.ok) throw temporalModal.error;
 
   const evidence = registry.register({
     id: "core.evidence-support-contradiction-disjoint",
