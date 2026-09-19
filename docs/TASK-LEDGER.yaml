@@ -50,8 +50,9 @@ tasks:
   - {id: T301-T310, title: graph topology semantic views mention/entity separation fragments merge cycle policy and topology properties, status: verified}
   - {id: T311-T320, title: scope constraints generalized quantification negation resolution ambiguity-preserving generation and adversarial benchmark, status: verified}
   - {id: T321-T330, title: event time modality conditionals temporal registry aspect mapping counterfactual semantics and benchmark, status: verified}
-  - {id: T331-T340, title: deictic contexts quotation stack indirect speech attitudes belief isolation evidentiality nested attribution and benchmark, status: verified}
-  - {id: T341+, title: remaining v0.4 research-expansion semantics/synthesis/conformance tasks, status: todo}
+  - {id: T331-T340, title: deictic contexts quotation stack indirect speech attitudes belief isolation evidentiality nested attribution and benchmark, status: implemented}
+  - {id: T341-T350, title: presupposition trigger ABI accommodation pragmatic inference scalar cancellation idiom ambiguity coercion registry and conformance, status: implemented}
+  - {id: T351+, title: remaining v0.4 research-expansion semantics/synthesis/conformance tasks, status: todo}
 vertical_slices:
   - {id: VS1, title: controlled English requirement parse-realize-roundtrip, status: implemented}
   - {id: VS2, title: recorded Jev Choice reference resolution with ambiguity preservation, status: implemented}
