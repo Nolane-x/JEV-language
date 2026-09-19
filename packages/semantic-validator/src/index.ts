@@ -19,6 +19,7 @@ import type {
   ProvenanceRef,
 } from "../../provenance/src/index.ts";
 import {
+  validateContextSemantics,
   validateGraphTopology,
   validateScopeGraph,
   validateTemporalModalGraph,
@@ -303,6 +304,7 @@ const knownKinds = new Set<string>([
   "property",
   "relation",
   "proposition",
+  "context",
   "scope",
   "scope-constraint",
   "quantifier",
@@ -433,6 +435,9 @@ export const internalRefs = (node: JsgNode): SemanticId[] => {
     case "event":
       return [
         ...(node.temporal === undefined ? [] : [node.temporal]),
+        ...(node.modality?.source === undefined ? [] : [node.modality.source]),
+        ...(node.modality?.scope === undefined ? [] : [node.modality.scope]),
+        ...(node.modality?.contextAnchor === undefined ? [] : [node.modality.contextAnchor]),
         ...node.roles.flatMap((role) => refsFromValue(role.value)),
       ];
     case "state":
@@ -457,8 +462,31 @@ export const internalRefs = (node: JsgNode): SemanticId[] => {
       return [
         ...(node.temporal === undefined ? [] : [node.temporal]),
         ...(node.attribution === undefined ? [] : [node.attribution]),
+        ...(node.context === undefined ? [] : [node.context]),
         ...(node.epistemic?.source === undefined ? [] : [node.epistemic.source]),
+        ...(node.modality?.source === undefined ? [] : [node.modality.source]),
+        ...(node.modality?.scope === undefined ? [] : [node.modality.scope]),
+        ...(node.modality?.contextAnchor === undefined ? [] : [node.modality.contextAnchor]),
         ...node.arguments.flatMap((argument) => refsFromValue(argument.value)),
+      ];
+    case "context":
+      return [
+        ...(node.parentContext === undefined ? [] : [node.parentContext]),
+        ...(node.deictic?.speaker === undefined ? [] : [node.deictic.speaker]),
+        ...(node.deictic?.addressee === undefined ? [] : [node.deictic.addressee]),
+        ...(node.deictic?.speakerTime === undefined ? [] : [node.deictic.speakerTime]),
+        ...(node.deictic?.speakerLocation === undefined ? [] : [node.deictic.speakerLocation]),
+        ...(node.deictic?.discourseTime === undefined ? [] : [node.deictic.discourseTime]),
+        ...(node.deictic?.discourseFocus === undefined ? [] : [node.deictic.discourseFocus]),
+        ...(node.deictic?.participantPerspective === undefined ? [] : [node.deictic.participantPerspective]),
+        ...(node.deictic?.socialAnchors ?? []).map((anchor) => anchor.participant),
+        ...(node.quotation?.quotedSpeaker === undefined ? [] : [node.quotation.quotedSpeaker]),
+        ...(node.quotation?.quotedAddressee === undefined ? [] : [node.quotation.quotedAddressee]),
+        ...(node.quotation?.quotedTimeAnchor === undefined ? [] : [node.quotation.quotedTimeAnchor]),
+        ...(node.quotation?.quotedLocationAnchor === undefined ? [] : [node.quotation.quotedLocationAnchor]),
+        ...(node.quotation?.reporter === undefined ? [] : [node.quotation.reporter]),
+        ...(node.attitude?.holder === undefined ? [] : [node.attitude.holder]),
+        ...(node.attitude?.contentRefs ?? []),
       ];
     case "scope":
       return [
@@ -472,8 +500,9 @@ export const internalRefs = (node: JsgNode): SemanticId[] => {
     case "negation":
       return [node.body, node.scope];
     case "quantity":
-    case "temporal":
       return [];
+    case "temporal":
+      return node.anchor === undefined ? [] : [node.anchor];
     case "location":
       return refsFromValue(node.value);
     case "intent":
@@ -483,6 +512,17 @@ export const internalRefs = (node: JsgNode): SemanticId[] => {
     case "constraint":
       return [
         node.subject,
+        ...(node.conditional === undefined
+          ? []
+          : [
+              node.conditional.antecedent,
+              node.conditional.consequent,
+              ...(node.conditional.contextAnchor === undefined ? [] : [node.conditional.contextAnchor]),
+              ...(node.conditional.counterfactual?.referenceWorld === undefined ? [] : [node.conditional.counterfactual.referenceWorld]),
+              ...(node.conditional.modality?.source === undefined ? [] : [node.conditional.modality.source]),
+              ...(node.conditional.modality?.scope === undefined ? [] : [node.conditional.modality.scope]),
+              ...(node.conditional.modality?.contextAnchor === undefined ? [] : [node.conditional.modality.contextAnchor]),
+            ]),
         ...node.parameters.flatMap((argument) => refsFromValue(argument.value)),
       ];
     case "alternative-set":
@@ -492,6 +532,7 @@ export const internalRefs = (node: JsgNode): SemanticId[] => {
       ];
     case "reference":
       return [
+        ...(node.deictic === undefined ? [] : [node.deictic.context]),
         ...node.candidates,
         ...(node.resolved === undefined ? [] : [node.resolved]),
       ];
@@ -505,6 +546,7 @@ export const internalRefs = (node: JsgNode): SemanticId[] => {
       return node.description === undefined ? [] : refsFromValue(node.description);
     case "evidence":
       return [
+        ...(node.evidentiality?.source === undefined ? [] : [node.evidentiality.source]),
         ...node.supports,
         ...node.contradicts,
         ...refsFromValue(node.payload),
@@ -829,6 +871,16 @@ export const createCoreInvariantRegistry = (): SemanticInvariantRegistry => {
     },
   });
   if (!quantities.ok) throw quantities.error;
+
+  const contextSemantics = registry.register({
+    id: "core.context-deixis-attitude-evidence-consistency",
+    description:
+      "Deictic/quotation/attitude contexts and evidential sources must remain explicit, linked, and isolated.",
+    check({ snapshot }) {
+      return validateContextSemantics(snapshot);
+    },
+  });
+  if (!contextSemantics.ok) throw contextSemantics.error;
 
   const temporalModal = registry.register({
     id: "core.temporal-modal-conditional-consistency",
