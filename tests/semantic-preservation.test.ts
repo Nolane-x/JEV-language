@@ -9,6 +9,7 @@ import type {
   QuantityNode,
   ReferenceNode,
   RelationNode,
+  TemporalNode,
   UnknownConceptNode,
 } from "../packages/semantic-graph/src/index.ts";
 import {
@@ -110,6 +111,17 @@ const condition = (): ConstraintNode => ({
   parameters: [{ role: "role:test.limit", value: { kind: "ref", ref: "quantity:limit" } }],
 });
 
+const temporal = (day = "2026-09-19"): TemporalNode => ({
+  id: "temporal:window",
+  kind: "temporal",
+  schemaVersion: "0.1.0",
+  ontologyVersion: "0.1.0",
+  provenance: [...provenance],
+  trust: "user-content",
+  temporalKind: "instant",
+  value: { iso: day },
+});
+
 const causal = (
   source: RelationNode["source"] = "event:a",
   target: RelationNode["target"] = "event:b",
@@ -159,6 +171,34 @@ describe("critical semantic preservation", () => {
     const report = verifySemanticPreservation(source, structuredClone(source));
     expect(report.ok).toBe(true);
     expect(report.violations).toEqual([]);
+  });
+
+  it("fails semantic role-binding drift", () => {
+    const sourceEvent = event();
+    sourceEvent.roles = [
+      { role: "role:test.agent", value: { kind: "ref", ref: "entity:a" } },
+    ];
+    const changed = structuredClone(sourceEvent);
+    changed.roles = [
+      { role: "role:test.agent", value: { kind: "ref", ref: "entity:b" } },
+    ];
+    const report = verifySemanticPreservation(
+      snapshot([sourceEvent]),
+      snapshot([changed]),
+    );
+    expect(report.violations.map((v) => v.code)).toContain(
+      "SEM_ROLE_BINDINGS_CHANGED",
+    );
+  });
+
+  it("fails temporal value drift", () => {
+    const report = verifySemanticPreservation(
+      snapshot([temporal("2026-09-19")]),
+      snapshot([temporal("2026-09-20")]),
+    );
+    expect(report.violations.map((v) => v.code)).toContain(
+      "SEM_TEMPORAL_VALUE_CHANGED",
+    );
   });
 
   it("fails exact quantity/unit drift", () => {
