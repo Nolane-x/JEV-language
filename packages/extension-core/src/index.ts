@@ -38,7 +38,9 @@ export type ExtensionCategory =
   | "parser-plugin"
   | "verifier-plugin"
   | "decision-pack"
-  | "domain-pack";
+  | "domain-pack"
+  | "candidate-generator"
+  | "expression-backend";
 
 export type ExtensionEffect =
   | "network"
@@ -64,6 +66,7 @@ export interface ExtensionManifest {
   compatibility: {
     engine: string;
     semanticSchema?: string;
+    ontologyCore?: string;
     pir?: string;
   };
   dependencies: ExtensionDependency[];
@@ -75,6 +78,7 @@ export interface ExtensionManifest {
 export interface ExtensionRuntimeEnvironment {
   engineVersion: string;
   semanticSchemaVersion?: string;
+  ontologyCoreVersion?: string;
   pirVersion?: string;
   allowedEffects?: readonly ExtensionEffect[];
 }
@@ -106,6 +110,8 @@ const EXTENSION_CATEGORIES = new Set<ExtensionCategory>([
   "verifier-plugin",
   "decision-pack",
   "domain-pack",
+  "candidate-generator",
+  "expression-backend",
 ]);
 
 const EXTENSION_EFFECTS = new Set<ExtensionEffect>([
@@ -351,6 +357,70 @@ export const isVersionRangeValid = (rangeValue: string): boolean => {
   });
 };
 
+const isRecord = (value: unknown): value is Record<string, unknown> =>
+  typeof value === "object" && value !== null && !Array.isArray(value);
+
+const isJsonValue = (value: unknown): value is JsonValue => {
+  if (
+    value === null ||
+    typeof value === "string" ||
+    typeof value === "boolean"
+  ) {
+    return true;
+  }
+  if (typeof value === "number") return Number.isFinite(value);
+  if (Array.isArray(value)) return value.every(isJsonValue);
+  if (!isRecord(value)) return false;
+  return Object.values(value).every(isJsonValue);
+};
+
+const hasExtensionManifestShape = (
+  value: unknown,
+): value is ExtensionManifest => {
+  if (!isRecord(value)) return false;
+  if (
+    typeof value.schemaVersion !== "string" ||
+    typeof value.id !== "string" ||
+    typeof value.version !== "string" ||
+    typeof value.category !== "string" ||
+    !isRecord(value.compatibility) ||
+    typeof value.compatibility.engine !== "string" ||
+    !Array.isArray(value.dependencies) ||
+    !Array.isArray(value.provides) ||
+    !Array.isArray(value.effects)
+  ) {
+    return false;
+  }
+
+  for (const key of ["semanticSchema", "ontologyCore", "pir"] as const) {
+    const candidate = value.compatibility[key];
+    if (candidate !== undefined && typeof candidate !== "string") return false;
+  }
+
+  if (
+    !value.dependencies.every(
+      (dependency) =>
+        isRecord(dependency) &&
+        typeof dependency.id === "string" &&
+        typeof dependency.versionRange === "string" &&
+        (dependency.optional === undefined ||
+          typeof dependency.optional === "boolean"),
+    ) ||
+    !value.provides.every((provided) => typeof provided === "string") ||
+    !value.effects.every((effect) => typeof effect === "string")
+  ) {
+    return false;
+  }
+
+  if (value.description !== undefined && typeof value.description !== "string") {
+    return false;
+  }
+  if (value.annotations !== undefined) {
+    if (!isRecord(value.annotations) || !isJsonValue(value.annotations)) return false;
+  }
+  return true;
+};
+
 const duplicateValues = (values: readonly string[]): string[] => {
   const seen = new Set<string>();
   const duplicates = new Set<string>();
@@ -369,8 +439,15 @@ const manifestError = (
   err(new StructuredError(code, message, details));
 
 export const validateExtensionManifest = (
-  manifest: ExtensionManifest,
+  input: unknown,
 ): Result<ExtensionManifest> => {
+  if (!hasExtensionManifestShape(input)) {
+    return manifestError(
+      "EXT_MANIFEST_RUNTIME_SHAPE",
+      "Extension manifest failed runtime boundary validation.",
+    );
+  }
+  const manifest = input;
   if (manifest.schemaVersion !== "jl-extension-1") {
     return manifestError(
       "EXT_MANIFEST_SCHEMA",
@@ -403,6 +480,7 @@ export const validateExtensionManifest = (
   }
   for (const [key, range] of [
     ["semanticSchema", manifest.compatibility.semanticSchema],
+    ["ontologyCore", manifest.compatibility.ontologyCore],
     ["pir", manifest.compatibility.pir],
   ] as const) {
     if (range !== undefined && !isVersionRangeValid(range)) {
@@ -510,6 +588,29 @@ export const checkExtensionCompatibility = (
         diagnostic(
           "EXT_INCOMPATIBLE_SEMANTIC_SCHEMA",
           `Extension ${manifest.id} is incompatible with semantic schema ${environment.semanticSchemaVersion}.`,
+        ),
+      );
+    }
+  }
+
+  if (manifest.compatibility.ontologyCore !== undefined) {
+    if (environment.ontologyCoreVersion === undefined) {
+      diagnostics.push(
+        diagnostic(
+          "EXT_ONTOLOGY_CORE_VERSION_UNKNOWN",
+          "Extension requires an ontology-core version, but the environment did not declare one.",
+        ),
+      );
+    } else if (
+      !satisfiesVersionRange(
+        environment.ontologyCoreVersion,
+        manifest.compatibility.ontologyCore,
+      )
+    ) {
+      diagnostics.push(
+        diagnostic(
+          "EXT_INCOMPATIBLE_ONTOLOGY_CORE",
+          `Extension ${manifest.id} is incompatible with ontology core ${environment.ontologyCoreVersion}.`,
         ),
       );
     }
