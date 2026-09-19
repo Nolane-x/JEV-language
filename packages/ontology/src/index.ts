@@ -476,6 +476,9 @@ export const createCoreOntology = (): OntologyStore => {
     coreConcept("concept:core.time", "time"),
     coreConcept("concept:core.quantity", "quantity"),
     coreConcept("concept:core.information", "information"),
+    coreConcept("concept:core.instruction", "instruction", {
+      parents: ["concept:core.information"],
+    }),
     coreConcept("concept:core.artifact", "artifact", {
       kind: "entity",
       parents: ["concept:core.entity"],
