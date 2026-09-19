@@ -707,3 +707,70 @@ export const validateMathIr = (math: MathIr): Result<MathIr> => {
   const error = visit(math, "$");
   return error === undefined ? ok(structuredClone(math)) : err(error);
 };
+
+
+export type CommandArgument =
+  | { kind: "literal"; value: SemanticValue }
+  | { kind: "path"; value: SemanticValue }
+  | { kind: "flag"; name: string }
+  | { kind: "option"; name: string; value?: SemanticValue }
+  | { kind: "subcommand"; name: string }
+  | { kind: "opaque"; value: SemanticValue };
+
+export interface CommandIr {
+  executable: SemanticValue;
+  args: CommandArgument[];
+  cwd?: SemanticValue;
+  env?: Array<{ name: string; value: SemanticValue }>;
+  stdin?: SemanticValue;
+  expectedEffects?: SemanticRef[];
+  annotations?: Record<string, JsonValue>;
+}
+
+export const validateCommandIr = (
+  command: CommandIr,
+): Result<CommandIr> => {
+  if (
+    command.executable.kind !== "string" &&
+    command.executable.kind !== "enum" &&
+    command.executable.kind !== "ref"
+  ) {
+    return err(
+      new StructuredError(
+        "FORMAL_COMMAND_EXECUTABLE",
+        "Command executable must be a string-like semantic value or reference.",
+      ),
+    );
+  }
+
+  const environmentNames = new Set<string>();
+  for (const binding of command.env ?? []) {
+    if (binding.name.trim() === "" || environmentNames.has(binding.name)) {
+      return err(
+        new StructuredError(
+          "FORMAL_COMMAND_ENV",
+          "Command environment names must be unique and non-empty.",
+        ),
+      );
+    }
+    environmentNames.add(binding.name);
+  }
+
+  for (const argument of command.args) {
+    if (
+      (argument.kind === "flag" ||
+        argument.kind === "subcommand" ||
+        argument.kind === "option") &&
+      argument.name.trim() === ""
+    ) {
+      return err(
+        new StructuredError(
+          "FORMAL_COMMAND_ARGUMENT",
+          "Command flag, option, and subcommand names must be non-empty.",
+        ),
+      );
+    }
+  }
+
+  return ok(structuredClone(command));
+};
