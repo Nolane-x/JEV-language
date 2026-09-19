@@ -1,6 +1,6 @@
 # verifier-core
 
-Status: **candidate / M17 integration complete pending gate CI**.
+Status: **verified at M17 gate**.
 
 Implemented verification families:
 
@@ -18,3 +18,5 @@ Implemented verification families:
 - replay bundles tied to execution-plan, raw-result and authoritative-result digests.
 
 M17 does not claim that all future extension/domain verifiers exist. It closes the Section-427 hardening gate for the current public verifier families.
+
+Verification evidence: GitHub Actions CI #202 passed on implementation head `8e41eb9577d7ef63d67dd283a5e65a6f7bd36f89`. Live Jev requests consumed by M17: 0.
