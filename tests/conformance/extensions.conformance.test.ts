@@ -65,6 +65,36 @@ describe("T268-T275 extension framework conformance", () => {
       expect(duplicateEffects.error.code).toBe("EXT_MANIFEST_EFFECTS");
     }
 
+    const runtimeBoundary = validateExtensionManifest({
+      schemaVersion: "jl-extension-1",
+      id: "domain.runtime-invalid",
+      version: "1.0.0",
+      category: "domain-pack",
+      compatibility: "not-an-object",
+      dependencies: [],
+      provides: [],
+      effects: [],
+    });
+    expect(runtimeBoundary.ok).toBe(false);
+    if (!runtimeBoundary.ok) {
+      expect(runtimeBoundary.error.code).toBe("EXT_MANIFEST_RUNTIME_SHAPE");
+    }
+
+    expect(
+      validateExtensionManifest(
+        extensionManifest("candidate.generator", {
+          category: "candidate-generator",
+        }),
+      ).ok,
+    ).toBe(true);
+    expect(
+      validateExtensionManifest(
+        extensionManifest("expression.backend", {
+          category: "expression-backend",
+        }),
+      ).ok,
+    ).toBe(true);
+
     const selfDependency = validateExtensionManifest(
       extensionManifest("domain.self", {
         dependencies: [
@@ -95,9 +125,24 @@ describe("T268-T275 extension framework conformance", () => {
       {
         engineVersion: "0.4.1",
         semanticSchemaVersion: "0.3.9",
+        ontologyCoreVersion: "0.2.4",
       },
     );
     expect(compatibility.compatible).toBe(true);
+
+    const ontologyCompatibility = checkExtensionCompatibility(
+      extensionManifest("domain.ontology-compat", {
+        compatibility: {
+          engine: ">=0.3",
+          ontologyCore: ">=0.2 <0.3",
+        },
+      }),
+      {
+        engineVersion: "0.4.1",
+        ontologyCoreVersion: "0.2.9",
+      },
+    );
+    expect(ontologyCompatibility.compatible).toBe(true);
   });
 
   it("T269 enforces duplicate, dependency, compatibility and dependency-order rules", () => {
