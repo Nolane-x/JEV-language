@@ -309,7 +309,14 @@ export const renderActionIr = (
   context: ActionValidationContext,
 ): Result<string> => {
   const valid = validateActionIr(action, context);
-  return valid.ok
-    ? ok(JSON.stringify(valid.value))
-    : err(valid.error);
+  if (!valid.ok) return err(valid.error);
+  const rendered = JSON.stringify(valid.value);
+  return rendered === undefined
+    ? err(
+        new StructuredError(
+          "ACTION_RENDER_UNDEFINED",
+          "Validated Action IR did not produce a serializable rendering.",
+        ),
+      )
+    : ok(rendered);
 };
