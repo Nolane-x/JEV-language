@@ -486,6 +486,19 @@ const compareMatchedNodes = (
         "Claim attribution changed or was removed.",
       );
     }
+    if (
+      !semanticEqual(left.presupposition ?? null, right.presupposition ?? null) ||
+      !semanticEqual(
+        left.pragmaticInference ?? null,
+        right.pragmaticInference ?? null,
+      )
+    ) {
+      add(
+        "attribution",
+        "SEM_PRAGMATIC_STATUS_CHANGED",
+        "Presupposition or defeasible pragmatic-inference status changed.",
+      );
+    }
   }
 
   if (left.kind === "event" && right.kind === "event") {
