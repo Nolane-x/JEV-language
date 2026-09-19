@@ -3,8 +3,8 @@
 ```yaml
 spec_version: 0.4-master-implementation-research-expanded
 spec_digest_sha256: 9b8bc907fa0da89d4b7ea2e0be886919deffdb35e398ea7897ea77d305380f5b
-last_completed_gate: M0-repository-contract
-active_milestone: M1-semantic-graph-verification
+last_completed_gate: M1-semantic-graph
+active_milestone: M2-ontology-open-world-verification
 stable_packages: []
 candidate_packages:
   - core-types
@@ -34,7 +34,6 @@ known_failures: []
 blocked_items:
   - live-Jev-smoke-not-yet-executed
 next_tasks:
-  - verify M1 semantic-graph gate on CI before advancing active milestone
   - complete remaining M1 staged semantic validators and graph operations
   - expand M2 ontology/open-world conformance beyond transactional evolution
   - build M3 calibration fixtures/report before candidate quality claim
@@ -42,7 +41,7 @@ next_tasks:
   - expand M16 multi-target adapters beyond the controlled delete-limit semantic subset
   - run exactly one manual live-Jev smoke only when explicitly desired
 last_verified_main_commit: 7dac106cdf08bc89be50833ed7dc4e7e6f5cd20e
-last_verified_pr_head: 46018371ce358e04c4dea36461884d62a92a239a
+last_verified_pr_head: 6725495b37bbb1f4f5ee005946adb336a0670c70
 ```
 
 ## Current state
