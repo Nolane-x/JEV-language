@@ -31,17 +31,19 @@ partial_vertical_slices:
   - m16-controlled-multitarget
   - m17-verification-hardening
   - m4-controlled-parser-foundation
+  - m5-controlled-realizer-roundtrip
 known_failures: []
 blocked_items:
   - live-Jev-smoke-not-yet-executed
 next_tasks:
+  - verify M5 constrained-realizer/round-trip implementation on deterministic CI
   - complete remaining M1 staged semantic validators and graph operations
   - run the single explicitly authorized live-Jev smoke required to close M3; keep M3 and successor milestone gates incomplete until then
   - harden M17 verifier orchestration, provenance edge cases, and cross-adapter conformance
   - expand M16 multi-target adapters beyond the controlled delete-limit semantic subset
   - run exactly one manual live-Jev smoke only when explicitly desired
 last_verified_main_commit: 7dac106cdf08bc89be50833ed7dc4e7e6f5cd20e
-last_verified_pr_head: b6d1f913107b72d76269fbcbab36ce8a447002d3
+last_verified_pr_head: 23faede275db2e84a2268be54b55580059ae79c3
 ```
 
 ## Current state
@@ -65,6 +67,7 @@ A runnable foundation now exists, but this ledger deliberately does **not** mark
 - TypeScript 7 CLI compatibility with the official TypeScript 6 programmatic compiler API bridge for embedded compile checks.
 - First four narrow bootstrap vertical slices: controlled English, recorded reference choice, controlled Vietnamese, and PIR typed-hole → TypeScript.
 - M4 controlled grounding/parser foundation with reversible normalization, packed syntax forests, bounded recorded-JDR ambiguity choice, JSG commit, and corpus coverage for event/negation/quantity/time/condition/cause/requirement/permission/prohibition/comparison/question.
+- M5 constrained English realization with discourse/clause plans, lexical/morphology planning primitives, semantic source maps, attribution-safe realization, fallback policy, and a 100% semantic round-trip target on the current 11-fixture controlled corpus.
 - Graph-structured Discourse IR foundation with deterministic prerequisite-aware ordering.
 - Formal IR family foundation (Data/Schema/Query/Math/Logic/Command), capability-validated Action IR, and harness-neutral Universal Expression contract.
 - Registry-driven Universal Expression runtime plus trace DAG/config-digest/replay-manifest foundation.
