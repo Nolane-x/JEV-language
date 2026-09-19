@@ -17,3 +17,16 @@ Implemented M7 foundation:
 - 22-turn acceptance fixture with reference to an entity introduced more than 10 turns earlier after multiple topic changes.
 
 M7 conformance passed deterministic CI #107. The package remains candidate rather than stable because broad unrestricted conversational understanding, multilingual dialogue and later open-domain hardening remain outside this milestone claim.
+
+
+T361-T370 research-expansion candidate formalizes dialogue semantics beyond the M7 state machine:
+
+- typed Question semantic union with explicit expected-answer contracts;
+- answer-to-question links that distinguish complete/partial/nonresponsive/rejected answers;
+- bounded directive-act inventory;
+- multi-act utterance representation plus semantic dialogue-unit segmentation interface;
+- participant commitment ledger with fulfill/retract/supersede transitions;
+- transitive invalidation of dependent semantic derivations after corrections;
+- deterministic dialogue-act/repair benchmark coverage.
+
+These additions do not infer an answer, commitment, or repaired fact merely from surface form; semantic links and transitions remain explicit and inspectable.
