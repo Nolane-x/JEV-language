@@ -15,6 +15,9 @@ const integer = (value: string | undefined): number | undefined => {
   return Number.isSafeInteger(parsed) && parsed >= 0 ? parsed : undefined;
 };
 
+const viRe = (pattern: string): RegExp =>
+  new RegExp(pattern.normalize("NFC"), "iu");
+
 const eventFrame = (
   amount: number,
   input: {
