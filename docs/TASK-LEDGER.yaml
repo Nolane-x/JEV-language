@@ -1,22 +1,34 @@
 spec_version: 0.4-master-implementation-research-expanded
+status_vocabulary: [todo, partial, implemented, verified]
 tasks:
   - {id: T001, title: create workspace and package boundaries, status: implemented}
   - {id: T002, title: enable strict TypeScript/base tooling, status: implemented}
-  - {id: T003, title: implement structured Result/Error utilities, status: in-progress}
-  - {id: T004, title: implement runtime schema-validation wrapper, status: in-progress}
-  - {id: T005, title: implement semantic ID types and constructors, status: in-progress}
-  - {id: T006, title: implement version types, status: in-progress}
-  - {id: T007, title: implement TrustLabel/Sensitivity types, status: in-progress}
-  - {id: T008, title: implement Provenance IDs and records, status: in-progress}
-  - {id: T009, title: implement canonical JSON utility, status: in-progress}
-  - {id: T010, title: implement hashing/digest interface, status: in-progress}
-  - {id: T011-T035, title: JSG bootstrap and validators, status: todo}
-  - {id: T036-T047, title: open-world values, status: todo}
-  - {id: T048-T059, title: ontology, status: todo}
-  - {id: T060-T072, title: Jev decision runtime, status: todo}
-  - {id: T073-T084, title: decision packs and budgeting, status: todo}
-  - {id: T085-T144, title: controlled grounding realizer round-trip, status: todo}
-  - {id: T145-T180, title: dialogue Vietnamese discourse, status: todo}
-  - {id: T181-T238, title: PIR synthesis backends repair, status: todo}
-  - {id: T239-T300, title: formal IR universal expression verification hardening, status: todo}
-  - {id: T301+, title: v0.4 research expansion tasks, status: todo}
+  - {id: T003, title: implement structured Result/Error utilities, status: implemented}
+  - {id: T004, title: implement runtime schema-validation wrapper, status: implemented}
+  - {id: T005, title: implement semantic ID types and constructors, status: implemented}
+  - {id: T006, title: implement version types, status: implemented}
+  - {id: T007, title: implement TrustLabel/Sensitivity types, status: implemented}
+  - {id: T008, title: implement Provenance IDs and records, status: implemented}
+  - {id: T009, title: implement canonical JSON utility, status: implemented}
+  - {id: T010, title: implement hashing/digest abstraction, status: partial}
+  - {id: T011-T025, title: JSG bootstrap/schema/transactions/serialization/query, status: partial}
+  - {id: T026-T035, title: staged semantic validator and invariants, status: partial}
+  - {id: T036-T047, title: open-world values/source spans/opaque/literals, status: partial}
+  - {id: T048-T059, title: ontology/namespaces/provisional concepts, status: partial}
+  - {id: T060-T072, title: Jev decision runtime/adapters/recorded mode/budget/cache/calibration, status: partial}
+  - {id: T073-T084, title: decision packs/registry/lifecycle/budgeting, status: partial}
+  - {id: T085-T144, title: controlled grounding/realizer/round-trip bootstrap, status: partial}
+  - {id: T145-T180, title: dialogue/Vietnamese/discourse/pragmatics, status: partial}
+  - {id: T181-T199, title: PIR typed foundation and typed-hole contracts, status: partial}
+  - {id: T200-T238, title: synthesis/backends/repair/compiler-loop, status: partial}
+  - {id: T239-T300, title: formal IR/universal expression/verification hardening, status: todo}
+  - {id: T301+, title: v0.4 research-expansion semantics/synthesis/conformance tasks, status: todo}
+vertical_slices:
+  - {id: VS1, title: controlled English requirement parse-realize-roundtrip, status: implemented}
+  - {id: VS2, title: recorded Jev Choice reference resolution with ambiguity preservation, status: implemented}
+  - {id: VS3, title: Vietnamese direct-to-JSG and JSG-to-Vietnamese controlled subset, status: implemented}
+  - {id: VS4, title: PIR typed-hole synthesis to TypeScript plus compiler check, status: implemented}
+live_evaluation:
+  requests_consumed_by_bootstrap: 0
+  smoke_workflow: manual-only
+  smoke_request_cap: 1
