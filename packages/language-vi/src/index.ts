@@ -264,10 +264,19 @@ export const createVietnameseControlledGrammar = (): GrammarRegistry => {
       "QUANTITY",
       [
         { kind: "lexical", partOfSpeech: "numeral", capture: "amount" },
-        { kind: "literal", surface: "cái", optional: true, capture: "classifier" },
         { kind: "category", category: "NP", capture: "unit" },
       ],
       20,
+    ),
+    rule(
+      "grammar:vi.quantity.file-classifier",
+      "QUANTITY",
+      [
+        { kind: "lexical", partOfSpeech: "numeral", capture: "amount" },
+        { kind: "literal", surface: "cái", capture: "classifier" },
+        { kind: "category", category: "NP", capture: "unit" },
+      ],
+      21,
     ),
     rule(
       "grammar:vi.aspect.event",
