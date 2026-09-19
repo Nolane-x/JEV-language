@@ -4,7 +4,6 @@ import {
   groundSource,
   mapNormalizedRangeToSourceSpan,
   normalizeGroundingSource,
-  type GroundingSource,
 } from "../../packages/grounding/src/index.ts";
 import { createCoreOntology } from "../../packages/ontology/src/index.ts";
 import {
@@ -22,7 +21,10 @@ import {
   type EntityNode,
 } from "../../packages/semantic-graph/src/index.ts";
 import { validateSnapshot } from "../../packages/semantic-validator/src/index.ts";
-import { resolveUtf16Span } from "../../packages/open-world-values/src/index.ts";
+import {
+  resolveUtf16Span,
+  type GroundingSource,
+} from "../../packages/open-world-values/src/index.ts";
 
 const source = (content: string, languageHint = "en"): GroundingSource => ({
   id: "source:m4-fixture",
