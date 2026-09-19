@@ -49,10 +49,11 @@ partial_vertical_slices:
 known_failures: []
 blocked_items: []
 next_tasks:
-  - continue T331-T340 deixis/attitudes/evidence on top of the verified temporal-modal substrate
+  - verify T331-T340 deixis/attitudes/evidence on deterministic CI
+  - continue T341-T350 presupposition/pragmatic inference after context gate verification
   - continue M18 language expansion beyond the verified grammar/parser wave
   - expand M16 multi-target adapters beyond the controlled delete-limit semantic subset
-last_verified_main_commit: 304c2ca9540908906add3958da831a0c03b675b5
+last_verified_main_commit: c37788d41a6cddec09c540da3f5282390f99eed7
 last_verified_pr_head: ca0ceae3e553480eebc712f210a159431876c0ee
 ```
 
@@ -112,3 +113,6 @@ Live Jev calls are not part of push/PR CI. M3 used exactly one explicitly isolat
 ## Completion semantics
 
 `implemented` means source exists. `verified` means the relevant automated gate passed. Recorded Jev behavior is never reported as live success, and a narrow vertical slice is never reported as broad capability coverage.
+
+
+- T331-T340 deixis/attitudes/evidence candidate implemented: serializable Deictic/Quotation/Attitude ContextNode frames, explicit person/spatial/temporal/discourse/social deictic references, deterministic deictic resolution, nested quotation context stack, direct-vs-indirect speech exactness rules, propositional-attitude isolation from global assertions, first-class evidential source modes kept separate from node confidence and provenance, context-aware graph topology/cycle permissions, semantic-preservation checks, nested-attribution tests and a deterministic deictic-shift/quotation benchmark. Verification pending branch CI; live Jev requests: 0.
