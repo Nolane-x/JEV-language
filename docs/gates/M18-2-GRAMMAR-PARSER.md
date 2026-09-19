@@ -1,6 +1,6 @@
 # M18.2 — Grammar and Parser Expansion Gate
 
-Status: **candidate — pending CI**
+Status: **verified**
 
 Specification basis: tasks T107–T120.
 
@@ -79,8 +79,14 @@ This wave does not claim:
 - unrestricted grammar induction;
 - M18 completion.
 
-## Gate rule
+## Verification evidence
 
-Mark T107–T120 verified only after the complete PR head passes package-boundary validation, strict TypeScript, and the full deterministic test suite.
+- implementation head: `222cf8f838d542cecf0d3e2220a88674aedf5051`
+- GitHub Actions: CI #218 / run id `35442221673`
+- package-boundary validation: **success**
+- strict TypeScript typecheck: **success**
+- deterministic test suite: **45/45 files, 368/368 tests passed**
+- merge commit on `main`: `d6d7c19ba2fadbaeb0d3e56a976725ac55b9f229`
+- live Jev requests: **0**
 
-Live Jev requests: **0**.
+T107–T120 are therefore verified. This verifies the M18.2 grammar/parser wave only; it does not claim M18 as a whole is complete.
