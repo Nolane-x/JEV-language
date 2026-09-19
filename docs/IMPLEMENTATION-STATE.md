@@ -3,8 +3,8 @@
 ```yaml
 spec_version: 0.4-master-implementation-research-expanded
 spec_digest_sha256: 9b8bc907fa0da89d4b7ea2e0be886919deffdb35e398ea7897ea77d305380f5b
-last_completed_gate: M8-vietnamese
-active_milestone: M9-multilingual-semantic-equivalence
+last_completed_gate: M9-multilingual-semantic-equivalence
+active_milestone: M10-program-ir
 stable_packages: []
 candidate_packages:
   - core-types
@@ -35,21 +35,20 @@ partial_vertical_slices:
   - m6-discourse-naturalness-foundation
   - m7-dialogue-semantics
   - m8-vietnamese-language-pack
-  - m9-multilingual-semantic-equivalence
 known_failures: []
 blocked_items: []
 next_tasks:
-  - verify M9 multilingual semantic-equivalence gate on deterministic CI
+  - complete M10 PIR graph/symbol/type/expression/statement/function/module/contract/effect/hole/source-binding/CFG gate
   - complete remaining M1 staged semantic validators and graph operations
   - harden M17 verifier orchestration, provenance edge cases, and cross-adapter conformance
   - expand M16 multi-target adapters beyond the controlled delete-limit semantic subset
-last_verified_main_commit: 31e90135c6c042051357838cbfe95307fc562ff6
-last_verified_pr_head: 703b7eefa6bff2e1f1f5fca48de1d23b3b8cc034
+last_verified_main_commit: 10367222ca4e38c6f631c249605ce7c25e2ce04f
+last_verified_pr_head: cdb155efbad1c8efbe6647f37e6e3433dcf01394
 ```
 
 ## Current state
 
-M0–M8 are verified at their milestone gates. M3 includes the required one-request live Jev acceptance run; M4–M8 use deterministic/recorded language-engine evidence. M8 passed its core CI #116 and common language-pack ABI CI #121. M9 multilingual semantic equivalence is now the active milestone.
+M0–M9 are verified at their milestone gates. M3 includes the required one-request live Jev acceptance run; M4–M9 use deterministic/recorded language-engine evidence. M9 passed CI #136 with 36/36 test files and 280/280 tests. M10 Program IR is now the active milestone.
 
 ## Implemented foundation
 
@@ -71,7 +70,7 @@ M0–M8 are verified at their milestone gates. M3 includes the required one-requ
 - M5 constrained English realization with discourse/clause plans, lexical/morphology planning primitives, semantic source maps, attribution-safe realization, fallback policy, and a 100% semantic round-trip target on the current 11-fixture controlled corpus.
 - M6 verified bidirectional English expansion: semantic discourse-relation planning, safety-gated aggregation, explicit paraphrase lattices, repetition/style/audience planning, collocation scoring, bounded pragmatic Decision Packs, human-eval export, verified-by-round-trip synonyms/active-passive/temporal/condition/cause/reported-speech variants, relative clauses, pronoun-linked multi-sentence discourse, exact unknown-name preservation, and a passing 14-sample held-out template-leakage benchmark.\n- M7 verified dialogue semantics: revisioned transactional state, topic stack, salience/reference candidates, questions, requests, commitments, correction/retraction history, ellipsis/follow-up reconstruction, bounded reference Decision Pack, semantics-preserving compaction, and a passing 22-turn long-reference acceptance fixture.
 - M8 verified Vietnamese language pack: direct Vietnamese↔JSG parsing/realization, bilingual semantic-equivalence corpus, language-specific classifier/aspect/address behavior, and the shared Section-251 HumanLanguagePack ABI for English/Vietnamese.
-- M9 candidate implementation: shared multilingual corpus extended with resolved dialogue references and instruction-as-content semantics plus dimension-level cross-lingual equivalence diagnostics.
+- M9 verified multilingual semantic gate: independent English/Vietnamese G→surface→G round trips, resolved-reference and instruction-as-content JSG structures, and dimension-level diagnostics for predicate/roles/polarity/modality/quantity/time/condition/causality/attribution/reference/instruction content.
 - Graph-structured Discourse IR foundation with deterministic prerequisite-aware ordering.
 - Formal IR family foundation (Data/Schema/Query/Math/Logic/Command), capability-validated Action IR, and harness-neutral Universal Expression contract.
 - Registry-driven Universal Expression runtime plus trace DAG/config-digest/replay-manifest foundation.
