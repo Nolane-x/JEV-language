@@ -129,6 +129,15 @@ export class InMemorySemanticGraph {
     };
   }
 
+  rollback(transaction: GraphTransaction): Result<GraphSnapshot> {
+    const preconditionError = this.#checkPreconditions(transaction);
+    if (preconditionError !== undefined) return err(preconditionError);
+
+    // Transactions are immutable proposals. No graph state changes before commit,
+    // so rollback discards the proposal and returns the unchanged current snapshot.
+    return ok(this.snapshot());
+  }
+
   commit(
     transaction: GraphTransaction,
     validate: GraphValidator,
