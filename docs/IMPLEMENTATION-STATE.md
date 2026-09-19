@@ -3,7 +3,7 @@
 ```yaml
 spec_version: 0.4-master-implementation-research-expanded
 spec_digest_sha256: 9b8bc907fa0da89d4b7ea2e0be886919deffdb35e398ea7897ea77d305380f5b
-last_completed_gate: M17-verification-hardening
+last_completed_gate: M18.2-grammar-parser-expansion
 active_milestone: M18-open-world-language-expansion
 stable_packages: []
 candidate_packages:
@@ -31,7 +31,6 @@ partial_vertical_slices:
   - m16-controlled-multitarget
   - m17-verification-hardening
   - m18-open-world-lexicon-code-switch
-  - m18-grammar-parser-expansion
   - m4-controlled-parser-foundation
   - m5-controlled-realizer-roundtrip
   - m6-discourse-naturalness-foundation
@@ -46,16 +45,16 @@ partial_vertical_slices:
 known_failures: []
 blocked_items: []
 next_tasks:
-  - verify M18.2 T107-T120 grammar/parser expansion on CI
-  - complete remaining M1 staged semantic validators and graph operations
+  - continue M18 language expansion beyond the verified grammar/parser wave
+  - implement T268-T275 extension manifests/registry/compatibility/conformance/loaders/isolation
   - expand M16 multi-target adapters beyond the controlled delete-limit semantic subset
-last_verified_main_commit: df4f806a2abf8635c7b423d3cddaebf6eaf4dfe4
-last_verified_pr_head: 47ddfce5501b1f8ddb9952dc695b32a1f2234f36
+last_verified_main_commit: d6d7c19ba2fadbaeb0d3e56a976725ac55b9f229
+last_verified_pr_head: 6dff82ea2430749009cd97b2430c8b01fea374cd
 ```
 
 ## Current state
 
-M0–M9 are verified at their milestone gates. M3 includes the required one-request live Jev acceptance run; M4–M9 use deterministic/recorded language-engine evidence. M9 passed CI #136 with 36/36 test files and 280/280 tests. M10 Program IR and M11 Synthesis Core are verified. M12 TypeScript Backend passed CI #155 with 39/39 test files and 312/312 tests. M13 Python Backend passed CI #167 with 40/40 test files and 319/319 tests. M14 Compiler/Test Repair Loop passed CI #182 with 41/41 test files and 325/325 tests. M15 Formal/Data/Action IR passed CI #191 with 42/42 test files and 334/334 tests. M16 Universal Expression API is verified. M17 Verification Hardening passed CI #202 and is verified; M18 Open-world Language Expansion is now the active milestone.
+M0–M9 are verified at their milestone gates. M3 includes the required one-request live Jev acceptance run; M4–M9 use deterministic/recorded language-engine evidence. M9 passed CI #136 with 36/36 test files and 280/280 tests. M10 Program IR and M11 Synthesis Core are verified. M12 TypeScript Backend passed CI #155 with 39/39 test files and 312/312 tests. M13 Python Backend passed CI #167 with 40/40 test files and 319/319 tests. M14 Compiler/Test Repair Loop passed CI #182 with 41/41 test files and 325/325 tests. M15 Formal/Data/Action IR passed CI #191 with 42/42 test files and 334/334 tests. M16 Universal Expression API is verified. M17 Verification Hardening passed CI #202 and is verified. M18.1 is verified, and M18.2 grammar/parser expansion passed CI #218 with 45/45 test files and 368/368 tests before merge commit `d6d7c19`; M18 Open-world Language Expansion remains the active milestone.
 
 ## Implemented foundation
 
@@ -65,7 +64,7 @@ M0–M9 are verified at their milestone gates. M3 includes the required one-requ
 - Provenance records/store.
 - Open-world source spans, normalization maps, stale-span detection, numeric/quantity/temporal/path/URL/email/filename literals, opaque integrity validation, sensitivity/redaction, and secret-safe state projection.
 - Ontology namespace/store, expanded reusable core primitive inventory, provisional concepts, compositional concepts, domain/range traversal, transactional merge, and deprecation/alias handling.
-- JSG typed node/value algebra, atomic transactions, revisions, canonical serialization/deserialization, restore, semantic diff/query and staged foundation validation.
+- JSG typed node/value algebra, atomic transactions, revisions, canonical serialization/deserialization, restore, semantic diff/query, and the verified V0–V8 staged semantic-validation pipeline with ontology domain/range/cardinality, scope/binding, invariant, provenance/trust, stable-diagnostic and profile-validation hooks.
 - Recorded and TypeSafe JDR adapters, shared provider-response runtime validation, normalized typed answers, bounded transport retry policy, request/token budgets, cache, calibration hooks, structured errors and trace accounting.
 - Decision-pack registry/lifecycle contract, candidate-source provenance and recall evidence, deterministic decision-DAG batching, calibration profile registry, abstention policy, and evidence-based candidate/production maturity gates.
 - JDR request/token budgets, deterministic trace events, cache accounting, and calibration hooks.
@@ -89,7 +88,7 @@ M0–M9 are verified at their milestone gates. M3 includes the required one-requ
 - M16 verified Universal Expression API: harness-neutral parse/realize/express/transform/verify runtime, capability discovery, same-JSG natural-language/structured-data/PIR-program/declared-Action realization, and trace/replay evidence.
 - M17 verifier foundation: semantic round-trip with parser-limit unknowns, conservative trust/provenance checks, requirement reports, grammar evidence normalization, and compile/test evidence normalization.\n- M17 verified verification hardening: registry orchestration, provenance ancestry integrity, deterministic conflict handling, evidence-floor grading, and replay bundles bound to raw/authoritative result digests.
 - M18.1 verified: Section-209 open-world lexical resolver, EN/VI code-switch evidence, provisional lexical-sense proposals, exact unknown-term preservation and explicit borrowing policy. T098-T106 passed CI #207.
-- M18.2 candidate: typed grammar features/categories, GrammarRule-driven packed chart parser, expanded English controlled syntax T110-T119, lexical/morphology grammar evidence and conservative syntax-to-JSG bridging.
+- M18.2 verified: typed grammar features/categories, GrammarRule-driven packed chart parser, expanded English controlled syntax T110-T119, lexical/morphology grammar evidence and conservative syntax-to-JSG bridging. T107-T120 passed CI #218 with 45/45 test files and 368/368 tests; live Jev requests: 0.\n- M1 validator completion verified: T026-T035 now provide V0–V8 staged validation, stable diagnostic registry, invariant registration/bundle, ontology domain/range/cardinality checks, scope/binding validation and provenance/trust closure. CI #226 passed 46/46 test files and 378/378 tests; live Jev requests: 0.
 
 ## Still partial by design
 

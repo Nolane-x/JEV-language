@@ -2,7 +2,7 @@
 
 Status: **verified**
 
-Specification basis: sections 403–404 and bootstrap tasks T011–T025 of the v0.4 master specification.
+Specification basis: sections 403–404, staged-validation/invariant requirements, and bootstrap tasks T011–T035 of the v0.4 master specification.
 
 ## Definition-of-Done evidence
 
@@ -69,3 +69,36 @@ Verified evidence:
 - deterministic gate: package boundaries → strict typecheck → full test suite
 
 The final documentation head also passed CI, so the merged M1 gate is fully verified and the implementation-state ledger has advanced to M2 ontology/open-world verification.
+
+
+## T026–T035 staged semantic-validator completion
+
+The original M1 graph gate proved the T011–T025 graph substrate. The remaining M1 validator tasks are now independently verified by `tests/conformance/m1-semantic-validator.conformance.test.ts` and the staged implementation in `packages/semantic-validator/src/index.ts`.
+
+| Stage / task | Verified behavior |
+| --- | --- |
+| V0 / T026 | schema/runtime-value checks: schema and ontology version compatibility, trust label domain, confidence bounds, finite semantic numeric values |
+| V1 / T027 | semantic-ID validity, duplicate IDs, complete internal-reference closure |
+| V2 / T028 | ontology concept/role/relation existence checks, including nested semantic values, quantity units and entity attribute relations |
+| V3 / T029 | role domain/range and relation domain/range checks with conservative handling of unresolved types |
+| V4 / T030 | declared role cardinality, including maximums and minimums only where domain applicability is semantically known |
+| V5 / T031 | resolved-scope validity, explicit negative-scope warning, reference/alternative binding membership |
+| V7 / T032 | provenance closure when a provenance store is supplied and prevention of trust escalation beyond declared provenance |
+| Registry / T033 | central stable diagnostic-code registry and structured diagnostics |
+| V6 / T034 | duplicate-safe semantic invariant registration API |
+| V6 / T035 | first invariant bundle: explicit polarity, exact-quantity unit retention, disjoint support/contradiction evidence |
+| V8 extension point | deterministic profile-specific validation hook sorted by profile-validator ID |
+
+Compatibility is preserved through the existing `validateSnapshot(snapshot, context?)` API, while `validateSnapshotStages(...)` exposes stage-level evidence.
+
+### Validator verification evidence
+
+- validator implementation head: `82be0463172ac444bfa5b26aefa12b20c8c9829b`
+- verification head including state/gate updates: `6dff82ea2430749009cd97b2430c8b01fea374cd`
+- GitHub Actions: CI #226 / run id `35443217721`
+- package-boundary validation: **success**
+- strict TypeScript typecheck: **success**
+- deterministic test suite: **46/46 files, 378/378 tests passed**
+- live Jev requests consumed by this work: **0**
+
+T026–T035 are therefore verified. Warnings remain non-blocking in graph transactions; only `error` and `fatal` diagnostics reject a transaction.
