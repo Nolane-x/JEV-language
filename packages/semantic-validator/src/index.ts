@@ -938,8 +938,12 @@ const validateV1 = (
             "JSG050_UNPERMITTED_CYCLE",
             diagnostic.message,
             {
-              nodeRefs: diagnostic.nodeRefs,
-              details: diagnostic.details,
+              ...(diagnostic.nodeRefs === undefined
+                ? {}
+                : { nodeRefs: diagnostic.nodeRefs }),
+              ...(diagnostic.details === undefined
+                ? {}
+                : { details: diagnostic.details }),
             },
           )
         : diagnostic,
