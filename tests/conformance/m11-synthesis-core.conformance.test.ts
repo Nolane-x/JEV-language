@@ -19,10 +19,12 @@ import {
   BestFirstFrontier,
   BranchGenerator,
   CandidateGeneratorRegistry,
+  CollectionPatternGenerator,
   FunctionCallGenerator,
   InScopeSymbolGenerator,
   JevChoiceCandidateRanker,
   LiteralGenerator,
+  ReturnGenerator,
   coreCandidateGenerators,
   createCoreGeneratorRegistry,
   hardPruneCandidates,
@@ -83,6 +85,38 @@ const expressionProgram = (input: {
       },
     ],
     functions,
+    holes: [input.hole],
+  };
+};
+
+const statementProgram = (input: {
+  id: string;
+  parameters?: PirFunction["parameters"];
+  returnType: PirType;
+  hole: ProgramHole;
+}): PirProgram => {
+  const target: PirFunction = {
+    kind: "function",
+    id: `function:${input.id}`,
+    name: input.id,
+    parameters: input.parameters ?? [],
+    returnType: input.returnType,
+    statements: [{ kind: "hole", holeId: input.hole.id }],
+    effects: [{ kind: "pure" }],
+  };
+  return {
+    version: "1.0.0",
+    modules: [
+      {
+        id: `module:${input.id}`,
+        kind: "module",
+        nameIntent: { preferredTerms: [input.id] },
+        exports: [target.id],
+        imports: [],
+        declarations: [target.id],
+      },
+    ],
+    functions: [target],
     holes: [input.hole],
   };
 };
@@ -442,6 +476,7 @@ describe("M11 synthesis core conformance", () => {
       functionId: fn.id,
       hole: goalHole,
       expectedType: numberType,
+      location: "expression",
       scopeSymbols: [],
     };
     const candidates = new FunctionCallGenerator().generate(context);
@@ -477,9 +512,12 @@ describe("M11 synthesis core conformance", () => {
         ["a", "b"].map((suffix) => ({
           id: `candidate:duplicate:${suffix}`,
           replacement: {
-            kind: "literal",
-            value: 7,
-            type: numberType,
+            kind: "expression",
+            value: {
+              kind: "literal",
+              value: 7,
+              type: numberType,
+            },
           },
           newHoles: [],
           proofObligations: [],
@@ -536,6 +574,114 @@ describe("M11 synthesis core conformance", () => {
     expect(result.diagnostics[0]?.code).toBe("SYNTH_BUDGET_EXHAUSTED");
   });
 
+  it("synthesizes a typed collection map pattern without storing the complete target PIR", async () => {
+    const userType: PirType = {
+      kind: "record",
+      fields: {
+        active: booleanType,
+        name: { kind: "string" },
+      },
+    };
+    const usersType: PirType = { kind: "list", element: userType };
+    const namesType: PirType = {
+      kind: "list",
+      element: { kind: "string" },
+    };
+    const users = {
+      id: "param:collection:users",
+      name: "users",
+      type: usersType,
+    };
+    const goalHole = hole({
+      id: "hole:collection-map",
+      type: namesType,
+      scope: [users.id],
+      effect: "pure",
+    });
+    const problem: SynthesisProblem = {
+      id: "problem:collection-map-unseen",
+      program: expressionProgram({
+        id: "collection-map-unseen",
+        parameters: [users],
+        returnType: namesType,
+        hole: goalHole,
+      }),
+      environment: { literals: [], callables: [], branchSeeds: [] },
+      requirements: ["map each user to its name field"],
+    };
+
+    const result = await synthesizeProgram(problem, {
+      registry: registry(new CollectionPatternGenerator()),
+      budget: budget(),
+    });
+
+    expect(result.status).toBe("success");
+    if (result.status !== "success") return;
+    const body = result.program.functions[0]?.body;
+    expect(body?.kind).toBe("map");
+    if (body?.kind === "map") {
+      expect(body.collection).toEqual({
+        kind: "variable",
+        symbolId: users.id,
+      });
+      expect(body.mapper).toMatchObject({
+        kind: "property",
+        property: "name",
+      });
+    }
+    expect(result.state.history[0]?.generatorId).toBe(
+      "generator.collection-pattern.v1",
+    );
+  });
+
+  it("fills a statement hole with a typed return expansion", async () => {
+    const parameter = {
+      id: "param:return:value",
+      name: "value",
+      type: numberType,
+    };
+    const goalHole = hole({
+      id: "hole:return-statement",
+      type: numberType,
+      scope: [parameter.id],
+      effect: "pure",
+    });
+    const problem: SynthesisProblem = {
+      id: "problem:return-statement-unseen",
+      program: statementProgram({
+        id: "return-statement-unseen",
+        parameters: [parameter],
+        returnType: numberType,
+        hole: goalHole,
+      }),
+      environment: { literals: [], callables: [], branchSeeds: [] },
+      requirements: ["return the available numeric input"],
+    };
+
+    expect(validatePirProgram(problem.program).ok).toBe(true);
+
+    const result = await synthesizeProgram(problem, {
+      registry: registry(new ReturnGenerator()),
+      budget: budget(),
+    });
+
+    expect(result.status).toBe("success");
+    if (result.status !== "success") return;
+    expect(result.program.holes).toEqual([]);
+    expect(result.program.functions[0]?.statements).toEqual([
+      {
+        kind: "return",
+        value: {
+          kind: "variable",
+          symbolId: parameter.id,
+        },
+      },
+    ]);
+    expect(result.state.history[0]?.generatorId).toBe(
+      "generator.return.v1",
+    );
+  });
+
   it("supports pluggable best-first and beam frontiers", () => {
     const baseProgram = expressionProgram({
       id: "frontier",
@@ -583,6 +729,8 @@ describe("M11 synthesis core conformance", () => {
       "generator.literal.v1",
       "generator.function-call.v1",
       "generator.branch.v1",
+      "generator.collection-pattern.v1",
+      "generator.return.v1",
     ]);
   });
 });
