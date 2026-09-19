@@ -3,6 +3,7 @@ import { parseControlledRequirement } from "../../packages/grounding/src/index.t
 import type { CapabilityDefinition } from "../../packages/action-ir/src/index.ts";
 import {
   controlledDeleteLimitDataRealizer,
+  controlledDeleteLimitProgramRealizer,
   controlledEnglishSemanticRealizer,
   controlledVietnameseSemanticRealizer,
   createControlledDeleteLimitActionRealizer,
@@ -32,7 +33,7 @@ const capability: CapabilityDefinition = {
 };
 
 describe("M16 same-JSG multi-target acceptance", () => {
-  it("materializes one semantic root into natural language, structured data, and declared Action IR", async () => {
+  it("materializes one semantic root into natural language, structured data, backend-neutral program IR, and declared Action IR", async () => {
     const parsed = parseControlledRequirement(
       "The service must not delete more than 3 files.",
     );
@@ -44,6 +45,7 @@ describe("M16 same-JSG multi-target acceptance", () => {
       realizers: [
         controlledEnglishSemanticRealizer,
         controlledDeleteLimitDataRealizer,
+        controlledDeleteLimitProgramRealizer,
         createControlledDeleteLimitActionRealizer(capability.id),
       ],
     });
@@ -81,6 +83,42 @@ describe("M16 same-JSG multi-target acceptance", () => {
       expect(dataArtifact.semanticRefs).toContain(root);
     }
 
+    const program = await api.realize({
+      semanticState: parsed.value.snapshot,
+      goal: { kind: "realize", semanticRoots: [root] },
+      target: "program",
+    });
+    expect(program.status).toBe("ok");
+    const programArtifact = program.value?.[0];
+    expect(programArtifact?.artifactType).toBe("program");
+    if (programArtifact?.artifactType === "program") {
+      expect(programArtifact.semanticRefs).toContain(root);
+      expect(programArtifact.program.holes ?? []).toEqual([]);
+      const fn = programArtifact.program.functions[0];
+      expect(fn).toMatchObject({
+        name: "canDeleteFiles",
+        returnType: { kind: "boolean" },
+        semanticPurpose: root,
+        effects: [{ kind: "pure" }],
+      });
+      expect(fn?.parameters[0]).toMatchObject({
+        name: "requestedDeleteCount",
+        type: { kind: "number" },
+      });
+      expect(fn?.body).toMatchObject({
+        kind: "comparison",
+        operator: "lte",
+        right: {
+          kind: "literal",
+          value: 3,
+          type: { kind: "number" },
+        },
+      });
+      expect(
+        programArtifact.program.annotations?.sourceSemanticRoot,
+      ).toBe(root);
+    }
+
     const action = await api.realize({
       semanticState: parsed.value.snapshot,
       goal: { kind: "realize", semanticRoots: [root] },
@@ -103,8 +141,41 @@ describe("M16 same-JSG multi-target acceptance", () => {
 
     const manifest = api.capabilities();
     expect(manifest.targets).toEqual(
-      expect.arrayContaining(["natural-language", "structured-data", "action"]),
+      expect.arrayContaining([
+        "natural-language",
+        "structured-data",
+        "program",
+        "action",
+      ]),
     );
+    expect(manifest.operations).toEqual(
+      expect.arrayContaining([
+        "parse",
+        "realize",
+        "express",
+        "transform",
+        "verify",
+      ]),
+    );
+    expect(manifest.backends).toEqual(
+      expect.arrayContaining([
+        "realizer.controlled.en.semantic.v1",
+        "realizer.controlled.delete-limit.data.v1",
+        "realizer.controlled.delete-limit.program.v1",
+        `realizer.controlled.delete-limit.action.${capability.id}.v1`,
+      ]),
+    );
+
+    const traceIds = [
+      text.trace,
+      structured.trace,
+      program.trace,
+      action.trace,
+    ];
+    expect(traceIds.every((value) => value !== undefined)).toBe(true);
+    expect(new Set(traceIds).size).toBe(1);
+    expect(api.traceEvents().length).toBeGreaterThanOrEqual(8);
+    expect(api.replayManifest().traceId).toBe(text.trace);
   });
 
   it("uses the same semantic core for Vietnamese realization", async () => {
