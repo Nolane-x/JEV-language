@@ -49,7 +49,8 @@ partial_vertical_slices:
 known_failures: []
 blocked_items: []
 next_tasks:
-  - continue T341-T350 presupposition/pragmatic inference on top of verified context semantics
+  - verify T341-T350 presupposition/pragmatic inference on deterministic CI
+  - continue T351-T360 comparison/quantity/space after pragmatics gate verification
   - continue M18 language expansion beyond the verified grammar/parser wave
   - expand M16 multi-target adapters beyond the controlled delete-limit semantic subset
 last_verified_main_commit: c37788d41a6cddec09c540da3f5282390f99eed7
@@ -115,3 +116,6 @@ Live Jev calls are not part of push/PR CI. M3 used exactly one explicitly isolat
 
 
 - T331-T340 deixis/attitudes/evidence verified: serializable Deictic/Quotation/Attitude ContextNode frames, explicit person/spatial/temporal/discourse/social deictic references, deterministic deictic resolution, nested quotation context stack, direct-vs-indirect speech exactness rules, propositional-attitude isolation from global assertions, first-class evidential source modes kept separate from node confidence and provenance, context-aware graph topology/cycle permissions, semantic-preservation checks, nested-attribution tests and a deterministic deictic-shift/quotation benchmark. CI passed 57/57 test files and 453/453 tests with package boundaries and strict typecheck green; live Jev requests: 0.
+
+
+- T341-T350 presupposition/pragmatic-inference candidate implemented: explicit PresuppositionSpec and defeasible PragmaticInferenceSpec, versioned language-pack presupposition trigger registry, deterministic accommodation candidate generation with link/local/global/unresolved/clarification alternatives, cancellable scalar inference prototype, idiom multiword candidate registry preserving literal fallback, versioned semantic coercion registry, global-assertion isolation, runtime snapshot validation, graph-edge/validator integration, semantic-preservation checks, literal-vs-nonliteral ambiguity fixtures and T350 cancellation conformance benchmark. Verification pending stacked branch CI; live Jev requests: 0.
