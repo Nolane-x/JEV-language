@@ -56,7 +56,8 @@ tasks:
   - {id: T361-T370, title: question semantics expected answers answer links directive acts multi-act segmentation commitment supersession invalidation and repair benchmark, status: implemented}
   - {id: T371-T380, title: reference taxonomy bridging cataphora split antecedents pruning ambiguity ellipsis reconstruction provenance and stress corpus, status: implemented}
   - {id: T381-T390, title: information structure topic focus discourse registry graph paragraph redundancy contradiction enumeration and coherence benchmark, status: implemented}
-  - {id: T391+, title: remaining v0.4 research-expansion semantics/synthesis/conformance tasks, status: todo}
+  - {id: T391-T400, title: lexeme sense separation selectional preferences multiwords entity aliases unknown lexemes proposals Unicode graphemes transliteration and held-out benchmark, status: implemented}
+  - {id: T401+, title: remaining v0.4 research-expansion semantics/synthesis/conformance tasks, status: todo}
 vertical_slices:
   - {id: VS1, title: controlled English requirement parse-realize-roundtrip, status: implemented}
   - {id: VS2, title: recorded Jev Choice reference resolution with ambiguity preservation, status: implemented}
