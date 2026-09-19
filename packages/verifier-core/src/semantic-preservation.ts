@@ -261,6 +261,13 @@ const missingNodeSpecificViolations = (
       );
     }
   }
+  if (node.kind === "context") {
+    add(
+      "attribution",
+      "SEM_CONTEXT_DROPPED",
+      "A deictic/quotation/attitude context was dropped.",
+    );
+  }
   if (node.kind === "proposition") {
     if (node.scope !== undefined) {
       add("scope", "SEM_SCOPE_DROPPED", "A source scope constraint was dropped.");
@@ -375,12 +382,29 @@ const compareMatchedNodes = (
   if (left.kind === "reference" && right.kind === "reference") {
     if (
       !semanticEqual(sorted(left.candidates), sorted(right.candidates)) ||
-      left.resolved !== right.resolved
+      left.resolved !== right.resolved ||
+      !semanticEqual(left.deictic ?? null, right.deictic ?? null)
     ) {
       add(
         "identity-reference",
         "SEM_REFERENCE_CHANGED",
         "Reference candidates or resolved identity changed.",
+      );
+    }
+  }
+
+  if (left.kind === "context" && right.kind === "context") {
+    if (
+      left.contextKind !== right.contextKind ||
+      left.parentContext !== right.parentContext ||
+      !semanticEqual(left.deictic ?? null, right.deictic ?? null) ||
+      !semanticEqual(left.quotation ?? null, right.quotation ?? null) ||
+      !semanticEqual(left.attitude ?? null, right.attitude ?? null)
+    ) {
+      add(
+        "attribution",
+        "SEM_CONTEXT_CHANGED",
+        "Deictic, quotation, or attitude context changed.",
       );
     }
   }
@@ -452,7 +476,10 @@ const compareMatchedNodes = (
     if (!semanticEqual(left.scope ?? null, right.scope ?? null)) {
       add("scope", "SEM_SCOPE_CHANGED", "Proposition scope changed.");
     }
-    if (left.attribution !== right.attribution) {
+    if (
+      left.attribution !== right.attribution ||
+      left.context !== right.context
+    ) {
       add(
         "attribution",
         "SEM_ATTRIBUTION_CHANGED",
@@ -504,6 +531,18 @@ const compareMatchedNodes = (
         "A semantic condition changed its subject, predicate, or parameters.",
       );
     }
+  }
+
+  if (
+    left.kind === "evidence" &&
+    right.kind === "evidence" &&
+    !semanticEqual(left.evidentiality ?? null, right.evidentiality ?? null)
+  ) {
+    add(
+      "attribution",
+      "SEM_EVIDENTIALITY_CHANGED",
+      "Evidence source mode or evidential source changed.",
+    );
   }
 
   if (
