@@ -88,7 +88,7 @@ export interface AmbiguityResolver {
   resolve(
     ambiguity: AmbiguitySet,
     context: AmbiguityResolutionContext,
-  ): Result<string | undefined>;
+  ): Result<string | undefined> | Promise<Result<string | undefined>>;
 }
 
 export interface AmbiguityResolution {
