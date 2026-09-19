@@ -347,8 +347,10 @@ export const validateActionIr = (
     }
   }
 
+  // Provenance references belong to the provenance store, not the JSG
+  // node registry represented by knownReferences. Only semantic references
+  // are checked against the supplied semantic-node set here.
   for (const ref of [
-    ...action.provenance,
     ...(action.preconditions ?? []),
     ...(action.expectedEffects ?? []),
     ...(action.semanticPurpose === undefined ? [] : [action.semanticPurpose]),
