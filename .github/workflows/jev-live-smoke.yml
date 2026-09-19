@@ -21,7 +21,6 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 20
-          cache: npm
       - run: npm install --ignore-scripts --no-audit --no-fund
       - name: One-request live smoke
         env:
