@@ -1,6 +1,6 @@
 # universal-expression
 
-Status: **candidate / M16 implementation complete pending predecessor merge and gate CI**.
+Status: **verified at M16 gate**.
 
 Implemented T248–T258 foundation:
 
@@ -20,3 +20,5 @@ Implemented T248–T258 foundation:
 Section-426 same-root acceptance is covered by one controlled delete-limit JSG root materialized through the same runtime into natural-language, structured-data, program and Action IR artifacts.
 
 Broader target adapters remain future coverage work; M16 verifies the stable API/gate contract, not universal domain coverage.
+
+Verification evidence: GitHub Actions CI #196 passed on implementation head `2ddfb7de428e71a33633d5db0408f5d9b4ed7227`. Live Jev requests consumed by M16: 0.
