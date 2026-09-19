@@ -12,7 +12,7 @@ import {
 
 const provenance = ["prov:hardening"] as ProvenanceRef[];
 
-const entity = (id: string, concept = "concept:test.entity"): EntityNode => ({
+const entity = (id: SemanticId, concept: SemanticId = "concept:test.entity"): EntityNode => ({
   id,
   kind: "entity",
   schemaVersion: "0.1.0",
@@ -24,7 +24,7 @@ const entity = (id: string, concept = "concept:test.entity"): EntityNode => ({
   memberships: [],
 });
 
-const quantity = (id: string, amount: number): QuantityNode => ({
+const quantity = (id: SemanticId, amount: number): QuantityNode => ({
   id,
   kind: "quantity",
   schemaVersion: "0.1.0",
@@ -37,7 +37,7 @@ const quantity = (id: string, amount: number): QuantityNode => ({
   approximate: false,
 });
 
-const snapshot = (nodes: GraphSnapshot["nodes"]): GraphSnapshot => ({
+const sid = (value: string): SemanticId => value as SemanticId;\n\nconst snapshot = (nodes: GraphSnapshot["nodes"]): GraphSnapshot => ({
   schemaVersion: "0.1.0",
   ontologyVersion: "0.1.0",
   revision: "rev:hardening",
