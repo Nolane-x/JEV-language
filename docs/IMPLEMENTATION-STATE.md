@@ -31,6 +31,7 @@ partial_vertical_slices:
   - m16-controlled-multitarget
   - m17-verification-hardening
   - m18-open-world-lexicon-code-switch
+  - m18-grammar-parser-expansion
   - m4-controlled-parser-foundation
   - m5-controlled-realizer-roundtrip
   - m6-discourse-naturalness-foundation
@@ -45,7 +46,7 @@ partial_vertical_slices:
 known_failures: []
 blocked_items: []
 next_tasks:
-  - complete T107-T120 grammar/parser expansion as M18.2
+  - verify M18.2 T107-T120 grammar/parser expansion on CI
   - complete remaining M1 staged semantic validators and graph operations
   - expand M16 multi-target adapters beyond the controlled delete-limit semantic subset
 last_verified_main_commit: df4f806a2abf8635c7b423d3cddaebf6eaf4dfe4
@@ -88,6 +89,7 @@ M0–M9 are verified at their milestone gates. M3 includes the required one-requ
 - M16 verified Universal Expression API: harness-neutral parse/realize/express/transform/verify runtime, capability discovery, same-JSG natural-language/structured-data/PIR-program/declared-Action realization, and trace/replay evidence.
 - M17 verifier foundation: semantic round-trip with parser-limit unknowns, conservative trust/provenance checks, requirement reports, grammar evidence normalization, and compile/test evidence normalization.\n- M17 verified verification hardening: registry orchestration, provenance ancestry integrity, deterministic conflict handling, evidence-floor grading, and replay bundles bound to raw/authoritative result digests.
 - M18.1 verified: Section-209 open-world lexical resolver, EN/VI code-switch evidence, provisional lexical-sense proposals, exact unknown-term preservation and explicit borrowing policy. T098-T106 passed CI #207.
+- M18.2 candidate: typed grammar features/categories, GrammarRule-driven packed chart parser, expanded English controlled syntax T110-T119, lexical/morphology grammar evidence and conservative syntax-to-JSG bridging.
 
 ## Still partial by design
 
