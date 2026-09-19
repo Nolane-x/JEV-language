@@ -151,7 +151,9 @@ export class FunctionCallGenerator implements CandidateGenerator {
             requiredFacts: [],
             forbiddenFacts: [],
             scopeSymbols: [...context.scopeSymbols],
-            purpose: context.hole.purpose,
+            ...(context.hole.purpose === undefined
+              ? {}
+              : { purpose: context.hole.purpose }),
             budget: structuredClone(context.hole.budget),
           } satisfies ProgramHole,
           expression: undefined,
@@ -214,11 +216,15 @@ export class BranchGenerator implements CandidateGenerator {
       const trueHole: ProgramHole = {
         id: `${context.hole.id}:branch:${seed.id}:true`,
         expectedType: structuredClone(context.expectedType),
-        expectedEffect: context.hole.expectedEffect,
+        ...(context.hole.expectedEffect === undefined
+          ? {}
+          : { expectedEffect: structuredClone(context.hole.expectedEffect) }),
         requiredFacts: [...context.hole.requiredFacts],
         forbiddenFacts: [...context.hole.forbiddenFacts],
         scopeSymbols: [...context.scopeSymbols],
-        purpose: context.hole.purpose,
+        ...(context.hole.purpose === undefined
+          ? {}
+          : { purpose: context.hole.purpose }),
         budget: structuredClone(context.hole.budget),
       };
       const falseHole: ProgramHole = {
