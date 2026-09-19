@@ -11,6 +11,10 @@ import type {
   LanguageConformanceManifest,
   LanguagePackManifest,
   PunctuationProvider,
+  type LanguagePackConformanceProfile,
+  type LanguagePackFeatureManifest,
+  type LocaleFormattingProfile,
+  type NumberRenderingStrategy,
 } from "../../language-pack-core/src/index.ts";
 import {
   LanguageNeutralLexiconIndex,
@@ -1007,6 +1011,144 @@ export const englishLanguagePackManifest: LanguagePackManifest = {
   },
 };
 
+export const englishLanguageFeatureManifest: LanguagePackFeatureManifest = {
+  schemaVersion: "jl-language-features-1",
+  language: "en",
+  version: "1.0.0",
+  features: {
+    declaratives: {
+      parse: "controlled",
+      generate: "controlled",
+      evidenceRefs: ["tests/conformance/m5-controlled-roundtrip.conformance.test.ts"],
+    },
+    negation: {
+      parse: "controlled",
+      generate: "controlled",
+      evidenceRefs: ["tests/conformance/m6-bidirectional-variants.conformance.test.ts"],
+    },
+    questions: {
+      parse: "controlled",
+      generate: "controlled",
+      evidenceRefs: ["tests/conformance/m18-grammar-parser.conformance.test.ts"],
+    },
+    conditionals: {
+      parse: "controlled",
+      generate: "controlled",
+      evidenceRefs: ["tests/conformance/m6-bidirectional-variants.conformance.test.ts"],
+    },
+    modality: {
+      parse: "controlled",
+      generate: "controlled",
+      evidenceRefs: ["tests/conformance/t321-t330-event-time-modality.conformance.test.ts"],
+    },
+    attribution: {
+      parse: "controlled",
+      generate: "controlled",
+      evidenceRefs: ["tests/conformance/t331-t340-deixis-attitudes-evidence.conformance.test.ts"],
+    },
+    "mixed-language": {
+      parse: "partial",
+      generate: "partial",
+      evidenceRefs: ["tests/conformance/t401-t410-language-typology.conformance.test.ts"],
+    },
+    "open-vocabulary": {
+      parse: "partial",
+      generate: "partial",
+      evidenceRefs: ["tests/conformance/t391-t400-lexicon-open-vocabulary.conformance.test.ts"],
+    },
+  },
+  constructions: [
+    {
+      id: "construction:shared:declarative",
+      scope: "shared",
+      semanticContract: "proposition -> declarative utterance",
+      parse: true,
+      generate: true,
+    },
+    {
+      id: "construction:en:do-support",
+      scope: "language-specific",
+      language: "en",
+      semanticContract: "English finite negation/question auxiliary support",
+      parse: true,
+      generate: true,
+    },
+  ],
+  semanticExtensions: [
+    {
+      id: "semantic-extension:en:syntax",
+      language: "en",
+      namespace: "lang:en:syntax",
+      extensionKeys: ["do-support"],
+    },
+  ],
+  localeProfileIds: ["locale:en-US", "locale:en-GB"],
+  mixedLanguage: {
+    mode: "evidence-based",
+    defaultLanguage: "en",
+    allowedLanguages: ["en", "vi"],
+    preserveOpaqueTerms: true,
+    maxSwitches: 4,
+  },
+  lexicalFallback: {
+    order: ["preserve", "borrow", "transliterate"],
+    preserveOriginal: true,
+    allowBorrowing: true,
+    allowTransliteration: true,
+    requireProvenance: true,
+  },
+};
+
+export const englishLocaleProfiles: LocaleFormattingProfile[] = [
+  {
+    id: "locale:en-US",
+    locale: "en-US",
+    languageHint: "en",
+    decimalSeparator: ".",
+    groupSeparator: ",",
+    groupSize: 3,
+    dateOrder: "mdy",
+    dateSeparator: "/",
+    timeSeparator: ":",
+    timezoneDisplay: "preserve",
+  },
+  {
+    id: "locale:en-GB",
+    locale: "en-GB",
+    languageHint: "en",
+    decimalSeparator: ".",
+    groupSeparator: ",",
+    groupSize: 3,
+    dateOrder: "dmy",
+    dateSeparator: "/",
+    timeSeparator: ":",
+    timezoneDisplay: "preserve",
+  },
+];
+
+export const englishNumberStrategies: NumberRenderingStrategy[] = [
+  {
+    id: "number:en:decimal",
+    style: "decimal",
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 3,
+    useGrouping: true,
+  },
+  {
+    id: "number:en:percent",
+    style: "percent",
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 2,
+    useGrouping: false,
+  },
+];
+
+export const englishLanguageConformanceProfile = {
+  featureManifest: englishLanguageFeatureManifest,
+  locales: englishLocaleProfiles,
+  numberStrategies: englishNumberStrategies,
+} satisfies LanguagePackConformanceProfile;
+
 export type EnglishSocialRelation = "formal" | "peer" | "intimate" | "unknown";
 
 export interface EnglishAddressStrategy {
@@ -1062,6 +1204,7 @@ export const englishConformanceManifest: LanguageConformanceManifest = {
 
 export const englishLanguagePack = {
   manifest: englishLanguagePackManifest,
+  featureManifest: englishLanguageFeatureManifest,
   tokenizer: {
     id: "language-en.tokenizer.controlled-v1",
     language: "en",
