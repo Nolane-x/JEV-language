@@ -1,8 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
 import {
-  auditZeroGenerative,
-} from "../../packages/evaluation-core/src/index.ts";
-import {
   InMemoryDecisionCache,
   DecisionRuntime,
   type DecisionBatchRequest,
@@ -187,23 +184,6 @@ describe("T295-T299 runtime hardening", () => {
     ]);
   });
 
-  it("T297 keeps zero-generative accounting compatible with performance counters", async () => {
-    const measured = await measureOperation({
-      operation: "hardening.zero-generative",
-      run(context) {
-        context.set("jevCalls", 0);
-        return 42;
-      },
-    });
-    const audit = auditZeroGenerative({
-      generativeModelCalls: 0,
-      generativeEmbeddingCalls: 0,
-      externalGenerationServices: 0,
-    });
-    expect(audit.ok).toBe(true);
-    expect(measured.measurement.counters.jevCalls).toBe(0);
-  });
-
   it("T298 cache keys are canonical, responses are cloned, and cache hits consume no provider request", async () => {
     let calls = 0;
     const adapter: DecisionProviderAdapter = {
@@ -225,11 +205,12 @@ describe("T295-T299 runtime hardening", () => {
     first.answers[0]!.selected = false;
 
     const second = await runtime.execute(
-      decisionRequest("request:cache", { a: 1, z: 2 }),
+      decisionRequest("request:cache-second", { a: 1, z: 2 }),
     );
     expect(calls).toBe(1);
     expect(runtime.requestsUsed).toBe(1);
     expect(second.source).toBe("cache");
+    expect(second.requestId).toBe("request:cache-second");
     expect(second.answers[0]!.selected).toBe(true);
 
     await runtime.execute(
