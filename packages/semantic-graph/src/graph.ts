@@ -68,6 +68,7 @@ export const canonicalSnapshotJson = (snapshot: GraphSnapshot): string =>
 export class InMemorySemanticGraph {
   #nodes = new Map<SemanticId, JsgNode>();
   #revision: string;
+  #parentRevision: string | undefined;
   readonly schemaVersion: string;
   readonly ontologyVersion: string;
 
@@ -89,6 +90,7 @@ export class InMemorySemanticGraph {
       snapshot.nodes,
     );
     graph.#revision = snapshot.revision;
+    graph.#parentRevision = snapshot.parentRevision;
     return graph;
   }
 
@@ -110,6 +112,9 @@ export class InMemorySemanticGraph {
       schemaVersion: this.schemaVersion,
       ontologyVersion: this.ontologyVersion,
       revision: this.#revision,
+      ...(this.#parentRevision === undefined
+        ? {}
+        : { parentRevision: this.#parentRevision }),
       nodes: [...this.#nodes.values()]
         .map(cloneNode)
         .sort((a, b) => a.id.localeCompare(b.id)),
@@ -122,6 +127,15 @@ export class InMemorySemanticGraph {
       operations,
       preconditions: [{ kind: "revision-is", revision: this.#revision }],
     };
+  }
+
+  rollback(transaction: GraphTransaction): Result<GraphSnapshot> {
+    const preconditionError = this.#checkPreconditions(transaction);
+    if (preconditionError !== undefined) return err(preconditionError);
+
+    // Transactions are immutable proposals. No graph state changes before commit,
+    // so rollback discards the proposal and returns the unchanged current snapshot.
+    return ok(this.snapshot());
   }
 
   commit(
@@ -170,6 +184,7 @@ export class InMemorySemanticGraph {
     }
 
     this.#nodes = candidate;
+    this.#parentRevision = parentRevision;
     this.#revision = revision;
     return ok({
       revision,
@@ -238,15 +253,21 @@ export class InMemorySemanticGraph {
           );
         }
         return undefined;
-      case "replace-node":
-        if (!candidate.has(operation.node.id)) {
+      case "replace-node": {
+        const existing = candidate.get(operation.node.id);
+        if (existing === undefined) {
           return new StructuredError(
             "JSG_NODE_NOT_FOUND",
             `Cannot replace missing node: ${operation.node.id}`,
           );
         }
-        candidate.set(operation.node.id, cloneNode(operation.node));
+        const replacement = cloneNode(operation.node);
+        replacement.provenance = [
+          ...new Set([...existing.provenance, ...replacement.provenance]),
+        ];
+        candidate.set(operation.node.id, replacement);
         return undefined;
+      }
       case "attach-provenance": {
         const node = candidate.get(operation.id);
         if (node === undefined) {
