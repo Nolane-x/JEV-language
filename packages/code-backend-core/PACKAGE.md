@@ -1,18 +1,26 @@
 # code-backend-core
 
-Status: **candidate / M12 implementation complete pending gate CI**.
+Status: **verified through M13 Python backend**.
 
-Implemented for the TypeScript backend milestone:
+Verified M12 TypeScript backend:
 
-- harness-neutral `ProgrammingBackend` ABI and validated capability manifest;
-- robust TypeScript parsing through `@typescript/typescript6`;
-- normalized parser/compiler diagnostics with stable TS codes and source coordinates;
-- AST → PIR lift subset with module/import/export, functions, variables, arrays/objects, conditionals, loops/for-of, calls, async/await, try/catch, interfaces/type aliases and basic generics;
-- source bindings captured during lift;
-- PIR → TypeScript AST lowering for the portable M12 subset;
-- deterministic TypeScript printer/formatter adapter;
-- minimal contiguous source patch generation plus overlap-safe patch application;
-- strict in-memory TypeScript typecheck adapter;
-- compatibility wrappers retained for the original narrow VS4 renderer/typecheck API.
+- harness-neutral `ProgrammingBackend` ABI and capability manifest;
+- TypeScript compiler-API parse/lift/lower/print/patch/diagnostic/typecheck path;
+- strict M12 conformance over the portable source subset and all eight M10 PIR fixtures.
 
-The M12 candidate does not claim Python lowering, repair, compiler-backed CEGIS or complete TypeScript syntax coverage.
+Verified M13 Python backend:
+
+- CPython stdlib `ast.parse` parser adapter and `ast.unparse` printer adapter;
+- Python `compile(..., "exec")` syntax/compiler acceptance adapter;
+- dynamic unannotated values preserved as PIR `unknown`;
+- optional Python annotations mapped into portable PIR types;
+- `Callable`, `Awaitable`, collections, optionals/unions and type variables;
+- AST → PIR lift for functions, variables, list/dict structures, conditions, loops, calls, async/await and try/except;
+- PIR → Python AST lower subset;
+- PIR records lower with Python mapping semantics rather than JavaScript object assumptions;
+- source bindings and minimal deterministic source patching;
+- normalized Python diagnostics;
+- deterministic formatter through stdlib AST unparse;
+- cross-backend ID-independent PIR semantic projection for TypeScript/Python fixtures.
+
+The verified M13 scope does not claim M14 compiler/test repair loops, static Python type checking through mypy/pyright, arbitrary Python syntax coverage, or generative source production.

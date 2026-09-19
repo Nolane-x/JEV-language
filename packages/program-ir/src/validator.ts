@@ -259,13 +259,19 @@ const literalMatchesType = (
   }
 };
 
+const matchesExpectedType = (
+  actual: PirType,
+  expected: PirType,
+): boolean =>
+  expected.kind === "unknown" || samePirType(actual, expected);
+
 const expectType = (
   actual: PirType,
   expected: PirType,
   code: string,
   message: string,
 ): Result<void> =>
-  samePirType(actual, expected)
+  matchesExpectedType(actual, expected)
     ? ok(undefined)
     : err(new StructuredError(code, message));
 
@@ -651,7 +657,7 @@ export const inferPirExpressionType = (
         );
       }
       for (const item of inferred) {
-        if (!samePirType(item, elementType)) {
+        if (!matchesExpectedType(item, elementType)) {
           return err(
             new StructuredError(
               "PIR_COLLECTION_ELEMENT_TYPE",
@@ -696,7 +702,7 @@ export const inferPirExpressionType = (
             options,
           );
           if (!inferred.ok) return inferred;
-          if (!samePirType(inferred.value, expression.resultType)) {
+          if (!matchesExpectedType(inferred.value, expression.resultType)) {
             return err(
               new StructuredError(
                 "PIR_MATCH_RESULT_TYPE",
@@ -722,7 +728,7 @@ export const inferPirExpressionType = (
           ),
         );
       }
-      if (!samePirType(collection.value.element, expression.item.type)) {
+      if (!matchesExpectedType(collection.value.element, expression.item.type)) {
         return err(
           new StructuredError(
             "PIR_FILTER_ITEM_TYPE",
@@ -763,7 +769,7 @@ export const inferPirExpressionType = (
           ),
         );
       }
-      if (!samePirType(collection.value.element, expression.item.type)) {
+      if (!matchesExpectedType(collection.value.element, expression.item.type)) {
         return err(
           new StructuredError(
             "PIR_MAP_ITEM_TYPE",
@@ -779,7 +785,7 @@ export const inferPirExpressionType = (
         options,
       );
       if (!mapper.ok) return mapper;
-      if (!samePirType(mapper.value, expression.resultElementType)) {
+      if (!matchesExpectedType(mapper.value, expression.resultElementType)) {
         return err(
           new StructuredError(
             "PIR_MAP_RESULT_TYPE",
@@ -909,7 +915,7 @@ const validateStatementSequence = (
             { allowAwait: context.allowAwait },
           );
           if (!value.ok) return value;
-          if (!samePirType(value.value, statement.type)) {
+          if (!matchesExpectedType(value.value, statement.type)) {
             return err(
               new StructuredError(
                 "PIR_DECLARE_INITIALIZER_TYPE",
@@ -934,7 +940,7 @@ const validateStatementSequence = (
           { allowAwait: context.allowAwait },
         );
         if (!value.ok) return value;
-        if (!samePirType(target.value, value.value)) {
+        if (!matchesExpectedType(value.value, target.value)) {
           return err(
             new StructuredError(
               "PIR_ASSIGN_TYPE",
@@ -971,7 +977,7 @@ const validateStatementSequence = (
           { allowAwait: context.allowAwait },
         );
         if (!value.ok) return value;
-        if (!samePirType(value.value, context.returnType)) {
+        if (!matchesExpectedType(value.value, context.returnType)) {
           return err(
             new StructuredError(
               "PIR_RETURN_TYPE",
@@ -1058,7 +1064,7 @@ const validateStatementSequence = (
             ),
           );
         }
-        if (!samePirType(element, statement.item.type)) {
+        if (!matchesExpectedType(element, statement.item.type)) {
           return err(
             new StructuredError(
               "PIR_FOREACH_ITEM_TYPE",
@@ -1355,7 +1361,7 @@ const validateFunction = (
       allowAwait: fn.async === true,
     });
     if (!body.ok) return body;
-    if (!samePirType(body.value, fn.returnType)) {
+    if (!matchesExpectedType(body.value, fn.returnType)) {
       return err(
         new StructuredError(
           "PIR_RETURN_TYPE",

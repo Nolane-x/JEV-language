@@ -3,8 +3,8 @@
 ```yaml
 spec_version: 0.4-master-implementation-research-expanded
 spec_digest_sha256: 9b8bc907fa0da89d4b7ea2e0be886919deffdb35e398ea7897ea77d305380f5b
-last_completed_gate: M12-typescript-backend
-active_milestone: M13-python-backend
+last_completed_gate: M13-python-backend
+active_milestone: M14-compiler-test-repair-loop
 stable_packages: []
 candidate_packages:
   - core-types
@@ -38,20 +38,21 @@ partial_vertical_slices:
   - m10-program-ir
   - m11-synthesis-core
   - m12-typescript-backend
+  - m13-python-backend
 known_failures: []
 blocked_items: []
 next_tasks:
-  - complete M13 Python backend parse/lift/lower/patch/diagnostics/conformance and cross-backend semantic fixtures
+  - complete M14 normalized diagnostics repair generators bounded ranking compile/test loop rollback budgets regression verification and broken-code benchmark
   - complete remaining M1 staged semantic validators and graph operations
   - harden M17 verifier orchestration, provenance edge cases, and cross-adapter conformance
   - expand M16 multi-target adapters beyond the controlled delete-limit semantic subset
-last_verified_main_commit: aca7e39cec5519d6ba20a747e83d30c36d98cf28
-last_verified_pr_head: 9fc388abc194c2ac737e45da30ca3f24b8e4676a
+last_verified_main_commit: ffedc2521cc1310141f4e6ffb7b3028c7bf9d446
+last_verified_pr_head: d32667ef0a23c4f42a51962b48b73ebcc65eb07b
 ```
 
 ## Current state
 
-M0–M9 are verified at their milestone gates. M3 includes the required one-request live Jev acceptance run; M4–M9 use deterministic/recorded language-engine evidence. M9 passed CI #136 with 36/36 test files and 280/280 tests. M10 Program IR and M11 Synthesis Core are verified. M12 TypeScript Backend passed CI #155 with 39/39 test files and 312/312 tests; M13 Python Backend is now the active milestone.
+M0–M9 are verified at their milestone gates. M3 includes the required one-request live Jev acceptance run; M4–M9 use deterministic/recorded language-engine evidence. M9 passed CI #136 with 36/36 test files and 280/280 tests. M10 Program IR and M11 Synthesis Core are verified. M12 TypeScript Backend passed CI #155 with 39/39 test files and 312/312 tests. M13 Python Backend passed CI #167 with 40/40 test files and 319/319 tests; M14 Compiler/Test Repair Loop is now the active milestone.
 
 ## Implemented foundation
 
@@ -76,7 +77,7 @@ M0–M9 are verified at their milestone gates. M3 includes the required one-requ
 - M9 verified multilingual semantic gate: independent English/Vietnamese G→surface→G round trips, resolved-reference and instruction-as-content JSG structures, and dimension-level diagnostics for predicate/roles/polarity/modality/quantity/time/condition/causality/attribution/reference/instruction content.
 - M10 verified Program IR: backend-neutral graph/model with modules, symbols, expanded types/expressions/statements, contracts/effects, typed holes, source bindings, atomic transactions, deterministic validation/serialization, derived CFG/def-use analysis and all eight required corpus fixtures.
 - M11 verified synthesis core: typed expression/statement holes, six generator families, deterministic hard pruning, best-first/beam frontiers, state deduplication, bounded search budgets, bounded recorded-Jev ranking, acceptance verifiers, structured partial failures and traceable multi-step composition.
-- M12 verified TypeScript backend: backend ABI/manifest, compiler-API parser, AST↔PIR subset, source bindings, AST/source printer, minimal patching, normalized diagnostics, strict typecheck adapter and conformance over the M12 source subset plus the verified M10 PIR corpus.
+- M12 verified TypeScript backend: backend ABI/manifest, compiler-API parser, AST↔PIR subset, source bindings, AST/source printer, minimal patching, normalized diagnostics, strict typecheck adapter and conformance over the M12 source subset plus the verified M10 PIR corpus.\n- M13 verified Python backend: stdlib AST parse/unparse, optional annotations with dynamic unknowns, AST↔PIR subset, mapping-safe record lowering, source bindings/patches, normalized compile diagnostics, all-eight M10 lower/compile proof and TypeScript/Python cross-backend PIR semantic fixtures.
 - Graph-structured Discourse IR foundation with deterministic prerequisite-aware ordering.
 - Formal IR family foundation (Data/Schema/Query/Math/Logic/Command), capability-validated Action IR, and harness-neutral Universal Expression contract.
 - Registry-driven Universal Expression runtime plus trace DAG/config-digest/replay-manifest foundation.
@@ -85,7 +86,7 @@ M0–M9 are verified at their milestone gates. M3 includes the required one-requ
 
 ## Still partial by design
 
-The master specification is much broader than the bootstrap wave. Broad NLU/NLG, full dialogue/pragmatics, full Vietnamese grammar, compiler-backed CEGIS, code patching/repair, richer formal backends, broader M16 multi-target coverage beyond the controlled semantic subset and concrete program adapters, broader verifier orchestration/provenance edge cases, full conformance matrix and research-expansion tasks remain open. Package stubs say `NOT_IMPLEMENTED` or `PARTIAL` rather than pretending they exist.
+The master specification is much broader than the bootstrap wave. Broad NLU/NLG, full dialogue/pragmatics, full Vietnamese grammar, compiler/test repair beyond the active M14 deterministic subset, richer formal backends, broader M16 multi-target coverage beyond the controlled semantic subset and concrete program adapters, broader verifier orchestration/provenance edge cases, full conformance matrix and research-expansion tasks remain open. Package stubs say `NOT_IMPLEMENTED` or `PARTIAL` rather than pretending they exist.
 
 ## Quota policy
 

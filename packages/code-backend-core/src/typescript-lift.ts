@@ -554,6 +554,42 @@ const liftStatementList = (
       continue;
     }
 
+    if (
+      ts.isIfStatement(statement) &&
+      statement.elseStatement === undefined &&
+      ts.isPrefixUnaryExpression(statement.expression) &&
+      statement.expression.operator === ts.SyntaxKind.ExclamationToken
+    ) {
+      const thenStatements = ts.isBlock(statement.thenStatement)
+        ? statement.thenStatement.statements
+        : [statement.thenStatement];
+      const only = thenStatements.length === 1 ? thenStatements[0] : undefined;
+      if (
+        only !== undefined &&
+        ts.isThrowStatement(only) &&
+        ts.isNewExpression(only.expression) &&
+        ts.isIdentifier(only.expression.expression) &&
+        only.expression.expression.text === "Error"
+      ) {
+        const assertion = liftExpression(
+          statement.expression.operand,
+          context,
+        );
+        if (!assertion.ok) return assertion;
+        const argument = only.expression.arguments?.[0];
+        const message =
+          argument !== undefined && ts.isStringLiteral(argument)
+            ? argument.text
+            : undefined;
+        output.push({
+          kind: "assert",
+          condition: assertion.value,
+          ...(message === undefined ? {} : { message }),
+        });
+        continue;
+      }
+    }
+
     if (ts.isIfStatement(statement)) {
       const condition = liftExpression(statement.expression, context);
       if (!condition.ok) return condition;

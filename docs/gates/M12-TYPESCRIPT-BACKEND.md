@@ -55,6 +55,6 @@ Verified evidence:
 - M12 conformance: `7/7` tests
 - full suite: `39/39` test files, `312/312` tests
 - all eight verified M10 PIR fixtures lowered to TypeScript and strict-typechecked successfully
-- live Jev requests consumed by M12: `0`
+- live Jev requests consumed by M12: `0`\n- merged squash commit: `ffedc2521cc1310141f4e6ffb7b3028c7bf9d446`
 
-The implementation-state ledger may advance to M13 Python backend. The final documentation head must itself pass CI before merge.
+The M12 implementation and evidence are merged; the implementation-state ledger has advanced to M13 Python backend.
