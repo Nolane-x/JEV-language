@@ -28,7 +28,7 @@ export interface JevCandidateRankerOptions {
 
 const candidateDescription = (
   candidate: CandidateRankingRequest["candidates"][number],
-): JsonValue => ({
+): Record<string, JsonValue> => ({
   generator: candidate.provenance.generatorId,
   sourceKind: candidate.provenance.kind,
   heuristicCost: candidate.heuristicCost,
