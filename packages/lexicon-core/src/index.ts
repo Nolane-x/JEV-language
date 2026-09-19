@@ -166,6 +166,20 @@ const validateSense = (sense: LexicalSense): Result<void> => {
           ),
         );
       }
+      const preference = slot.selectionalPreference;
+      if (
+        preference?.strength !== undefined &&
+        (!Number.isFinite(preference.strength) ||
+          preference.strength < 0 ||
+          preference.strength > 1)
+      ) {
+        return err(
+          new StructuredError(
+            "LEXICON_SELECTIONAL_STRENGTH",
+            `Valency slot ${slot.id} selectional-preference strength must be in [0,1].`,
+          ),
+        );
+      }
     }
   }
   return ok(undefined);
