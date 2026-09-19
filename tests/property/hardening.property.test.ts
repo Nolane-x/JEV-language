@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import type { SemanticId } from "../../packages/core-types/src/index.ts";
 import type { ProvenanceRef } from "../../packages/provenance/src/index.ts";
 import {
   InMemorySemanticGraph,
@@ -11,8 +12,12 @@ import {
 } from "../../packages/semantic-graph/src/index.ts";
 
 const provenance = ["prov:hardening"] as ProvenanceRef[];
+const sid = (value: string): SemanticId => value as SemanticId;
 
-const entity = (id: SemanticId, concept: SemanticId = "concept:test.entity"): EntityNode => ({
+const entity = (
+  id: SemanticId,
+  concept: SemanticId = "concept:test.entity",
+): EntityNode => ({
   id,
   kind: "entity",
   schemaVersion: "0.1.0",
@@ -37,7 +42,7 @@ const quantity = (id: SemanticId, amount: number): QuantityNode => ({
   approximate: false,
 });
 
-const sid = (value: string): SemanticId => value as SemanticId;\n\nconst snapshot = (nodes: GraphSnapshot["nodes"]): GraphSnapshot => ({
+const snapshot = (nodes: GraphSnapshot["nodes"]): GraphSnapshot => ({
   schemaVersion: "0.1.0",
   ontologyVersion: "0.1.0",
   revision: "rev:hardening",
@@ -49,9 +54,9 @@ describe("T293-T294 semantic property hardening", () => {
     for (let size = 1; size <= 32; size += 1) {
       const nodes = Array.from({ length: size }, (_, index) =>
         index % 2 === 0
-          ? entity(`entity:${index.toString().padStart(3, "0")}`)
+          ? entity(sid(`entity:${index.toString().padStart(3, "0")}`))
           : quantity(
-              `quantity:${index.toString().padStart(3, "0")}`,
+              sid(`quantity:${index.toString().padStart(3, "0")}`),
               index,
             ),
       );
@@ -67,18 +72,11 @@ describe("T293-T294 semantic property hardening", () => {
       expect(parsed.ok).toBe(true);
       if (!parsed.ok) continue;
       expect(serializeSnapshot(parsed.value)).toBe(serialized);
-      expect(
-        serializeSnapshot(
-          deserializeSnapshot(serializeSnapshot(parsed.value)).ok
-            ? (
-                deserializeSnapshot(serializeSnapshot(parsed.value)) as {
-                  ok: true;
-                  value: GraphSnapshot;
-                }
-              ).value
-            : parsed.value,
-        ),
-      ).toBe(serialized);
+
+      const reparsed = deserializeSnapshot(serializeSnapshot(parsed.value));
+      expect(reparsed.ok).toBe(true);
+      if (!reparsed.ok) continue;
+      expect(serializeSnapshot(reparsed.value)).toBe(serialized);
     }
   });
 
@@ -87,14 +85,14 @@ describe("T293-T294 semantic property hardening", () => {
       const graph = new InMemorySemanticGraph(
         "0.1.0",
         "0.1.0",
-        [entity(`entity:base-${index}`)],
+        [entity(sid(`entity:base-${index}`))],
       );
       const before = serializeSnapshot(graph.snapshot());
 
       const proposal = graph.beginTransaction([
         {
           kind: "add-node",
-          node: entity(`entity:proposed-${index}`),
+          node: entity(sid(`entity:proposed-${index}`)),
         },
       ]);
 
@@ -116,13 +114,13 @@ describe("T293-T294 semantic property hardening", () => {
 
   it("T294 identical valid transactions from identical revisions derive identical commits", () => {
     for (let index = 0; index < 24; index += 1) {
-      const initial = [entity(`entity:seed-${index}`)];
+      const initial = [entity(sid(`entity:seed-${index}`))];
       const left = new InMemorySemanticGraph("0.1.0", "0.1.0", initial);
       const right = new InMemorySemanticGraph("0.1.0", "0.1.0", initial);
       const operations = [
         {
           kind: "add-node" as const,
-          node: quantity(`quantity:added-${index}`, index + 1),
+          node: quantity(sid(`quantity:added-${index}`), index + 1),
         },
       ];
 
