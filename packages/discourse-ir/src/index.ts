@@ -555,3 +555,5 @@ export const discourseRelationDefinition = (
       return "The nucleus is a result of the satellite.";
   }
 };
+
+export * from "./naturalness.ts";
