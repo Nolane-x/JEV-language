@@ -211,6 +211,23 @@ describe("M1 staged semantic validator T026-T035", () => {
     );
     expect(codes(roleResult)).toContain("JSG015_ROLE_RANGE_MISMATCH");
 
+    const wrongOwner: StateNode = {
+      ...wrongRange,
+      id: "state:wrong-role-owner",
+      arguments: [
+        {
+          role: "role:test.agent",
+          value: { kind: "ref", ref: service.id },
+        },
+      ],
+    };
+    const domainResult = validateSnapshotStages(
+      snapshot([service, wrongOwner]),
+      { ontology },
+      ["V3"],
+    );
+    expect(codes(domainResult)).toContain("JSG014_ROLE_DOMAIN_MISMATCH");
+
     const relation: RelationNode = {
       ...common,
       provenance: [...common.provenance],
