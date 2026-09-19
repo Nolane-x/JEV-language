@@ -68,7 +68,7 @@ export const canonicalSnapshotJson = (snapshot: GraphSnapshot): string =>
 export class InMemorySemanticGraph {
   #nodes = new Map<SemanticId, JsgNode>();
   #revision: string;
-  #parentRevision?: string;
+  #parentRevision: string | undefined;
   readonly schemaVersion: string;
   readonly ontologyVersion: string;
 
