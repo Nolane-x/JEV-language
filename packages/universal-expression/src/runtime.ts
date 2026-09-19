@@ -249,8 +249,11 @@ export const createRegistryUniversalExpressionApi = (
     return attachTrace(result, trace);
   };
 
-  const realize = async (request: ExpressionRequest): Promise<ExpressionResult> => {
-    const parent = recordStart("realize", { target: request.target });
+  const materialize = async (
+    operation: "realize" | "express",
+    request: ExpressionRequest,
+  ): Promise<ExpressionResult> => {
+    const parent = recordStart(operation, { target: request.target });
     const candidates = registry.realizers.filter(
       (adapter) =>
         adapter.targets.includes(request.target) &&
@@ -261,11 +264,11 @@ export const createRegistryUniversalExpressionApi = (
       const result: ExpressionResult = {
         ...unsupported<ExpressionArtifact[]>(
           selected === undefined
-            ? "EXPRESSION_REALIZE_UNSUPPORTED"
-            : "EXPRESSION_REALIZE_ADAPTER_AMBIGUOUS",
+            ? `EXPRESSION_${operation.toUpperCase()}_UNSUPPORTED`
+            : `EXPRESSION_${operation.toUpperCase()}_ADAPTER_AMBIGUOUS`,
           selected === undefined
-            ? "No realizer adapter supports this request."
-            : "Multiple realizer adapters match without an explicit routing rule.",
+            ? `No realizer adapter supports this ${operation} request.`
+            : `Multiple realizer adapters match the ${operation} request without an explicit routing rule.`,
         ),
       };
       recordFinish(parent, "artifact-emit", []);
@@ -274,14 +277,21 @@ export const createRegistryUniversalExpressionApi = (
     const result = await selected.realize(request);
     recordFinish(parent, "artifact-emit", artifactRefs(result.value), {
       adapterId: selected.id,
+      operation,
     });
     return attachTrace(result, trace) as ExpressionResult;
   };
 
+  const realize = (request: ExpressionRequest): Promise<ExpressionResult> =>
+    materialize("realize", request);
+
+  const express = (request: ExpressionRequest): Promise<ExpressionResult> =>
+    materialize("express", request);
+
   const transform = async (
     request: TransformRequest,
   ): Promise<ExpressionResult> => {
-    const parent = recordStart("realize", { target: request.target });
+    const parent = recordStart("transform", { target: request.target });
     const candidates = registry.transformers.filter(
       (adapter) =>
         adapter.targets.includes(request.target) &&
@@ -366,7 +376,7 @@ export const createRegistryUniversalExpressionApi = (
     capabilities,
     parse,
     realize,
-    express: realize,
+    express,
     transform,
     verify,
     traceEvents: () => trace.events(),
