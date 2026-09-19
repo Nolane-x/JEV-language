@@ -201,7 +201,7 @@ const parseVietnameseFrame = (text: string): ControlledFrame | undefined => {
     };
   }
 
-  match = /^Chỉ\s+dẫn\s+yêu\s+cầu\s+dịch\s+vụ\s+xóa\s+đúng\s+(\d+)\s+(?:cái\s+)?(?:tệp(?:\s+tin)?|file)\.?$/iu.exec(
+  match = /^Chỉ\s+dẫn\s+yêu\s+cầu\s+dịch\s+vụ\s+(?:phải\s+)?xóa\s+đúng\s+(\d+)\s+(?:cái\s+)?(?:tệp(?:\s+tin)?|file)\.?$/iu.exec(
     text,
   );
   if (match !== null) {
