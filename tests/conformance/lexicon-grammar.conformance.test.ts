@@ -164,4 +164,46 @@ describe("grammar core", () => {
     }
     expect(grammarRuleSignature(first)).toBe(grammarRuleSignature(second));
   });
+
+  it("preserves executable grammar constraints and semantic callbacks in registry clones", () => {
+    const registry = new GrammarRegistry();
+    const rule: GrammarRule = {
+      id: "grammar:test.executable",
+      language: "x-test",
+      lhs: "S",
+      rhs: [{ kind: "category", category: "NP", capture: "subject" }],
+      constraints: [
+        {
+          id: "constraint:test.always",
+          description: "fixture",
+          check: () => true,
+        },
+      ],
+      semanticConstruction: {
+        id: "semantic:test.noop",
+        construct: () => ({ ok: true, value: [] }),
+      },
+    };
+
+    expect(registry.register(rule).ok).toBe(true);
+    const loaded = registry.get(rule.id);
+    expect(loaded?.constraints[0]?.check({
+      language: "x-test",
+      ruleId: rule.id,
+      binding: {
+        categories: {},
+        surfaces: {},
+        lexical: {},
+        features: {},
+      },
+    })).toBe(true);
+    expect(
+      loaded?.semanticConstruction?.construct({
+        categories: {},
+        surfaces: {},
+        lexical: {},
+        features: {},
+      }),
+    ).toEqual({ ok: true, value: [] });
+  });
 });
