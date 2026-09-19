@@ -1,6 +1,6 @@
 # action-ir
 
-Status: **candidate / M15 implementation complete pending gate CI**.
+Status: **verified at M15 gate**.
 
 Implemented for T245–T247:
 
