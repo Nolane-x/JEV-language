@@ -236,6 +236,40 @@ export const liftPythonAnnotation = (
       });
     }
 
+    if (base === "Callable") {
+      if (tupleItems.length !== 2) {
+        return err(
+          new StructuredError(
+            "PY_LIFT_CALLABLE_SHAPE",
+            "Callable annotation requires parameter-list and return type.",
+          ),
+        );
+      }
+      const parameterNode = tupleItems[0]!;
+      const parameterNodes =
+        parameterNode._type === "List" ||
+        parameterNode._type === "Tuple"
+          ? pythonAstNodes(parameterNode.elts)
+          : [];
+      const parameters: PirType[] = [];
+      for (const item of parameterNodes) {
+        const lifted = liftPythonAnnotation(item, typeVariables);
+        if (!lifted.ok) return lifted;
+        parameters.push(lifted.value);
+      }
+      const returns = liftPythonAnnotation(
+        tupleItems[1],
+        typeVariables,
+      );
+      return returns.ok
+        ? ok({
+            kind: "function",
+            parameters,
+            returns: returns.value,
+          })
+        : returns;
+    }
+
     if (base === "Optional") {
       const inner = liftPythonAnnotation(tupleItems[0], typeVariables);
       return inner.ok
@@ -339,7 +373,17 @@ export const lowerPirTypeToPythonAnnotation = (
     case "intersection":
       return nameNode("object");
     case "function":
-      return nameNode("object");
+      return subscriptNode(
+        "Callable",
+        tupleNode([
+          {
+            _type: "List",
+            elts: type.parameters.map(lowerPirTypeToPythonAnnotation),
+            ctx: { _type: "Load" },
+          },
+          lowerPirTypeToPythonAnnotation(type.returns),
+        ]),
+      );
     case "named":
       return nameNode(
         sanitizeIdentifier(
