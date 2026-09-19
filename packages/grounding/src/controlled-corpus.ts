@@ -19,6 +19,8 @@ import {
   type EntityNode,
   type EventNode,
   type GraphOperation,
+  type IntentNode,
+  type ReferenceNode,
   type GraphSnapshot,
   type PropositionNode,
   type QuantityNode,
@@ -40,7 +42,9 @@ export type ControlledCorpusPhenomenon =
   | "prohibition"
   | "comparison"
   | "question"
-  | "attribution";
+  | "attribution"
+  | "dialogue-reference"
+  | "instruction-as-content";
 
 export interface ControlledCorpusParse {
   snapshot: GraphSnapshot;
@@ -90,6 +94,16 @@ export type ControlledFrame =
     }
   | {
       kind: "attributed-proposition";
+      amount: number;
+      phenomena: ControlledCorpusPhenomenon[];
+    }
+  | {
+      kind: "resolved-reference";
+      mention: string;
+      phenomena: ControlledCorpusPhenomenon[];
+    }
+  | {
+      kind: "instruction-content";
       amount: number;
       phenomena: ControlledCorpusPhenomenon[];
     };
@@ -288,6 +302,27 @@ const parseFrame = (text: string): ControlledFrame | undefined => {
     };
   }
 
+  if (/^Here,\s*["“]it["”]\s+refers to the service\.$/i.test(text)) {
+    return {
+      kind: "resolved-reference",
+      mention: "it",
+      phenomena: ["dialogue-reference"],
+    };
+  }
+
+  match = /^The instruction says the service must (?:delete|remove) exactly (\d+) files?\.$/i.exec(
+    text,
+  ) ?? undefined;
+  if (match !== undefined) {
+    const amount = parsePositiveInteger(match[1]);
+    if (amount === undefined) return undefined;
+    return {
+      kind: "instruction-content",
+      amount,
+      phenomena: ["instruction-as-content", "requirement", "exact-quantity"],
+    };
+  }
+
   return undefined;
 };
 
@@ -355,18 +390,49 @@ export const buildControlledFrame = (
     memberships: [],
   };
 
+  if (frame.kind === "resolved-reference") {
+    const referenceId = createSemanticId("reference");
+    const reference: ReferenceNode = {
+      id: referenceId,
+      kind: "reference",
+      schemaVersion: "0.1.0",
+      ontologyVersion: "0.1.0",
+      provenance: [provenance.id],
+      trust: "user-content",
+      candidates: [actorId],
+      resolved: actorId,
+      annotations: {
+        mention: frame.mention,
+        language: input.languageHint,
+      },
+    };
+    const committed = graph.commit(
+      graph.beginTransaction([
+        { kind: "add-node", node: actor },
+        { kind: "add-node", node: reference },
+      ]),
+      (snapshot) => validateSnapshot(snapshot, { ontology }),
+    );
+    if (!committed.ok) return err(committed.error);
+    return ok({
+      snapshot: committed.value.snapshot,
+      source,
+      roots: [referenceId],
+      phenomena: [...frame.phenomena],
+    });
+  }
+
   const comparator: QuantityComparator =
     frame.kind === "event"
       ? frame.comparator
       : frame.kind === "constraint"
         ? frame.comparator
-        : frame.kind === "question" || frame.kind === "attributed-proposition"
+        : frame.kind === "question" ||
+            frame.kind === "attributed-proposition" ||
+            frame.kind === "instruction-content"
           ? "exact"
           : "at-most";
-  const amount =
-    frame.kind === "event" || frame.kind === "constraint" || frame.kind === "question"
-      ? frame.amount
-      : frame.amount;
+  const amount = frame.amount;
   const quantity: QuantityNode = {
     id: quantityId,
     kind: "quantity",
@@ -467,6 +533,61 @@ export const buildControlledFrame = (
       { kind: "add-node", node: constraint },
     );
     roots.push(constraintId);
+  } else if (frame.kind === "instruction-content") {
+    const actionId = createSemanticId("action");
+    const constraintId = createSemanticId("constraint");
+    const intentId = createSemanticId("intent");
+    const action: ActionNode = {
+      id: actionId,
+      kind: "action",
+      schemaVersion: "0.1.0",
+      ontologyVersion: "0.1.0",
+      provenance: [provenance.id],
+      trust: "user-content",
+      operation: "concept:core.delete",
+      actor: actorId,
+      parameters: [
+        {
+          role: "role:core.quantity-limit",
+          value: { kind: "ref", ref: quantityId },
+        },
+      ],
+      preconditions: [],
+      intendedEffects: [],
+    };
+    const constraint: ConstraintNode = {
+      id: constraintId,
+      kind: "constraint",
+      schemaVersion: "0.1.0",
+      ontologyVersion: "0.1.0",
+      provenance: [provenance.id],
+      trust: "user-content",
+      constraintKind: "requirement",
+      subject: actionId,
+      predicate: "concept:core.requirement",
+      parameters: [
+        {
+          role: "role:core.quantity-limit",
+          value: { kind: "ref", ref: quantityId },
+        },
+      ],
+    };
+    const intent: IntentNode = {
+      id: intentId,
+      kind: "intent",
+      schemaVersion: "0.1.0",
+      ontologyVersion: "0.1.0",
+      provenance: [provenance.id],
+      trust: "user-content",
+      intent: "concept:core.instruction",
+      content: constraintId,
+    };
+    operations.push(
+      { kind: "add-node", node: action },
+      { kind: "add-node", node: constraint },
+      { kind: "add-node", node: intent },
+    );
+    roots.push(intentId);
   } else if (frame.kind === "attributed-proposition") {
     const propositionId = createSemanticId("proposition");
     const proposition: PropositionNode = {
