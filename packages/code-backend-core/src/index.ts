@@ -5,3 +5,8 @@ export * from "./typescript-types.ts";
 export * from "./typescript-lift.ts";
 export * from "./typescript-lower.ts";
 export * from "./typescript-backend.ts";
+export * from "./python-ast.ts";
+export * from "./python-types.ts";
+export * from "./python-lift.ts";
+export * from "./python-lower.ts";
+export * from "./python-backend.ts";
