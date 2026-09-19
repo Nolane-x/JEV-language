@@ -1,6 +1,6 @@
 # M11 — Synthesis Core Gate Evidence
 
-Status: **candidate — pending CI**
+Status: **verified**
 
 Specification basis: Sections 272–280, 419–420 and tasks T194–T208 of the v0.4 master specification.
 
@@ -73,4 +73,14 @@ Those remain later milestones/research tasks.
 
 ## Gate rule
 
-Do not mark M11 verified or advance `last_completed_gate` until this branch passes package-boundary validation, strict TypeScript, and the full deterministic test suite. No additional live Jev request is required or allowed for this gate.
+Verified evidence:
+
+- implementation head: `589c559563c02cd80d9b55430ff732d773f90210`
+- GitHub Actions CI: run `#149` / run id `35429789128`
+- deterministic job: `105862214151`
+- package boundaries: `success`
+- strict TypeScript: `success`
+- full deterministic test suite: `success`
+- live Jev requests consumed by M11: `0`
+
+The implementation-state ledger may advance to M12 TypeScript backend. The final documentation head must itself pass CI before merge.
