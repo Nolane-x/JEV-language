@@ -10,3 +10,5 @@ export * from "./expanded-english-equivalence.ts";
 export * from "./multilingual-equivalence.ts";
 export * from "./provenance-integrity.ts";
 export * from "./orchestration.ts";
+
+export * from "./translation.ts";
