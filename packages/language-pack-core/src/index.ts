@@ -1,3 +1,4 @@
+import type { SemanticId } from "../../core-types/src/index.ts";
 import type { GrammarCoverageMatrix, GrammarRegistry } from "../../grammar-core/src/index.ts";
 import type { LanguageNeutralLexiconIndex } from "../../lexicon-core/src/index.ts";
 import type { MorphologyProvider } from "../../morphology-core/src/index.ts";
@@ -67,6 +68,59 @@ export interface LanguageDiscourseProvider<TContext, TChoice> {
   choose(context: TContext): TChoice;
 }
 
+export type GrammaticalTense =
+  | "past"
+  | "present"
+  | "future"
+  | "nonpast"
+  | "tenseless"
+  | "relative"
+  | "unknown";
+
+export type LanguageAspectFeature =
+  | "perfective"
+  | "imperfective"
+  | "progressive"
+  | "perfect"
+  | "prospective"
+  | "habitual"
+  | "iterative"
+  | "none"
+  | "unknown";
+
+export interface TenseTimeSemantics {
+  /** Morphosyntactic tense expressed by the language. */
+  tense: GrammaticalTense;
+  /** Independent semantic time object; tense never substitutes for this anchor. */
+  semanticTimeRef?: SemanticId;
+  deicticAnchorRef?: SemanticId;
+}
+
+export interface AspectFeatureMapping {
+  semanticAspect: LanguageAspectFeature;
+  languageFeatures: Record<string, string | boolean>;
+}
+
+export interface TemporalAspectProvider {
+  readonly id: string;
+  readonly language: string;
+  mapTense(input: {
+    tense: GrammaticalTense;
+    semanticTimeRef?: SemanticId;
+    deicticAnchorRef?: SemanticId;
+  }): TenseTimeSemantics;
+  mapAspect(input: {
+    semanticAspect: LanguageAspectFeature;
+    eventCategory?:
+      | "event"
+      | "state"
+      | "process"
+      | "transition"
+      | "achievement"
+      | "activity";
+  }): AspectFeatureMapping;
+}
+
 export interface LanguageConformanceManifest {
   id: string;
   language: string;
@@ -99,6 +153,7 @@ export interface HumanLanguagePack<
   realize?: RealizationHookProvider<TRealizeInput, TRealizeResult>["realize"];
   punctuation: PunctuationProvider;
   discourse: LanguageDiscourseProvider<TDiscourseContext, TDiscourseChoice>;
+  temporalAspect?: TemporalAspectProvider;
   tests: LanguageConformanceManifest;
 }
 
@@ -112,6 +167,7 @@ export interface LanguagePackIdentityView {
   realizationHooks: { readonly language: string };
   punctuation: Pick<PunctuationProvider, "language">;
   discourse: { readonly language: string };
+  temporalAspect?: Pick<TemporalAspectProvider, "language">;
   tests: Pick<LanguageConformanceManifest, "language">;
 }
 
@@ -128,6 +184,7 @@ export const assertLanguagePackIdentity = (
     pack.realizationHooks.language,
     pack.punctuation.language,
     pack.discourse.language,
+    ...(pack.temporalAspect === undefined ? [] : [pack.temporalAspect.language]),
     pack.tests.language,
   ];
   if (providerLanguages.some((value) => value !== language)) {
