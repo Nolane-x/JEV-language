@@ -16,6 +16,7 @@ experimental_packages:
   - semantic-validator
   - decision-runtime
   - decision-packs
+  - verifier-core
 partial_vertical_slices:
   - controlled-English-requirement-roundtrip
   - recorded-Jev-reference-choice
@@ -29,6 +30,7 @@ next_tasks:
   - merge verified foundation wave to main
   - complete remaining M1 staged semantic validators and graph operations
   - expand M2 ontology/open-world conformance
+  - expand semantic-preservation conformance from strict-ID profiles to aligned cross-representation profiles
   - build M3 calibration fixtures/report before candidate quality claim
   - run exactly one manual live-Jev smoke only when explicitly desired
 last_verified_main_commit: 7dac106cdf08bc89be50833ed7dc4e7e6f5cd20e
@@ -48,7 +50,10 @@ A runnable foundation now exists, but this ledger deliberately does **not** mark
 - Ontology namespace/store/core seed/provisional concepts.
 - JSG typed node/value algebra, atomic transactions, revisions, canonical serialization/deserialization, restore, semantic diff/query and staged foundation validation.
 - Recorded and TypeSafe JDR adapters, normalized typed answers, request budgets, cache, calibration hook, structured errors and token usage accounting.
-- Decision-pack registry and lifecycle contract.
+- Decision-pack registry and lifecycle contract, runtime schema loading, semantic-version validation, and evidence-backed candidate/production quality gates.
+- JDR request/token budget accounting and deterministic trace events while preserving the explicit calibration hook.
+- Ontology transactional batch merge, ancestry queries, parent-cycle rejection, deprecation/replacement resolution, and replacement-cycle rejection.
+- Strict semantic-preservation verifier for dropped nodes, polarity, quantities/units, participant roles, attribution, modality, conditions, causal direction, temporal semantics, and exact definition payloads.
 - First four narrow vertical slices required by the bootstrap sequence: controlled English, recorded reference choice, controlled Vietnamese, and PIR typed-hole → TypeScript.
 
 ## Still partial by design
