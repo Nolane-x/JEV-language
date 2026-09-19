@@ -3,6 +3,7 @@ import {
   type EffectSpec,
   type PirExpression,
   type PirProgram,
+  type PirStatement,
   type ProgramHole,
 } from "../../program-ir/src/index.ts";
 import type {
@@ -100,6 +101,80 @@ const collectRefs = (
   return into;
 };
 
+const collectStatementRefs = (
+  statements: readonly PirStatement[],
+  into: Set<string> = new Set<string>(),
+): Set<string> => {
+  for (const statement of statements) {
+    switch (statement.kind) {
+      case "declare":
+        if (statement.initializer !== undefined) {
+          collectRefs(statement.initializer, into);
+        }
+        into.delete(statement.symbol.id);
+        break;
+      case "assign":
+        collectRefs(statement.target, into);
+        collectRefs(statement.value, into);
+        break;
+      case "expression":
+        collectRefs(statement.expression, into);
+        break;
+      case "return":
+        if (statement.value !== undefined) collectRefs(statement.value, into);
+        break;
+      case "if":
+        collectRefs(statement.condition, into);
+        collectStatementRefs(statement.then, into);
+        collectStatementRefs(statement.else ?? [], into);
+        break;
+      case "loop":
+        if (statement.condition !== undefined) {
+          collectRefs(statement.condition, into);
+        }
+        collectStatementRefs(statement.body, into);
+        break;
+      case "for-each":
+        collectRefs(statement.collection, into);
+        collectStatementRefs(statement.body, into);
+        into.delete(statement.item.id);
+        break;
+      case "match":
+        collectRefs(statement.value, into);
+        statement.cases.forEach((entry) =>
+          collectStatementRefs(entry.body, into),
+        );
+        collectStatementRefs(statement.default ?? [], into);
+        break;
+      case "try":
+        collectStatementRefs(statement.body, into);
+        collectStatementRefs(statement.catch?.body ?? [], into);
+        if (statement.catch?.parameter !== undefined) {
+          into.delete(statement.catch.parameter.id);
+        }
+        collectStatementRefs(statement.finally ?? [], into);
+        break;
+      case "throw":
+        collectRefs(statement.value, into);
+        break;
+      case "assert":
+        collectRefs(statement.condition, into);
+        break;
+      case "defer":
+        collectStatementRefs(statement.body, into);
+        break;
+      case "block":
+        collectStatementRefs(statement.statements, into);
+        break;
+      case "break":
+      case "continue":
+      case "hole":
+        break;
+    }
+  }
+  return into;
+};
+
 const programCallableIds = (program: PirProgram): Set<string> =>
   new Set(program.functions.map((fn) => fn.id));
 
@@ -129,7 +204,11 @@ export const evaluateHardConstraints = (
     ...context.scopeSymbols,
     ...programCallableIds(context.state.program),
   ]);
-  for (const ref of collectRefs(candidate.replacement)) {
+  const referenced =
+    candidate.replacement.kind === "expression"
+      ? collectRefs(candidate.replacement.value)
+      : collectStatementRefs(candidate.replacement.value);
+  for (const ref of referenced) {
     if (!legalRefs.has(ref)) reasons.push(`OUT_OF_SCOPE:${ref}`);
   }
 
