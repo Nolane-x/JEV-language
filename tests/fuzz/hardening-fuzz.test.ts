@@ -137,7 +137,7 @@ describe("T289-T292 deterministic fuzz hardening", () => {
         expect(resolved).toEqual({ ok: true, value: original.slice(start, end) });
 
         const stale = resolveUtf16Span(
-          source(original + "x"),
+          { ...source(original), version: "2" },
           span,
         );
         expect(stale.ok).toBe(false);
