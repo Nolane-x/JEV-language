@@ -95,6 +95,11 @@ export interface SynthesisState {
   openHoles: HoleId[];
   obligations: SynthesisProofObligation[];
   accumulatedCost: number;
+  /**
+   * Soft ordering bias only. This is deliberately excluded from the
+   * state hash and never weakens hard type/effect/scope constraints.
+   */
+  priorityBias?: number;
   depth: number;
   history: ExpansionStep[];
   verifierFacts: string[];
