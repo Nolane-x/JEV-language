@@ -143,6 +143,7 @@ export interface PirSymbol {
   semanticPurpose?: SemanticId;
   existingName?: string;
   namingIntent?: NamingIntent;
+  type?: PirType;
   visibility: Visibility;
   sourceBinding?: SourceBinding;
 }
