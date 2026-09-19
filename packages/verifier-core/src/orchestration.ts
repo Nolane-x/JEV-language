@@ -332,7 +332,7 @@ const reportStatus = (
   return "pass";
 };
 
-const verificationPlanDigest = (
+const verificationPlanInputDigest = (
   items: readonly VerificationPlanItem[],
   registry: VerificationRegistry,
 ): Digest =>
@@ -361,6 +361,32 @@ const verificationPlanDigest = (
     ),
   );
 
+const verificationExecutionPlanDigest = (
+  entries: readonly Pick<
+    VerificationPlanEntry,
+    "obligation" | "candidateVerifierIds"
+  >[],
+): Digest =>
+  sha256(
+    canonicalJson(
+      jsonValue({
+        obligations: entries.map((entry) => ({
+          id: entry.obligation.id,
+          kind: entry.obligation.kind,
+          subject: entry.obligation.subject,
+          severity: entry.obligation.severity,
+          verifierCandidates: [
+            ...entry.obligation.verifierCandidates,
+          ].sort(),
+          provenance: [...entry.obligation.provenance].sort(),
+          candidateVerifierIds: [
+            ...entry.candidateVerifierIds,
+          ].sort(),
+        })),
+      }),
+    ),
+  );
+
 export const runVerificationPlan = async (input: {
   registry: VerificationRegistry;
   items: VerificationPlanItem[];
@@ -369,12 +395,12 @@ export const runVerificationPlan = async (input: {
 }): Promise<Result<VerificationSuiteReport>> => {
   const traceId = input.replay?.traceId ?? createTraceId();
   const trace = new InMemoryTraceRecorder(traceId);
-  const planDigest = verificationPlanDigest(
+  const planInputDigest = verificationPlanInputDigest(
     input.items,
     input.registry,
   );
   const configuration: JsonValue = {
-    planDigest,
+    planInputDigest,
     registeredVerifiers: input.registry
       .list()
       .map((manifest) => `${manifest.id}@${manifest.version}`),
@@ -394,7 +420,7 @@ export const runVerificationPlan = async (input: {
     configDigest,
     metadata: {
       obligationCount: input.items.length,
-      planDigest,
+      planInputDigest,
     },
   });
 
@@ -489,13 +515,38 @@ export const runVerificationPlan = async (input: {
       resolved.result,
     );
 
+    const resultDigestsForEntry = results.map(
+      verificationResultDigest,
+    );
+    const candidateVerifierIds = candidates.map(
+      (candidate) => candidate.manifest.id,
+    );
+
+    trace.record({
+      parentIds: [root.id],
+      stage: "verification-authoritative",
+      inputRefs: [item.obligation.subject],
+      outputRefs: [
+        ...resultDigestsForEntry.map(
+          (digest) => `verification-result:${digest}`,
+        ),
+        `verification-authoritative:${authoritativeDigest}`,
+      ],
+      configDigest,
+      metadata: {
+        obligationId: item.obligation.id,
+        status: resolved.result.status,
+        conflict: resolved.conflict,
+        authoritativeVerifierId: resolved.result.verifier.id,
+        authoritativeDigest,
+      },
+    });
+
     entries.push({
       obligation: structuredClone(item.obligation),
-      candidateVerifierIds: candidates.map(
-        (candidate) => candidate.manifest.id,
-      ),
+      candidateVerifierIds,
       results: structuredClone(results),
-      resultDigests: results.map(verificationResultDigest),
+      resultDigests: resultDigestsForEntry,
       authoritative: structuredClone(resolved.result),
       authoritativeDigest,
       satisfied: verificationSatisfiesObligation(
@@ -523,8 +574,12 @@ export const runVerificationPlan = async (input: {
       (entry) => entry.authoritative.verifier.evidenceGrade,
     ),
   );
+  const planDigest = verificationExecutionPlanDigest(entries);
   const resultDigests = entries
     .flatMap((entry) => entry.resultDigests)
+    .sort();
+  const authoritativeDigests = entries
+    .map((entry) => entry.authoritativeDigest)
     .sort();
 
   const externalVerifierRefs = [
@@ -588,6 +643,7 @@ export const runVerificationPlan = async (input: {
     annotations: {
       verificationPlanDigest: planDigest,
       verificationResultDigests: resultDigests,
+      verificationAuthoritativeDigests: authoritativeDigests,
       suiteStatus: status,
       evidenceGrade,
       requiredEvidenceFloor,
@@ -641,35 +697,33 @@ export const verifyVerificationReplay = (
   const annotations = report.replay.manifest.annotations;
   const planDigest = annotations?.verificationPlanDigest;
   const resultDigests = annotations?.verificationResultDigests;
-  const recomputedPlanDigest = sha256(
-    canonicalJson(
-      jsonValue({
-        obligations: report.entries.map((entry) => ({
-          id: entry.obligation.id,
-          kind: entry.obligation.kind,
-          subject: entry.obligation.subject,
-          severity: entry.obligation.severity,
-          verifierCandidates: [
-            ...entry.obligation.verifierCandidates,
-          ].sort(),
-          provenance: [...entry.obligation.provenance].sort(),
-        })),
-        candidateVerifiers: report.entries.map((entry) => ({
-          obligationId: entry.obligation.id,
-          verifierIds: [...entry.candidateVerifierIds].sort(),
-        })),
-      }),
-    ),
-  );
+  const authoritativeDigests =
+    annotations?.verificationAuthoritativeDigests;
+  const recomputedPlanDigest =
+    verificationExecutionPlanDigest(report.entries);
 
   if (
     typeof planDigest !== "string" ||
-    !Array.isArray(resultDigests)
+    !Array.isArray(resultDigests) ||
+    !Array.isArray(authoritativeDigests)
   ) {
     return err(
       new StructuredError(
         "VERIFY_REPLAY_ANNOTATIONS_MISSING",
-        "Verification replay is missing plan/result digest annotations.",
+        "Verification replay is missing plan/result/authoritative digest annotations.",
+      ),
+    );
+  }
+
+  if (planDigest !== recomputedPlanDigest) {
+    return err(
+      new StructuredError(
+        "VERIFY_REPLAY_PLAN_DIGEST_MISMATCH",
+        "Verification replay plan digest does not match the report execution plan.",
+        {
+          expected: recomputedPlanDigest,
+          actual: planDigest,
+        },
       ),
     );
   }
@@ -697,6 +751,26 @@ export const verifyVerificationReplay = (
     );
   }
 
+  const expectedAuthoritativeDigests = report.entries
+    .map((entry) => verificationResultDigest(entry.authoritative))
+    .sort();
+  const recordedAuthoritativeDigests = authoritativeDigests
+    .filter(
+      (value): value is string => typeof value === "string",
+    )
+    .sort();
+  if (
+    canonicalJson(jsonValue(expectedAuthoritativeDigests)) !==
+    canonicalJson(jsonValue(recordedAuthoritativeDigests))
+  ) {
+    return err(
+      new StructuredError(
+        "VERIFY_REPLAY_AUTHORITATIVE_DIGEST_MISMATCH",
+        "Verification replay authoritative digests do not match the report decisions.",
+      ),
+    );
+  }
+
   const traceOutputs = new Set(
     report.replay.events.flatMap((event) => event.outputRefs),
   );
@@ -710,18 +784,19 @@ export const verifyVerificationReplay = (
       );
     }
   }
-
-  // The manifest plan digest is produced from the registry-aware plan while
-  // this report-only digest omits verifier manifests. Keep both independently
-  // checkable: the report projection is stored as an additional trace-level
-  // consistency check rather than pretending they are identical.
-  if (planDigest.trim() === "" || recomputedPlanDigest.trim() === "") {
-    return err(
-      new StructuredError(
-        "VERIFY_REPLAY_PLAN_DIGEST_EMPTY",
-        "Verification replay plan digests must be non-empty.",
-      ),
-    );
+  for (const digest of expectedAuthoritativeDigests) {
+    if (
+      !traceOutputs.has(
+        `verification-authoritative:${digest}`,
+      )
+    ) {
+      return err(
+        new StructuredError(
+          "VERIFY_REPLAY_AUTHORITATIVE_TRACE_MISSING",
+          `Authoritative verification digest is not referenced by the trace: ${digest}.`,
+        ),
+      );
+    }
   }
 
   return ok(integrity.value);
