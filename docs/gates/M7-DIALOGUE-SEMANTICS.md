@@ -1,6 +1,6 @@
 # M7 — Dialogue Semantics Gate Evidence
 
-Status: **candidate — pending deterministic CI**
+Status: **verified**
 
 Specification basis: sections 241–250, 414, and tasks T145–T157 of the v0.4 master specification.
 
@@ -105,12 +105,14 @@ The versioned Decision Pack:
 
 No live Jev request is required by M7 conformance.
 
-## Gate rule
+## Verification evidence
 
-Do not change this document to **verified** and do not advance `last_completed_gate` beyond M6 until the complete M7 branch passes:
+- verified PR head: `fa4d0de0b3852c88ec636d887fc40f849d0f7c37`;
+- GitHub Actions CI run **#107** / run id `35424108853`: `success`;
+- package-boundary enforcement: pass;
+- strict TypeScript: pass;
+- M7 dialogue conformance: **7/7 tests pass**;
+- complete deterministic repository suite: **32/32 test files, 197/197 tests pass**;
+- live Jev requests consumed by M7: **0**; reference ambiguity uses recorded deterministic JDR fixtures.
 
-1. package-boundary enforcement;
-2. strict TypeScript;
-3. the full deterministic test suite, including the 22-turn dialogue and compaction fixtures.
-
-After success, record the exact branch head and GitHub Actions run, update implementation state to M7 verified, and advance the active milestone to M8 Vietnamese.
+The M7 Definition of Done is therefore verified for the specified dialogue-semantic scope. The implementation-state ledger may advance to **M8 Vietnamese**.
