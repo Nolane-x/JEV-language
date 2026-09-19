@@ -17,6 +17,7 @@ export type VerificationKind =
   | "requirement-satisfaction"
   | "behavioral-evidence"
   | "naturalness-style"
+  | "provenance-integrity"
   | "security-trust"
   | "program-evidence";
 
