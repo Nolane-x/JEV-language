@@ -10,3 +10,4 @@ export * from "./python-types.ts";
 export * from "./python-lift.ts";
 export * from "./python-lower.ts";
 export * from "./python-backend.ts";
+export * from "./cross-backend-semantics.ts";
