@@ -1,0 +1,36 @@
+{
+  "id": "m11-synthesis-core",
+  "version": "1.0.0",
+  "milestone": "M11",
+  "taskRange": "T194-T208",
+  "liveJevRequests": 0,
+  "requiredGenerators": [
+    "generator.in-scope-symbol.v1",
+    "generator.literal.v1",
+    "generator.function-call.v1",
+    "generator.branch.v1",
+    "generator.collection-pattern.v1",
+    "generator.return.v1"
+  ],
+  "unseenProofs": [
+    "identity-symbol",
+    "recorded-jev-literal-ranking",
+    "function-call-plus-argument-hole",
+    "branch-plus-child-holes",
+    "collection-map-pattern",
+    "statement-return-hole"
+  ],
+  "assertions": [
+    "hard-type-effect-scope-pruning",
+    "pir-validity-pruning",
+    "state-deduplication",
+    "best-first-frontier",
+    "beam-frontier",
+    "state-depth-deadline-memory-budgets",
+    "jev-call-budget",
+    "compiler-test-budgets",
+    "semantic-acceptance-verification",
+    "structured-partial-failure",
+    "traceable-expansion-history"
+  ]
+}
