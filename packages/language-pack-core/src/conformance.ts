@@ -499,6 +499,7 @@ export interface MixedLanguageSegment {
   language: string;
   text: string;
   opaque?: boolean;
+  source?: "default" | "explicit" | "evidence" | "opaque";
 }
 
 export const validateMixedLanguageRealization = (
@@ -546,6 +547,33 @@ export const validateMixedLanguageRealization = (
         new StructuredError(
           "LANG_MIXED_LANGUAGE",
           `Language ${segment.language} is not allowed by the realization policy.`,
+        ),
+      );
+    }
+    if (
+      segment.language !== policy.defaultLanguage &&
+      !opaqueAllowed &&
+      policy.mode === "explicit-only" &&
+      segment.source !== "explicit"
+    ) {
+      return err(
+        new StructuredError(
+          "LANG_MIXED_EXPLICIT_REQUIRED",
+          "Explicit-only mixed-language policy requires an explicit switch source.",
+        ),
+      );
+    }
+    if (
+      segment.language !== policy.defaultLanguage &&
+      !opaqueAllowed &&
+      policy.mode === "evidence-based" &&
+      segment.source !== "explicit" &&
+      segment.source !== "evidence"
+    ) {
+      return err(
+        new StructuredError(
+          "LANG_MIXED_EVIDENCE_REQUIRED",
+          "Evidence-based mixed-language policy requires explicit or evidence-backed switching.",
         ),
       );
     }
