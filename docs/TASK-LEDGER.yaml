@@ -17,7 +17,11 @@ tasks:
   - {id: T048-T059, title: ontology/namespaces/provisional concepts, status: implemented}
   - {id: T060-T072, title: Jev decision runtime/adapters/recorded mode/budget/cache/calibration, status: implemented}
   - {id: T073-T084, title: decision packs/registry/lifecycle/budgeting, status: implemented}
-  - {id: T085-T144, title: controlled grounding/realizer/round-trip bootstrap, status: partial}
+  - {id: T085-T097, title: controlled grounding parser ambiguity and JSG commit foundation, status: implemented}
+  - {id: T098-T106, title: lexicon and morphology foundation, status: partial}
+  - {id: T107-T120, title: grammar and parser expansion, status: partial}
+  - {id: T121-T133, title: constrained realizer expansion, status: partial}
+  - {id: T134-T144, title: controlled round-trip semantic corpus, status: partial}
   - {id: T145-T180, title: dialogue/Vietnamese/discourse/pragmatics, status: partial}
   - {id: T181-T199, title: PIR typed foundation and typed-hole contracts, status: partial}
   - {id: T200-T238, title: synthesis/backends/repair/compiler-loop, status: partial}
