@@ -54,9 +54,11 @@
       "layer": 3,
       "dependencies": [
         "core-types",
+        "provenance",
         "open-world-values",
         "ontology",
-        "semantic-graph"
+        "semantic-graph",
+        "semantic-validator"
       ]
     },
     "decision-runtime": {
