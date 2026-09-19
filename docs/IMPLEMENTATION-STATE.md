@@ -34,6 +34,7 @@ known_failures: []
 blocked_items:
   - live-Jev-smoke-not-yet-executed
 next_tasks:
+  - verify M1 semantic-graph gate on CI before advancing active milestone
   - complete remaining M1 staged semantic validators and graph operations
   - expand M2 ontology/open-world conformance beyond transactional evolution
   - build M3 calibration fixtures/report before candidate quality claim
