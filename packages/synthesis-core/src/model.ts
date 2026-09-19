@@ -154,6 +154,7 @@ export interface SynthesisSuccess {
   status: "success";
   program: PirProgram;
   state: SynthesisState;
+  verificationEvidence: string[];
   usage: SearchUsage;
   trace: SynthesisTraceEvent[];
 }
@@ -196,7 +197,22 @@ export interface CandidateGenerator {
 export interface CandidateRankingRequest {
   problemId: string;
   holeId: HoleId;
+  requirements: string[];
   candidates: ExpansionCandidate[];
+}
+
+export interface ProgramAcceptanceResult {
+  accepted: boolean;
+  evidence: string[];
+  diagnostics: Array<{ code: string; message: string }>;
+}
+
+export interface ProgramAcceptanceVerifier {
+  readonly id: string;
+  verify(input: {
+    problem: SynthesisProblem;
+    program: PirProgram;
+  }): ProgramAcceptanceResult | Promise<ProgramAcceptanceResult>;
 }
 
 export interface CandidateRanker {
