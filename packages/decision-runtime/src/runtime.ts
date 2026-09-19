@@ -105,6 +105,7 @@ export class DecisionRuntime {
       });
       return {
         ...cached,
+        requestId: request.id,
         traceId,
         source: "cache",
       };
