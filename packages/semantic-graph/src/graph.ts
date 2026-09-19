@@ -41,6 +41,9 @@ export interface GraphCommit {
 
 export type GraphValidator = (snapshot: GraphSnapshot) => Diagnostic[];
 
+/** Stable public semantic-graph value used at package boundaries. */
+export type JsgGraph = GraphSnapshot;
+
 const cloneNode = <T extends JsgNode>(node: T): T => structuredClone(node);
 
 const snapshotToJson = (snapshot: GraphSnapshot): JsonValue => ({
