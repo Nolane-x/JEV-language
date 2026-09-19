@@ -971,6 +971,7 @@ const lowerFunction = (
     args: argumentsNode(parameters),
     body,
     decorator_list: [],
+    type_params: [],
     returns:
       fn.returnType.kind === "unknown"
         ? null
