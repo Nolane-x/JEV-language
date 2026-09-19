@@ -21,6 +21,25 @@ Specification basis: sections 251–259, 415, and tasks T158–T169 of the v0.4 
 | T168 shared cross-lingual corpus | 11 English/Vietnamese semantic fixture pairs |
 | T169 semantic-equivalence tests | ID-independent `verifyControlledCorpusEquivalence()` in all required M8 directions |
 
+## Common language-pack ABI evidence
+
+Section 251 is implemented by `packages/language-pack-core`.
+
+Both English and Vietnamese expose the same required provider surface:
+
+- manifest;
+- tokenizer;
+- morphology;
+- lexicon;
+- grammar;
+- parser hooks;
+- realization hooks;
+- punctuation;
+- discourse strategy;
+- language conformance manifest.
+
+`tests/conformance/language-pack-abi.conformance.test.ts` verifies provider-language identity and exercises both packs through shared JSG-facing parser/realizer hooks. Language-specific extensions such as Vietnamese classifiers/aspect/address strategy remain outside the universal semantic core.
+
 ## Language-neutral architecture
 
 Vietnamese parsing does **not** perform:
