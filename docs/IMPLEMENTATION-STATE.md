@@ -30,12 +30,13 @@ partial_vertical_slices:
   - formal-action-universal-contract
   - m16-controlled-multitarget
   - m17-verification-hardening
+  - m4-controlled-parser-foundation
 known_failures: []
 blocked_items:
   - live-Jev-smoke-not-yet-executed
 next_tasks:
   - complete remaining M1 staged semantic validators and graph operations
-  - run the single explicitly authorized live-Jev smoke required to close M3; keep gate incomplete until then
+  - run the single explicitly authorized live-Jev smoke required to close M3; keep M3 and successor milestone gates incomplete until then
   - harden M17 verifier orchestration, provenance edge cases, and cross-adapter conformance
   - expand M16 multi-target adapters beyond the controlled delete-limit semantic subset
   - run exactly one manual live-Jev smoke only when explicitly desired
@@ -63,6 +64,7 @@ A runnable foundation now exists, but this ledger deliberately does **not** mark
 - Generic VerificationObligation/Verifier ABI, evidence grading, deterministic-verifier precedence, and critical semantic-preservation checks including role bindings and temporal values.
 - TypeScript 7 CLI compatibility with the official TypeScript 6 programmatic compiler API bridge for embedded compile checks.
 - First four narrow bootstrap vertical slices: controlled English, recorded reference choice, controlled Vietnamese, and PIR typed-hole → TypeScript.
+- M4 controlled grounding/parser foundation with reversible normalization, packed syntax forests, bounded recorded-JDR ambiguity choice, JSG commit, and corpus coverage for event/negation/quantity/time/condition/cause/requirement/permission/prohibition/comparison/question.
 - Graph-structured Discourse IR foundation with deterministic prerequisite-aware ordering.
 - Formal IR family foundation (Data/Schema/Query/Math/Logic/Command), capability-validated Action IR, and harness-neutral Universal Expression contract.
 - Registry-driven Universal Expression runtime plus trace DAG/config-digest/replay-manifest foundation.
