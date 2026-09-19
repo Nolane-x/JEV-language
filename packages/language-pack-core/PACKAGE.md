@@ -15,3 +15,6 @@ M18.1 adds shared open-world lexical orchestration without moving language-speci
 - explicit borrowing policy so lexical gaps do not cause accidental language switching.
 
 This package does not claim open-domain parsing or natural conversation. Grammar expansion T107–T120 remains a separate M18 wave.
+
+
+T342 adds an optional presupposition-trigger registry provider to the shared language-pack ABI. Trigger descriptors are inspectable data (lexical, multiword, or construction keys) with explicit cancellability and projection preference; they do not execute accommodation or assert triggered content.

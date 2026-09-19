@@ -46,10 +46,13 @@ partial_vertical_slices:
   - t268-t275-extension-framework
   - t301-t310-graph-topology
   - t311-t320-scope-quantification
+  - t331-t340-deixis-attitudes-evidence-candidate
+  - t341-t350-presupposition-pragmatics-candidate
 known_failures: []
 blocked_items: []
 next_tasks:
-  - continue T341-T350 presupposition/pragmatic inference on top of verified context semantics
+  - verify and merge T331-T340 then T341-T350 deterministic gates
+  - continue T351-T360 comparison/quantity/space after the pragmatic wave is verified
   - continue M18 language expansion beyond the verified grammar/parser wave
   - expand M16 multi-target adapters beyond the controlled delete-limit semantic subset
 last_verified_main_commit: c37788d41a6cddec09c540da3f5282390f99eed7
@@ -58,7 +61,7 @@ last_verified_pr_head: 98211442dc25f98e44b67a29378466913ac13150
 
 ## Current state
 
-M0–M9 are verified at their milestone gates. M3 includes the required one-request live Jev acceptance run; M4–M9 use deterministic/recorded language-engine evidence. M9 passed CI #136 with 36/36 test files and 280/280 tests. M10 Program IR and M11 Synthesis Core are verified. M12 TypeScript Backend passed CI #155 with 39/39 test files and 312/312 tests. M13 Python Backend passed CI #167 with 40/40 test files and 319/319 tests. M14 Compiler/Test Repair Loop passed CI #182 with 41/41 test files and 325/325 tests. M15 Formal/Data/Action IR passed CI #191 with 42/42 test files and 334/334 tests. M16 Universal Expression API is verified. M17 Verification Hardening passed CI #202 and is verified. M18.1 is verified, and M18.2 grammar/parser expansion passed CI #218 with 45/45 test files and 368/368 tests before merge commit `d6d7c19`; M18 Open-world Language Expansion remains the active milestone. The cross-cutting T268-T275 extension foundation passed CI #235 with 47/47 test files and 386/386 tests; package boundaries and strict TypeScript typecheck also passed, with zero live Jev requests. T276-T288 evaluation foundation passed CI #246 with 48/48 test files and 404/404 tests after a real T286 repair-loop benchmark exposed and fixed an inline-return patch-boundary bug; merged main then passed CI #247. T289-T296 hardening passed CI with 51/51 test files and 413/413 tests and merged to main. T297-T300 performance/cache/cancellation/crash/release hardening then passed CI with 52/52 test files and 417/417 tests; merged main commit `153986e` passed the same deterministic gate. Both waves used zero live Jev requests. T301-T310 graph topology passed CI with 54/54 test files and 427/427 tests, with boundaries/typecheck green and zero live Jev requests.
+M0–M9 are verified at their milestone gates. M3 includes the required one-request live Jev acceptance run; M4–M9 use deterministic/recorded language-engine evidence. M9 passed CI #136 with 36/36 test files and 280/280 tests. M10 Program IR and M11 Synthesis Core are verified. M12 TypeScript Backend passed CI #155 with 39/39 test files and 312/312 tests. M13 Python Backend passed CI #167 with 40/40 test files and 319/319 tests. M14 Compiler/Test Repair Loop passed CI #182 with 41/41 test files and 325/325 tests. M15 Formal/Data/Action IR passed CI #191 with 42/42 test files and 334/334 tests. M16 Universal Expression API is verified. M17 Verification Hardening passed CI #202 and is verified. M18.1 is verified, and M18.2 grammar/parser expansion passed CI #218 with 45/45 test files and 368/368 tests before merge commit `d6d7c19`; M18 Open-world Language Expansion remains the active milestone. The cross-cutting T268-T275 extension foundation passed CI #235 with 47/47 test files and 386/386 tests; package boundaries and strict TypeScript typecheck also passed, with zero live Jev requests. T276-T288 evaluation foundation passed CI #246 with 48/48 test files and 404/404 tests after a real T286 repair-loop benchmark exposed and fixed an inline-return patch-boundary bug; merged main then passed CI #247. T289-T296 hardening passed CI with 51/51 test files and 413/413 tests and merged to main. T297-T300 performance/cache/cancellation/crash/release hardening then passed CI with 52/52 test files and 417/417 tests; merged main commit `153986e` passed the same deterministic gate. Both waves used zero live Jev requests. T301-T310 graph topology passed CI with 54/54 test files and 427/427 tests, with boundaries/typecheck green and zero live Jev requests. T311-T320 scope/quantification and T321-T330 event/time/modality are verified on main. T331-T340 deixis/attitudes/evidence is implemented on PR #45 but remains pending its deterministic gate. T341-T350 presupposition/pragmatics is implemented on a stacked branch and remains candidate until CI verifies its conformance tests.
 
 ## Implemented foundation
 
