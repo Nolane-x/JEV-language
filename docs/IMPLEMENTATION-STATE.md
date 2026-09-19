@@ -3,8 +3,8 @@
 ```yaml
 spec_version: 0.4-master-implementation-research-expanded
 spec_digest_sha256: 9b8bc907fa0da89d4b7ea2e0be886919deffdb35e398ea7897ea77d305380f5b
-last_completed_gate: M5-constrained-realizer-roundtrip
-active_milestone: M6-bidirectional-English-expansion
+last_completed_gate: M6-bidirectional-English
+active_milestone: M7-dialogue-semantics
 stable_packages: []
 candidate_packages:
   - core-types
@@ -36,19 +36,18 @@ partial_vertical_slices:
 known_failures: []
 blocked_items: []
 next_tasks:
-  - verify M6 T170-T180 discourse/naturalness foundation on deterministic CI
-  - complete M6 bidirectional relative-clause, multi-sentence, and unknown-term preservation fixtures
-  - run the M6 template-leakage benchmark on the expanded held-out corpus and publish failure classes
+  - complete M7 dialogue state, turn parsing, topic stack, open questions, requests, commitments, reference salience, corrections, retractions, ellipsis, and follow-up fragments
+  - add an M7 acceptance dialogue exceeding 20 turns with reference to an entity introduced at least 10 turns earlier after topic changes
   - complete remaining M1 staged semantic validators and graph operations
   - harden M17 verifier orchestration, provenance edge cases, and cross-adapter conformance
   - expand M16 multi-target adapters beyond the controlled delete-limit semantic subset
-last_verified_main_commit: 7176fa8f4959e1f44acc860e9c7aaa4504ada6ab
-last_verified_pr_head: 48ae8668e8154d43cc03101c9a163d6c30fd7459
+last_verified_main_commit: 31e90135c6c042051357838cbfe95307fc562ff6
+last_verified_pr_head: f72bbd16aff49119f4ad8b87348112106a2f7c75
 ```
 
 ## Current state
 
-M0–M5 are verified and merged. M3 includes the required one-request live Jev acceptance run; M4 and M5 are deterministic language-engine gates. M6 is now the active milestone: T170–T180 infrastructure and several bidirectional English variants are implemented on the current candidate branch, but M6 remains partial until all section-413 phenomena and its held-out template-leakage benchmark pass.
+M0–M6 are verified and merged. M3 includes the required one-request live Jev acceptance run; M4–M6 are deterministic language-engine gates. M6 passed its section-413 bidirectional English fixtures and the held-out template-leakage benchmark in CI #97. M7 dialogue semantics is now the active milestone.
 
 ## Implemented foundation
 
@@ -68,7 +67,7 @@ M0–M5 are verified and merged. M3 includes the required one-request live Jev a
 - First four narrow bootstrap vertical slices: controlled English, recorded reference choice, controlled Vietnamese, and PIR typed-hole → TypeScript.
 - M4 controlled grounding/parser foundation with reversible normalization, packed syntax forests, bounded recorded-JDR ambiguity choice, JSG commit, and corpus coverage for event/negation/quantity/time/condition/cause/requirement/permission/prohibition/comparison/question.
 - M5 constrained English realization with discourse/clause plans, lexical/morphology planning primitives, semantic source maps, attribution-safe realization, fallback policy, and a 100% semantic round-trip target on the current 11-fixture controlled corpus.
-- M6 candidate foundation: semantic discourse-relation planning, safety-gated aggregation, explicit paraphrase lattices, repetition/style/audience planning, collocation scoring, bounded pragmatic Decision Packs, template-leakage metrics, human-eval export, and verified-by-round-trip lexical/syntactic variants for synonyms, active/passive forms, temporal movement, condition/cause ordering, and reported speech.
+- M6 verified bidirectional English expansion: semantic discourse-relation planning, safety-gated aggregation, explicit paraphrase lattices, repetition/style/audience planning, collocation scoring, bounded pragmatic Decision Packs, human-eval export, verified-by-round-trip synonyms/active-passive/temporal/condition/cause/reported-speech variants, relative clauses, pronoun-linked multi-sentence discourse, exact unknown-name preservation, and a passing 14-sample held-out template-leakage benchmark.
 - Graph-structured Discourse IR foundation with deterministic prerequisite-aware ordering.
 - Formal IR family foundation (Data/Schema/Query/Math/Logic/Command), capability-validated Action IR, and harness-neutral Universal Expression contract.
 - Registry-driven Universal Expression runtime plus trace DAG/config-digest/replay-manifest foundation.
