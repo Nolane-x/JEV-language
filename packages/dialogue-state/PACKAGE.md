@@ -30,3 +30,15 @@ T361-T370 research-expansion candidate formalizes dialogue semantics beyond the 
 - deterministic dialogue-act/repair benchmark coverage.
 
 These additions do not infer an answer, commitment, or repaired fact merely from surface form; semantic links and transitions remain explicit and inspectable.
+
+
+T371-T380 research-expansion candidate adds:
+
+- extended reference taxonomy with identity, bridging, cataphoric and split-antecedent candidates;
+- deterministic pruning with explicit rejection reasons;
+- ambiguity-preserving reference results rather than forced winner selection;
+- typed ellipsis node categories;
+- fragment-answer reconstruction with explicit reconstructed-origin provenance;
+- a deterministic reference/bridging/ellipsis stress benchmark.
+
+The resolver remains conservative: pruning removes candidates only for explicit incompatibility/configured constraints, and unresolved ambiguity stays unresolved.
