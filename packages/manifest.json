@@ -290,6 +290,13 @@
         "code-backend-core",
         "verifier-core"
       ]
+    },
+    "instrumentation-core": {
+      "maturity": "prototype",
+      "layer": 1,
+      "dependencies": [
+        "core-types"
+      ]
     }
   }
 }
