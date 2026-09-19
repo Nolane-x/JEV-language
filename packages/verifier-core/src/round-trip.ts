@@ -22,10 +22,20 @@ import {
 
 type MaybePromise<T> = T | Promise<T>;
 
+export interface RoundTripEquivalence {
+  equivalent: boolean | undefined;
+  diagnostics?: Diagnostic[];
+  evidence?: string[];
+}
+
 export interface RoundTripSubject {
   source: GraphSnapshot;
   realize(): MaybePromise<Result<string>>;
   parse(surface: string): MaybePromise<Result<GraphSnapshot>>;
+  compareSemantics?: (
+    source: GraphSnapshot,
+    recovered: GraphSnapshot,
+  ) => MaybePromise<RoundTripEquivalence>;
   profile?: PreservationProfile;
   parserLimitations?: string[];
 }
@@ -116,6 +126,33 @@ export class RoundTripVerifier implements Verifier<RoundTripSubject> {
           version: this.manifest.version,
           mode: this.manifest.mode,
           evidenceGrade: "structured-heuristic-evidence",
+        },
+      };
+    }
+
+    if (subject.compareSemantics !== undefined) {
+      const comparison = await subject.compareSemantics(
+        subject.source,
+        recovered.value,
+      );
+      return {
+        obligationId: obligation.id,
+        status:
+          comparison.equivalent === undefined
+            ? "unknown"
+            : comparison.equivalent
+              ? "pass"
+              : "fail",
+        evidence: [
+          `evidence:round-trip-surface:${sha256(realized.value)}`,
+          ...(comparison.evidence ?? []),
+        ],
+        diagnostics: comparison.diagnostics ?? [],
+        verifier: {
+          id: this.manifest.id,
+          version: this.manifest.version,
+          mode: this.manifest.mode,
+          evidenceGrade: "executable-test-evidence",
         },
       };
     }
