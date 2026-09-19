@@ -62,9 +62,10 @@ It then proves:
 
 Verified evidence:
 
-- branch head: `6725495b37bbb1f4f5ee005946adb336a0670c70`
-- GitHub Actions CI: run `#72` / run id `35419962854`
+- implementation head: `6725495b37bbb1f4f5ee005946adb336a0670c70` (CI #72 passed)
+- final documentation head: `e225bd34ed7f3f5a6133e39d59a275d5ffd15f6b`
+- GitHub Actions final CI: run `#74` / run id `35420024045`
 - result: `success`
 - deterministic gate: package boundaries → strict typecheck → full test suite
 
-The implementation-state ledger may therefore advance to M2 ontology/open-world verification. The final documentation commit must itself pass CI before merge.
+The final documentation head also passed CI, so the merged M1 gate is fully verified and the implementation-state ledger has advanced to M2 ontology/open-world verification.
