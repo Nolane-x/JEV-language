@@ -153,10 +153,24 @@ export interface UnresolvedReferenceState {
   introducedTurn: number;
 }
 
+export interface DialogueCompactionRecord {
+  id: string;
+  archivedTurnIds: string[];
+  fromTurn: number;
+  throughTurn: number;
+  retainedCommitmentIds: string[];
+  openQuestionIds: string[];
+  retainedEntityIds: SemanticId[];
+  revisionBefore: string;
+  revisionAfter: string;
+  activeTopic?: string;
+}
+
 export interface DialogueState {
   revision: string;
   parentRevision?: string;
   turnCount: number;
+  archivedTurnCount: number;
   participants: ParticipantState[];
   activeTopic?: string;
   topicStack: string[];
@@ -173,6 +187,7 @@ export interface DialogueState {
   corrections: CorrectionRecord[];
   unresolvedReferences: UnresolvedReferenceState[];
   turns: DialogueTurn[];
+  compactions: DialogueCompactionRecord[];
   styleContext?: JsonValue;
 }
 
@@ -228,6 +243,7 @@ const emptyState = (
 ): DialogueState => ({
   revision: "dialogue:genesis",
   turnCount: 0,
+  archivedTurnCount: 0,
   participants: participants.map((entry) => structuredClone(entry)),
   topicStack: [],
   topics: [],
@@ -243,6 +259,7 @@ const emptyState = (
   corrections: [],
   unresolvedReferences: [],
   turns: [],
+  compactions: [],
 });
 
 const revisionPayload = (
@@ -323,11 +340,41 @@ export const validateDialogueState = (
     if (!valid.ok) return valid;
   }
 
-  if (state.turns.length !== state.turnCount) {
+  if (
+    !Number.isInteger(state.archivedTurnCount) ||
+    state.archivedTurnCount < 0
+  ) {
+    return err(
+      new StructuredError(
+        "DIALOGUE_ARCHIVED_TURN_COUNT",
+        "archivedTurnCount must be a non-negative integer.",
+      ),
+    );
+  }
+  if (state.turns.length + state.archivedTurnCount !== state.turnCount) {
     return err(
       new StructuredError(
         "DIALOGUE_TURN_HISTORY",
-        "turnCount must equal the retained turn history length before compaction.",
+        "turnCount must equal archivedTurnCount plus retained turn history length.",
+      ),
+    );
+  }
+  const archivedIds = state.compactions.flatMap(
+    (record) => record.archivedTurnIds,
+  );
+  if (archivedIds.length !== state.archivedTurnCount) {
+    return err(
+      new StructuredError(
+        "DIALOGUE_COMPACTION_COUNT",
+        "Compaction archive ids must account for every archived turn.",
+      ),
+    );
+  }
+  if (new Set(archivedIds).size !== archivedIds.length) {
+    return err(
+      new StructuredError(
+        "DIALOGUE_COMPACTION_DUPLICATE",
+        "A turn may be archived by at most one compaction record.",
       ),
     );
   }
@@ -897,6 +944,98 @@ export class InMemoryDialogueState {
     return ok(this.snapshot());
   }
 
+  compact(retainLastTurns = 8): Result<DialogueState> {
+    if (
+      !Number.isInteger(retainLastTurns) ||
+      retainLastTurns < 0
+    ) {
+      return err(
+        new StructuredError(
+          "DIALOGUE_COMPACTION_RETAIN",
+          "retainLastTurns must be a non-negative integer.",
+        ),
+      );
+    }
+
+    const archiveCount = Math.max(
+      0,
+      this.#state.turns.length - retainLastTurns,
+    );
+    if (archiveCount === 0) return ok(this.snapshot());
+
+    const previous = this.#state;
+    const candidate = cloneState(previous);
+    const archived = candidate.turns.slice(0, archiveCount);
+    const retained = candidate.turns.slice(archiveCount);
+    const first = archived[0];
+    const last = archived.at(-1);
+    if (first === undefined || last === undefined) {
+      return ok(this.snapshot());
+    }
+
+    candidate.turns = retained;
+    candidate.archivedTurnCount += archived.length;
+    const revisionBefore = previous.revision;
+    const recordId = `compaction:${candidate.compactions.length + 1}`;
+    const payload = {
+      recordId,
+      archivedTurnIds: archived.map((turn) => turn.id),
+      fromTurn: first.turnNumber,
+      throughTurn: last.turnNumber,
+      retainedCommitmentIds: candidate.commitments.map(
+        (commitment) => commitment.id,
+      ),
+      openQuestionIds: candidate.openQuestions.map(
+        (question) => question.id,
+      ),
+      retainedEntityIds: candidate.discourseEntities.map(
+        (entity) => entity.id,
+      ),
+      activeTopic: candidate.activeTopic ?? null,
+      revisionBefore,
+    } as unknown as JsonValue;
+    const revisionAfter =
+      "dialogue:" +
+      sha256(canonicalJson(payload)).slice("sha256:".length);
+
+    const record: DialogueCompactionRecord = {
+      id: recordId,
+      archivedTurnIds: archived.map((turn) => turn.id),
+      fromTurn: first.turnNumber,
+      throughTurn: last.turnNumber,
+      retainedCommitmentIds: candidate.commitments.map(
+        (commitment) => commitment.id,
+      ),
+      openQuestionIds: candidate.openQuestions.map(
+        (question) => question.id,
+      ),
+      retainedEntityIds: candidate.discourseEntities.map(
+        (entity) => entity.id,
+      ),
+      revisionBefore,
+      revisionAfter,
+      ...(candidate.activeTopic === undefined
+        ? {}
+        : { activeTopic: candidate.activeTopic }),
+    };
+    candidate.compactions.push(record);
+    candidate.parentRevision = revisionBefore;
+    candidate.revision = revisionAfter;
+
+    const valid = validateDialogueState(candidate);
+    if (!valid.ok) return valid;
+
+    this.#state = candidate;
+    this.#revisions.push({
+      revision: revisionAfter,
+      parentRevision: revisionBefore,
+      turnId: recordId,
+      turnNumber: candidate.turnCount,
+    });
+    return ok(this.snapshot());
+  }
+
+
   commit(transaction: DialogueTransaction): Result<DialogueState> {
     if (transaction.baseRevision !== this.#state.revision) {
       return err(
@@ -920,7 +1059,13 @@ export class InMemoryDialogueState {
         ),
       );
     }
-    if (previous.turns.some((entry) => entry.id === turn.id)) {
+    const archivedTurnIds = new Set(
+      previous.compactions.flatMap((record) => record.archivedTurnIds),
+    );
+    if (
+      previous.turns.some((entry) => entry.id === turn.id) ||
+      archivedTurnIds.has(turn.id)
+    ) {
       return err(
         new StructuredError(
           "DIALOGUE_TURN_DUPLICATE",
