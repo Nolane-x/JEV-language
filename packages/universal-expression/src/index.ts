@@ -313,3 +313,5 @@ export const createUniversalExpressionApi = (
 export * from "./runtime.ts";
 
 export * from "./controlled-adapters.ts";
+
+export * from "./translation.ts";
