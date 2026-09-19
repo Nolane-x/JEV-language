@@ -45,7 +45,7 @@ known_failures: []
 blocked_items: []
 next_tasks:
   - complete remaining M1 staged semantic validators and graph operations
-  - harden M17 verifier orchestration, provenance edge cases, and cross-adapter conformance
+  - verify M17 integrated verifier orchestration/provenance/replay gate on CI before M18
   - expand M16 multi-target adapters beyond the controlled delete-limit semantic subset
 last_verified_main_commit: df4f806a2abf8635c7b423d3cddaebf6eaf4dfe4
 last_verified_pr_head: 2ddfb7de428e71a33633d5db0408f5d9b4ed7227
@@ -85,7 +85,7 @@ M0–M9 are verified at their milestone gates. M3 includes the required one-requ
 - Formal IR family foundation (Data/Schema/Query/Math/Logic/Command), capability-validated Action IR, and harness-neutral Universal Expression contract.
 - Registry-driven Universal Expression runtime plus trace DAG/config-digest/replay-manifest foundation.
 - M16 verified Universal Expression API: harness-neutral parse/realize/express/transform/verify runtime, capability discovery, same-JSG natural-language/structured-data/PIR-program/declared-Action realization, and trace/replay evidence.
-- M17 verifier foundation: semantic round-trip with parser-limit unknowns, conservative trust/provenance checks, requirement reports, grammar evidence normalization, and compile/test evidence normalization.
+- M17 verifier foundation: semantic round-trip with parser-limit unknowns, conservative trust/provenance checks, requirement reports, grammar evidence normalization, and compile/test evidence normalization.\n- M17 integrated verification candidate: registry orchestration, provenance ancestry integrity, deterministic conflict handling, evidence-floor grading, and replay bundles bound to raw/authoritative result digests.
 
 ## Still partial by design
 
