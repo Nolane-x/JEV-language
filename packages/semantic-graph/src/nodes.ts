@@ -271,6 +271,32 @@ export interface EvidentialitySpec {
   sourceDetail?: string;
 }
 
+export type PresuppositionStatus =
+  | "triggered"
+  | "satisfied"
+  | "accommodated-local"
+  | "accommodated-global"
+  | "linked"
+  | "challenged"
+  | "unresolved";
+
+export interface PresuppositionSpec {
+  status: PresuppositionStatus;
+  triggerId: string;
+  host?: SemanticRef;
+  context?: SemanticRef;
+  linkedRef?: SemanticRef;
+}
+
+export interface PragmaticInferenceSpec {
+  status: "active" | "cancelled";
+  strength: "defeasible";
+  sourceKind: "rule" | "jev-decision";
+  sourceId: string;
+  premiseRefs: SemanticRef[];
+  cancellationReason?: string;
+}
+
 export interface ScopeSpec {
   kind: "resolved" | "underspecified";
   scopeId?: SemanticId;
@@ -443,6 +469,8 @@ export interface PropositionNode extends JsgNodeBase<"proposition"> {
   scope?: ScopeSpec;
   attribution?: SemanticRef;
   context?: SemanticRef;
+  presupposition?: PresuppositionSpec;
+  pragmaticInference?: PragmaticInferenceSpec;
 }
 
 export interface ContextNode extends JsgNodeBase<"context"> {
