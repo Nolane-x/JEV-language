@@ -69,6 +69,7 @@ export class DecisionRuntime {
     request: DecisionBatchRequest,
     signal?: AbortSignal,
   ): Promise<DecisionBatchResponse> {
+    this.#assertNotCancelled(signal);
     const traceId = request.traceContext?.traceId ?? createTraceId();
     const requestWithTrace: DecisionBatchRequest = {
       ...request,
@@ -91,6 +92,7 @@ export class DecisionRuntime {
       });
       return {
         ...cached,
+        requestId: request.id,
         traceId,
         source: "cache",
       };
@@ -100,6 +102,7 @@ export class DecisionRuntime {
     let lastError: JdrError | undefined;
 
     for (let attempt = 1; attempt <= retry.maxAttempts; attempt += 1) {
+      this.#assertNotCancelled(signal);
       this.#assertBudgetAvailable();
       this.#usage.requests += 1;
       this.#emit({
@@ -112,6 +115,7 @@ export class DecisionRuntime {
 
       try {
         const response = await this.#adapter.execute(requestWithTrace, signal);
+        this.#assertNotCancelled(signal);
         const validated = validateDecisionBatchResponse(
           requestWithTrace,
           response,
@@ -159,12 +163,17 @@ export class DecisionRuntime {
         return normalized;
       } catch (error) {
         const normalizedError =
-          error instanceof JdrError
-            ? error
-            : new JdrError(
-                "JDR_PROVIDER_ERROR",
-                error instanceof Error ? error.message : "Unknown provider error.",
-              );
+          signal?.aborted === true
+            ? new JdrError(
+                "JDR_CANCELLED",
+                "Decision execution was cancelled.",
+              )
+            : error instanceof JdrError
+              ? error
+              : new JdrError(
+                  "JDR_PROVIDER_ERROR",
+                  error instanceof Error ? error.message : "Unknown provider error.",
+                );
         lastError = normalizedError;
         this.#emit({
           kind: "request-failed",
@@ -178,11 +187,7 @@ export class DecisionRuntime {
           attempt < retry.maxAttempts &&
           retry.retryableCodes.includes(normalizedError.code);
         if (!canRetry) throw normalizedError;
-        if ((retry.backoffMs ?? 0) > 0) {
-          await new Promise<void>((resolve) => {
-            setTimeout(resolve, retry.backoffMs);
-          });
-        }
+        await this.#waitForRetryBackoff(retry.backoffMs ?? 0, signal);
       }
     }
 
@@ -273,6 +278,51 @@ export class DecisionRuntime {
         },
       );
     }
+  }
+
+  #assertNotCancelled(signal?: AbortSignal): void {
+    if (signal?.aborted === true) {
+      throw new JdrError(
+        "JDR_CANCELLED",
+        "Decision execution was cancelled.",
+      );
+    }
+  }
+
+  async #waitForRetryBackoff(
+    backoffMs: number,
+    signal?: AbortSignal,
+  ): Promise<void> {
+    this.#assertNotCancelled(signal);
+    if (backoffMs <= 0) return;
+
+    await new Promise<void>((resolve, reject) => {
+      if (signal?.aborted === true) {
+        reject(
+          new JdrError(
+            "JDR_CANCELLED",
+            "Decision retry backoff was cancelled.",
+          ),
+        );
+        return;
+      }
+
+      const onAbort = (): void => {
+        clearTimeout(timer);
+        signal?.removeEventListener("abort", onAbort);
+        reject(
+          new JdrError(
+            "JDR_CANCELLED",
+            "Decision retry backoff was cancelled.",
+          ),
+        );
+      };
+      const timer = setTimeout(() => {
+        signal?.removeEventListener("abort", onAbort);
+        resolve();
+      }, backoffMs);
+      signal?.addEventListener("abort", onAbort, { once: true });
+    });
   }
 
   #emit(event: DecisionTraceEvent): void {
