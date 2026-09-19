@@ -14,6 +14,7 @@ experimental_packages:
   - semantic-graph
   - semantic-validator
   - decision-runtime
+  - verifier-core
 known_failures: []
 blocked_items: []
 next_tasks:
@@ -22,6 +23,7 @@ next_tasks:
   - implement T011-T035 JSG and validator
   - implement T036-T059 open-world and ontology
   - implement T060-T084 JDR and first decision pack
+  - expand strict semantic-preservation invariants into conformance/property suites
 last_verified_commit: null
 ```
 
@@ -38,6 +40,7 @@ The repository is in bootstrap. This file is deliberately conservative: no miles
 - ADR process.
 - Ordinary CI that never reads the TypeSafe secret.
 - Manual live-Jev workflow separated from ordinary CI.
+- Strict semantic-preservation verifier covering negation, quantities, unknown preservation, identity, attribution, conditions, modality, causal direction, temporal order, and exact payload preservation.
 
 ## Quota policy
 
