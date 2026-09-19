@@ -163,6 +163,7 @@ const requestedInvariants = (
   if (profile.preserveUnknowns) invariants.push("unknown-preservation");
   if (profile.preserveCausalRelations) invariants.push("causal-direction");
   if (profile.preserveTemporalRelations) invariants.push("temporal-order");
+  if (profile.preserveTemporalValues) invariants.push("temporal-value");
   if (profile.preserveOpaqueExactness) invariants.push("opaque-exactness");
   return invariants;
 };
