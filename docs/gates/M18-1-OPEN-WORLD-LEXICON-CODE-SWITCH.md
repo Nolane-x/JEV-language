@@ -1,6 +1,6 @@
 # M18.1 — Open-world Lexicon and Code-switch Gate
 
-Status: **candidate — pending CI**
+Status: **verified**
 
 Specification basis:
 
@@ -110,8 +110,12 @@ This wave does not claim:
 
 ## Gate rule
 
-Mark T098–T106 verified only after the full branch head passes package-boundary validation, strict TypeScript, and the complete deterministic test suite.
+Verified evidence:
 
-M18 remains active after this gate; M18.2 proceeds with T107–T120 grammar/parser expansion.
+- implementation head: `47ddfce5501b1f8ddb9952dc695b32a1f2234f36`
+- GitHub Actions CI: run `#207` / run id `35441576291`
+- result: `success`
+- package boundaries, strict TypeScript and the complete deterministic suite passed
+- live Jev requests consumed by this wave: `0`
 
-Live Jev requests: **0**.
+T098–T106 are therefore verified. M18 remains active; M18.2 proceeds with T107–T120 grammar/parser expansion.
