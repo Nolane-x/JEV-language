@@ -1,6 +1,6 @@
 # M16 — Universal Expression API Gate Evidence
 
-Status: **candidate — pending M15 merge and M16 CI**
+Status: **verified**
 
 Specification basis: Section 426 and tasks T248–T258 of the v0.4 master specification.
 
@@ -90,14 +90,14 @@ M16 does not claim broad semantic coverage for every target. The acceptance path
 
 Broader target/domain adapters remain subsequent coverage work.
 
-## Gate rule
+## Verified gate evidence
 
-Do not mark M16 verified until:
+- implementation head: `2ddfb7de428e71a33633d5db0408f5d9b4ed7227`
+- GitHub Actions CI: run `#196` / run id `35438815596`
+- result: `success`
+- package-boundary check: pass
+- strict TypeScript: pass
+- full deterministic suite: pass
+- live Jev requests consumed by M16: `0`
 
-1. M15 is merged and verified;
-2. the clean M16 branch is based on verified M15 main;
-3. package boundaries pass;
-4. strict TypeScript passes;
-5. the full deterministic suite passes including same-root four-target acceptance, universal runtime and trace/replay conformance.
-
-No live Jev request is required or allowed for M16.
+M16 may advance the implementation state to M17 verification hardening. The final state/evidence documentation commit must itself pass CI before merge.
