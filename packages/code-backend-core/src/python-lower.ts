@@ -1115,7 +1115,9 @@ export const lowerPirToPythonAst = (
       kind: "function",
       parameters: fn.parameters.map((parameter) => parameter.type),
       returns: fn.returnType,
-      effects: fn.effects,
+      ...(fn.effects === undefined
+        ? {}
+        : { effects: structuredClone(fn.effects) }),
     });
   }
   for (const symbol of program.symbols ?? []) {
