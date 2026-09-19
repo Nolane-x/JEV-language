@@ -99,11 +99,23 @@ const parsePositiveInteger = (value: string | undefined): number | undefined => 
   return Number.isSafeInteger(parsed) && parsed >= 0 ? parsed : undefined;
 };
 
+const firstMatch = (
+  text: string,
+  patterns: readonly RegExp[],
+): RegExpExecArray | undefined => {
+  for (const pattern of patterns) {
+    const match = pattern.exec(text);
+    if (match !== null) return match;
+  }
+  return undefined;
+};
+
 const parseFrame = (text: string): ControlledFrame | undefined => {
-  let match = /^The service deletes exactly (\d+) files?(?: on (\d{4}-\d{2}-\d{2}))?\.$/i.exec(
-    text,
-  );
-  if (match !== null) {
+  let match = firstMatch(text, [
+    /^The service (?:deletes|removes) exactly (\d+) files?(?: on (\d{4}-\d{2}-\d{2}))?\.$/i,
+    /^Exactly (\d+) files? (?:are|is) deleted by the service(?: on (\d{4}-\d{2}-\d{2}))?\.$/i,
+  ]);
+  if (match !== undefined) {
     const amount = parsePositiveInteger(match[1]);
     if (amount === undefined) return undefined;
     const date = match[2];
@@ -121,8 +133,28 @@ const parseFrame = (text: string): ControlledFrame | undefined => {
     };
   }
 
-  match = /^The service does not delete exactly (\d+) files?\.$/i.exec(text);
-  if (match !== null) {
+  match = /^On (\d{4}-\d{2}-\d{2}), the service (?:deletes|removes) exactly (\d+) files?\.$/i.exec(
+    text,
+  ) ?? undefined;
+  if (match !== undefined) {
+    const amount = parsePositiveInteger(match[2]);
+    const date = match[1];
+    if (amount === undefined || date === undefined) return undefined;
+    return {
+      kind: "event",
+      amount,
+      comparator: "exact",
+      polarity: "positive",
+      date,
+      phenomena: ["simple-event", "exact-quantity", "time"],
+    };
+  }
+
+  match = firstMatch(text, [
+    /^The service does not (?:delete|remove) exactly (\d+) files?\.$/i,
+    /^Exactly (\d+) files? (?:are|is) not deleted by the service\.$/i,
+  ]);
+  if (match !== undefined) {
     const amount = parsePositiveInteger(match[1]);
     if (amount === undefined) return undefined;
     return {
@@ -134,8 +166,11 @@ const parseFrame = (text: string): ControlledFrame | undefined => {
     };
   }
 
-  match = /^The service must delete exactly (\d+) files?\.$/i.exec(text);
-  if (match !== null) {
+  match = firstMatch(text, [
+    /^The service must (?:delete|remove) exactly (\d+) files?\.$/i,
+    /^Exactly (\d+) files? must be deleted by the service\.$/i,
+  ]);
+  if (match !== undefined) {
     const amount = parsePositiveInteger(match[1]);
     if (amount === undefined) return undefined;
     return {
@@ -148,8 +183,11 @@ const parseFrame = (text: string): ControlledFrame | undefined => {
     };
   }
 
-  match = /^The service may delete at most (\d+) files?\.$/i.exec(text);
-  if (match !== null) {
+  match = firstMatch(text, [
+    /^The service may (?:delete|remove) at most (\d+) files?\.$/i,
+    /^At most (\d+) files? may be deleted by the service\.$/i,
+  ]);
+  if (match !== undefined) {
     const amount = parsePositiveInteger(match[1]);
     if (amount === undefined) return undefined;
     return {
@@ -162,7 +200,10 @@ const parseFrame = (text: string): ControlledFrame | undefined => {
     };
   }
 
-  if (/^The service must not delete any files?\.$/i.test(text)) {
+  if (
+    /^The service must not (?:delete|remove) any files?\.$/i.test(text) ||
+    /^No files? may be deleted by the service\.$/i.test(text)
+  ) {
     return {
       kind: "constraint",
       amount: 0,
@@ -173,8 +214,11 @@ const parseFrame = (text: string): ControlledFrame | undefined => {
     };
   }
 
-  match = /^The service must not delete more than (\d+) files?\.$/i.exec(text);
-  if (match !== null) {
+  match = firstMatch(text, [
+    /^The service must not (?:delete|remove) more than (\d+) files?\.$/i,
+    /^The service is required to (?:delete|remove) no more than (\d+) files?\.$/i,
+  ]);
+  if (match !== undefined) {
     const amount = parsePositiveInteger(match[1]);
     if (amount === undefined) return undefined;
     return {
@@ -187,11 +231,11 @@ const parseFrame = (text: string): ControlledFrame | undefined => {
     };
   }
 
-  match =
-    /^If deletion is prohibited, the service must not delete more than (\d+) files?\.$/i.exec(
-      text,
-    );
-  if (match !== null) {
+  match = firstMatch(text, [
+    /^If deletion is prohibited, the service must not (?:delete|remove) more than (\d+) files?\.$/i,
+    /^The service must not (?:delete|remove) more than (\d+) files? if deletion is prohibited\.$/i,
+  ]);
+  if (match !== undefined) {
     const amount = parsePositiveInteger(match[1]);
     if (amount === undefined) return undefined;
     return {
@@ -201,11 +245,11 @@ const parseFrame = (text: string): ControlledFrame | undefined => {
     };
   }
 
-  match =
-    /^The service must not delete more than (\d+) files? because deletion is prohibited\.$/i.exec(
-      text,
-    );
-  if (match !== null) {
+  match = firstMatch(text, [
+    /^The service must not (?:delete|remove) more than (\d+) files? because deletion is prohibited\.$/i,
+    /^Because deletion is prohibited, the service must not (?:delete|remove) more than (\d+) files?\.$/i,
+  ]);
+  if (match !== undefined) {
     const amount = parsePositiveInteger(match[1]);
     if (amount === undefined) return undefined;
     return {
@@ -215,11 +259,11 @@ const parseFrame = (text: string): ControlledFrame | undefined => {
     };
   }
 
-  match =
-    /^According to the service, the service deletes exactly (\d+) files?\.$/i.exec(
-      text,
-    );
-  if (match !== null) {
+  match = firstMatch(text, [
+    /^According to the service, the service (?:deletes|removes) exactly (\d+) files?\.$/i,
+    /^The service reports that it (?:deletes|removes) exactly (\d+) files?\.$/i,
+  ]);
+  if (match !== undefined) {
     const amount = parsePositiveInteger(match[1]);
     if (amount === undefined) return undefined;
     return {
@@ -229,8 +273,11 @@ const parseFrame = (text: string): ControlledFrame | undefined => {
     };
   }
 
-  match = /^May the service delete exactly (\d+) files?\?$/i.exec(text);
-  if (match !== null) {
+  match = firstMatch(text, [
+    /^May the service (?:delete|remove) exactly (\d+) files?\?$/i,
+    /^Is the service permitted to (?:delete|remove) exactly (\d+) files?\?$/i,
+  ]);
+  if (match !== undefined) {
     const amount = parsePositiveInteger(match[1]);
     if (amount === undefined) return undefined;
     return {

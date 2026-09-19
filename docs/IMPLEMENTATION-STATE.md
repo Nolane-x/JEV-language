@@ -32,20 +32,23 @@ partial_vertical_slices:
   - m17-verification-hardening
   - m4-controlled-parser-foundation
   - m5-controlled-realizer-roundtrip
+  - m6-discourse-naturalness-foundation
 known_failures: []
 blocked_items: []
 next_tasks:
-  - implement and verify M6 T170-T180 discourse/naturalness expansion and template-leakage evaluation
+  - verify M6 T170-T180 discourse/naturalness foundation on deterministic CI
+  - complete M6 bidirectional relative-clause, multi-sentence, and unknown-term preservation fixtures
+  - run the M6 template-leakage benchmark on the expanded held-out corpus and publish failure classes
   - complete remaining M1 staged semantic validators and graph operations
   - harden M17 verifier orchestration, provenance edge cases, and cross-adapter conformance
   - expand M16 multi-target adapters beyond the controlled delete-limit semantic subset
-last_verified_main_commit: 5451dd15e20cf83e6c97848b4be1936e0997c758
-last_verified_pr_head: 76634222a6654a3f39fa89ea26a4ac6d4cecf3ad
+last_verified_main_commit: 7176fa8f4959e1f44acc860e9c7aaa4504ada6ab
+last_verified_pr_head: 48ae8668e8154d43cc03101c9a163d6c30fd7459
 ```
 
 ## Current state
 
-M0–M5 now have gate evidence. M3 includes the required live Jev acceptance run; M4 and M5 remain deterministic language-engine gates. The state above is committed on the M5 PR branch and becomes canonical only after this final documentation head passes CI and PR #19 merges.
+M0–M5 are verified and merged. M3 includes the required one-request live Jev acceptance run; M4 and M5 are deterministic language-engine gates. M6 is now the active milestone: T170–T180 infrastructure and several bidirectional English variants are implemented on the current candidate branch, but M6 remains partial until all section-413 phenomena and its held-out template-leakage benchmark pass.
 
 ## Implemented foundation
 
@@ -65,6 +68,7 @@ M0–M5 now have gate evidence. M3 includes the required live Jev acceptance run
 - First four narrow bootstrap vertical slices: controlled English, recorded reference choice, controlled Vietnamese, and PIR typed-hole → TypeScript.
 - M4 controlled grounding/parser foundation with reversible normalization, packed syntax forests, bounded recorded-JDR ambiguity choice, JSG commit, and corpus coverage for event/negation/quantity/time/condition/cause/requirement/permission/prohibition/comparison/question.
 - M5 constrained English realization with discourse/clause plans, lexical/morphology planning primitives, semantic source maps, attribution-safe realization, fallback policy, and a 100% semantic round-trip target on the current 11-fixture controlled corpus.
+- M6 candidate foundation: semantic discourse-relation planning, safety-gated aggregation, explicit paraphrase lattices, repetition/style/audience planning, collocation scoring, bounded pragmatic Decision Packs, template-leakage metrics, human-eval export, and verified-by-round-trip lexical/syntactic variants for synonyms, active/passive forms, temporal movement, condition/cause ordering, and reported speech.
 - Graph-structured Discourse IR foundation with deterministic prerequisite-aware ordering.
 - Formal IR family foundation (Data/Schema/Query/Math/Logic/Command), capability-validated Action IR, and harness-neutral Universal Expression contract.
 - Registry-driven Universal Expression runtime plus trace DAG/config-digest/replay-manifest foundation.

@@ -22,7 +22,9 @@ tasks:
   - {id: T107-T120, title: grammar and parser expansion, status: partial}
   - {id: T121-T133, title: constrained realizer expansion, status: implemented}
   - {id: T134-T144, title: controlled round-trip semantic corpus, status: implemented}
-  - {id: T145-T180, title: dialogue/Vietnamese/discourse/pragmatics, status: partial}
+  - {id: T145-T157, title: dialogue state reference correction and long-turn conformance, status: partial}
+  - {id: T158-T169, title: Vietnamese language pack and cross-lingual equivalence, status: partial}
+  - {id: T170-T180, title: discourse naturalness pragmatics and evaluation foundation, status: implemented}
   - {id: T181-T199, title: PIR typed foundation and typed-hole contracts, status: partial}
   - {id: T200-T238, title: synthesis/backends/repair/compiler-loop, status: partial}
   - {id: T239-T247, title: formal/data/query/math/logic/command/action IR schemas validators and deterministic renderers, status: implemented}
@@ -46,6 +48,9 @@ vertical_slices:
   - {id: VS3, title: Vietnamese direct-to-JSG and JSG-to-Vietnamese controlled subset, status: implemented}
   - {id: VS4, title: PIR typed-hole synthesis to TypeScript plus compiler check, status: implemented}
 live_evaluation:
-  requests_consumed_by_bootstrap: 0
-  smoke_workflow: manual-only
+  requests_consumed_by_bootstrap: 1
+  last_live_smoke_run: 35421718883
+  last_live_smoke_model: jev-1.13.0
+  last_live_smoke_input_tokens: 356
+  last_live_smoke_output_tokens: 26
   smoke_request_cap: 1

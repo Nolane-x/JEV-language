@@ -153,7 +153,9 @@
         "grammar-core",
         "morphology-core",
         "lexicon-core",
-        "ontology"
+        "ontology",
+        "pragmatics",
+        "open-world-values"
       ]
     },
     "language-en": {
