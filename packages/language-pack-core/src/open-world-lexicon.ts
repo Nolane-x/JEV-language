@@ -72,6 +72,23 @@ export interface ResolveLexicalOptions {
   allowCompound?: boolean;
 }
 
+export interface OpenWorldLanguagePackView {
+  manifest: { languageTag: string };
+  lexicon: { create(): LanguageNeutralLexiconIndex };
+  morphology: MorphologyProvider;
+}
+
+export const createOpenWorldLexicalResolverFromPacks = (
+  packs: readonly OpenWorldLanguagePackView[],
+): OpenWorldLexicalResolver =>
+  new OpenWorldLexicalResolver(
+    packs.map((pack) => ({
+      language: pack.manifest.languageTag,
+      lexicon: pack.lexicon.create(),
+      morphology: pack.morphology,
+    })),
+  );
+
 const normalized = (value: string): string =>
   value.normalize("NFC").toLocaleLowerCase();
 
