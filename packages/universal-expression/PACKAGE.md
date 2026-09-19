@@ -1,7 +1,22 @@
 # universal-expression
 
-Status: **prototype / PARTIAL**.
+Status: **candidate / M16 implementation complete pending predecessor merge and gate CI**.
 
-Implemented foundation: ExpressionTarget, ExpressionRequest, ExpressionArtifact, ExpressionResult/ResultEnvelope, capability discovery, stable diagnostics, and explicit partial/ambiguous/unsupported states.
+Implemented T248–T258 foundation:
 
-Runtime wave: registry-driven parser/realizer/transform/verifier adapters, deterministic routing, duplicate-ID rejection, ambiguity preservation instead of last-loaded-wins, operation tracing with configuration digests, and replay-manifest exposure. The controlled M16 same-JSG acceptance path now covers natural-language, structured-data, and consumer-declared Action IR artifacts from the same semantic requirement root. M16 remains partial until this path expands beyond the controlled requirement subset and gains broader concrete language/program adapters.
+- stable harness-neutral ExpressionTarget / ExpressionRequest / ExpressionArtifact / ExpressionResult contracts;
+- explicit ResultEnvelope states: ok / partial / ambiguous / unsupported / error;
+- capability discovery manifest;
+- parse / realize / express / transform / verify public operations;
+- registry-driven parser, realizer, transformer and verifier adapters;
+- duplicate-adapter rejection and deterministic routing;
+- operation traces with configuration digests;
+- replay-manifest exposure through trace-replay;
+- controlled semantic adapters for English and Vietnamese text;
+- controlled structured-data realization;
+- controlled backend-neutral PIR realization;
+- consumer-declared Action IR realization with no execution authority.
+
+Section-426 same-root acceptance is covered by one controlled delete-limit JSG root materialized through the same runtime into natural-language, structured-data, program and Action IR artifacts.
+
+Broader target adapters remain future coverage work; M16 verifies the stable API/gate contract, not universal domain coverage.
