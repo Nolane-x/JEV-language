@@ -242,7 +242,9 @@ const consumeSingle = (
         children: [...state.children, nodeId("TOKEN", state.position, state.position + 1)],
         binding: appendCapture(state.binding, pattern, {
           surface: token.surface,
-          features: token.features,
+          ...(token.features === undefined
+            ? {}
+            : { features: token.features }),
         }),
       },
     ];
@@ -257,7 +259,9 @@ const consumeSingle = (
       binding: appendCapture(state.binding, pattern, {
         surface: token.surface,
         lexical: matches,
-        features: token.features,
+        ...(token.features === undefined
+          ? {}
+          : { features: token.features }),
       }),
     },
   ];
@@ -291,11 +295,11 @@ const consumeRepeated = (
     }
     if (current.state.position >= tokens.length) continue;
 
-    const singlePattern = {
-      ...pattern,
-      repeat: undefined,
-      optional: undefined,
-    } as GrammarPattern;
+    const {
+      repeat: _repeat,
+      optional: _optional,
+      ...singlePattern
+    } = pattern;
     for (const next of consumeSingle(
       singlePattern,
       current.state,
