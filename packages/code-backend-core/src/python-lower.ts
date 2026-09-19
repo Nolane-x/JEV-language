@@ -979,35 +979,130 @@ const lowerFunction = (
   });
 };
 
-const typeVariablePrelude = (
+const collectTypingNames = (
+  type: PirType,
+  names: Set<string>,
+): void => {
+  switch (type.kind) {
+    case "never":
+      names.add("NoReturn");
+      break;
+    case "function":
+      names.add("Callable");
+      type.parameters.forEach((parameter) =>
+        collectTypingNames(parameter, names),
+      );
+      collectTypingNames(type.returns, names);
+      break;
+    case "collection":
+      if (type.collectionKind === "iterable") names.add("Iterable");
+      if (type.key !== undefined) collectTypingNames(type.key, names);
+      collectTypingNames(type.value, names);
+      break;
+    case "promise":
+      names.add("Awaitable");
+      collectTypingNames(type.value, names);
+      break;
+    case "list":
+      collectTypingNames(type.element, names);
+      break;
+    case "tuple":
+      type.elements.forEach((element) =>
+        collectTypingNames(element, names),
+      );
+      break;
+    case "optional":
+      collectTypingNames(type.inner, names);
+      break;
+    case "union":
+      type.options.forEach((option) =>
+        collectTypingNames(option, names),
+      );
+      break;
+    case "intersection":
+      type.members.forEach((member) =>
+        collectTypingNames(member, names),
+      );
+      break;
+    case "generic":
+      collectTypingNames(type.base, names);
+      type.arguments.forEach((argument) =>
+        collectTypingNames(argument, names),
+      );
+      break;
+    case "result":
+      collectTypingNames(type.ok, names);
+      collectTypingNames(type.error, names);
+      break;
+    case "variant":
+      Object.values(type.cases).forEach((value) => {
+        if (value !== null) collectTypingNames(value, names);
+      });
+      break;
+    case "type-variable":
+      names.add("TypeVar");
+      if (type.bound !== undefined) collectTypingNames(type.bound, names);
+      break;
+    case "record":
+      Object.values(type.fields).forEach((field) =>
+        collectTypingNames(field, names),
+      );
+      break;
+    case "boolean":
+    case "number":
+    case "string":
+    case "null":
+    case "void":
+    case "unknown":
+    case "named":
+      break;
+  }
+};
+
+const typingPrelude = (
   program: PirProgram,
 ): PythonAstNode[] => {
-  const names = new Set<string>();
-  for (const fn of program.functions) {
-    for (const type of fn.typeParameters ?? []) names.add(type.name);
-  }
-  if (names.size === 0) return [];
+  const typeVariableNames = new Set<string>();
+  const typingNames = new Set<string>();
 
-  return [
-    {
+  for (const fn of program.functions) {
+    for (const type of fn.typeParameters ?? []) {
+      typeVariableNames.add(type.name);
+      collectTypingNames(type, typingNames);
+    }
+    for (const parameter of fn.parameters) {
+      collectTypingNames(parameter.type, typingNames);
+    }
+    collectTypingNames(fn.returnType, typingNames);
+  }
+
+  if (typeVariableNames.size > 0) typingNames.add("TypeVar");
+
+  const output: PythonAstNode[] = [];
+  if (typingNames.size > 0) {
+    output.push({
       _type: "ImportFrom",
       module: "typing",
-      names: [
-        {
+      names: [...typingNames]
+        .sort()
+        .map((name) => ({
           _type: "alias",
-          name: "TypeVar",
+          name,
           asname: null,
-        },
-      ],
+        })),
       level: 0,
-    },
-    ...[...names].sort().map((name) => ({
+    });
+  }
+
+  for (const name of [...typeVariableNames].sort()) {
+    output.push({
       _type: "Assign",
       targets: [nameNode(sanitizeIdentifier(name), "Store")],
       value: callNode(nameNode("TypeVar"), [constantNode(name)]),
       type_comment: null,
-    })),
-  ];
+    });
+  }
+  return output;
 };
 
 export const lowerPirToPythonAst = (
@@ -1029,7 +1124,7 @@ export const lowerPirToPythonAst = (
   }
 
   const context: LowerContext = { names, types };
-  const body: PythonAstNode[] = [...typeVariablePrelude(program)];
+  const body: PythonAstNode[] = [...typingPrelude(program)];
 
   for (const module of program.modules ?? []) {
     for (const imported of module.imports) {
