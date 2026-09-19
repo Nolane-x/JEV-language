@@ -1,6 +1,6 @@
 # M15 — Formal / Data / Action IR Gate Evidence
 
-Status: **candidate — pending CI**
+Status: **verified**
 
 Specification basis: Section 425 and tasks T239–T247 of the v0.4 master specification.
 
@@ -88,10 +88,14 @@ Those can be later specialized backends without changing the neutral IR schemas.
 
 ## Gate rule
 
-Do not mark M15 verified or advance `last_completed_gate` until the complete PR head passes:
+Verified evidence:
 
-1. package-boundary validation;
-2. strict TypeScript;
-3. the full deterministic test suite, including the seven-family M15 conformance corpus.
+- verified implementation head: `772a9dbfca0dc8c7a7e7910677498c66267be5d6`
+- GitHub Actions CI run: `#191` / run id `35434470005`
+- package-boundary validation: pass
+- strict TypeScript: pass
+- deterministic test suite: **42/42 test files, 334/334 tests pass**
+- M15 conformance: **9/9 tests pass**
+- live Jev requests consumed by M15: `0`
 
-No live Jev request is required or allowed for M15.
+The final evidence/state documentation commit must itself pass CI before PR merge.
