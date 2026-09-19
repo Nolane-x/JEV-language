@@ -23,7 +23,7 @@ tasks:
   - {id: T121-T133, title: constrained realizer expansion, status: implemented}
   - {id: T134-T144, title: controlled round-trip semantic corpus, status: implemented}
   - {id: T145-T157, title: dialogue state reference correction and long-turn conformance, status: implemented}
-  - {id: T158-T169, title: Vietnamese language pack and cross-lingual equivalence, status: implemented}
+  - {id: T158-T169, title: Vietnamese language pack and cross-lingual equivalence, status: verified}
   - {id: T170-T180, title: discourse naturalness pragmatics and evaluation foundation, status: implemented}
   - {id: T181-T199, title: PIR typed foundation and typed-hole contracts, status: partial}
   - {id: T200-T238, title: synthesis/backends/repair/compiler-loop, status: partial}
