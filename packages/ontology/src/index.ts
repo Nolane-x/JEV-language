@@ -473,8 +473,18 @@ export const createCoreOntology = (): OntologyStore => {
       kind: "entity",
       parents: ["concept:core.entity"],
     }),
+    coreConcept("concept:core.spatial-region", "spatial region", {
+      kind: "entity",
+      parents: ["concept:core.location"],
+    }),
+    coreConcept("concept:core.path", "path", {
+      parents: ["concept:core.abstract-object"],
+    }),
     coreConcept("concept:core.time", "time"),
     coreConcept("concept:core.quantity", "quantity"),
+    coreConcept("concept:core.distance", "distance", {
+      parents: ["concept:core.quantity"],
+    }),
     coreConcept("concept:core.information", "information"),
     coreConcept("concept:core.instruction", "instruction", {
       parents: ["concept:core.information"],
@@ -581,6 +591,20 @@ export const createCoreOntology = (): OntologyStore => {
     range: ["concept:core.action"],
   });
   store.upsertRelation({
+    id: "relation:core.spatial-relation",
+    namespace: "core",
+    labels: { en: "spatial relation" },
+    domain: ["concept:core.location"],
+    range: ["concept:core.location"],
+  });
+  store.upsertRelation({
+    id: "relation:core.located-at",
+    namespace: "core",
+    labels: { en: "located at" },
+    domain: ["concept:core.entity"],
+    range: ["concept:core.location"],
+  });
+  store.upsertRelation({
     id: "relation:core.object",
     namespace: "core",
     labels: { en: "object" },
@@ -596,6 +620,27 @@ export const createCoreOntology = (): OntologyStore => {
     id: "role:core.agent",
     namespace: "core",
     labels: { en: "agent" },
+    cardinality: "zero-or-one",
+  });
+  store.upsertRole({
+    id: "role:core.source-location",
+    namespace: "core",
+    labels: { en: "source location" },
+    range: ["concept:core.location"],
+    cardinality: "zero-or-one",
+  });
+  store.upsertRole({
+    id: "role:core.goal-location",
+    namespace: "core",
+    labels: { en: "goal location" },
+    range: ["concept:core.location"],
+    cardinality: "zero-or-one",
+  });
+  store.upsertRole({
+    id: "role:core.path",
+    namespace: "core",
+    labels: { en: "path" },
+    range: ["concept:core.path"],
     cardinality: "zero-or-one",
   });
   store.upsertRole({

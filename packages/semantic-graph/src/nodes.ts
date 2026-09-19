@@ -322,6 +322,18 @@ export type Distributivity =
   | "distributive"
   | "ambiguous";
 
+export interface QuantityTolerance {
+  absolute?: number;
+  relative?: number;
+}
+
+export interface QuantityRange {
+  minimum: number;
+  maximum: number;
+  inclusiveMinimum?: boolean;
+  inclusiveMaximum?: boolean;
+}
+
 export interface JsgNodeBase<K extends JsgNodeKind> {
   id: SemanticId;
   kind: K;
@@ -344,6 +356,9 @@ export type SemanticValue =
       amount: number;
       unit?: ConceptRef;
       comparator?: "exact" | "at-least" | "at-most" | "more-than" | "less-than";
+      approximate?: boolean;
+      tolerance?: QuantityTolerance;
+      range?: QuantityRange;
     }
   | { kind: "temporal"; iso: string; precision: "date" | "time" | "datetime" | "duration" }
   | { kind: "enum"; value: string }
@@ -484,6 +499,8 @@ export interface QuantityNode extends JsgNodeBase<"quantity"> {
   unit?: ConceptRef;
   comparator: "exact" | "at-least" | "at-most" | "more-than" | "less-than";
   approximate?: boolean;
+  tolerance?: QuantityTolerance;
+  range?: QuantityRange;
 }
 
 export interface TemporalNode extends JsgNodeBase<"temporal"> {
