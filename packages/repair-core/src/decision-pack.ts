@@ -5,6 +5,7 @@ import {
 import type {
   DecisionBatchRequest,
   DecisionBatchResponse,
+  DecisionInstruction,
 } from "../../decision-runtime/src/index.ts";
 import {
   validateDecisionPack,
@@ -77,7 +78,7 @@ export interface RepairDecisionExecutor {
 
 const candidateDescriptor = (
   candidate: RepairCandidate,
-): { description: JsonValue } => ({
+): { description: DecisionInstruction } => ({
   description: {
     kind: candidate.kind,
     cost: candidate.cost,
