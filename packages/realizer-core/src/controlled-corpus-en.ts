@@ -5,6 +5,10 @@ import {
   type Result,
   type SemanticId,
 } from "../../core-types/src/index.ts";
+import {
+  buildControlledRealizationPlan,
+  type ControlledRealizationPlan,
+} from "./planning.ts";
 import type {
   ActionNode,
   ConstraintNode,
@@ -31,7 +35,10 @@ export interface ControlledEnglishRealization {
   text: string;
   sourceMap: SemanticSourceMapEntry[];
   semanticRoots: SemanticId[];
+  plan: ControlledRealizationPlan;
 }
+
+type ControlledEnglishSurface = Omit<ControlledEnglishRealization, "plan">;
 
 interface DeleteSemantics {
   actor: EntityNode;
@@ -102,7 +109,7 @@ const resultWithMap = (
   roots: SemanticId[],
   quantity?: QuantityNode,
   temporal?: TemporalNode,
-): ControlledEnglishRealization => {
+): ControlledEnglishSurface => {
   const sourceMap: SemanticSourceMapEntry[] = [
     {
       start: 0,
@@ -149,7 +156,7 @@ const resultWithMap = (
 const renderEvent = (
   snapshot: GraphSnapshot,
   event: EventNode,
-): ControlledEnglishRealization | undefined => {
+): ControlledEnglishSurface | undefined => {
   if (event.predicate !== "concept:core.delete") return undefined;
   const semantics = deleteSemantics(snapshot, refForRole(event.roles, "role:core.agent"), event.roles);
   if (semantics === undefined || semantics.quantity.comparator !== "exact") {
@@ -185,7 +192,7 @@ const actionForConstraint = (
 const renderConstraint = (
   snapshot: GraphSnapshot,
   constraint: ConstraintNode,
-): ControlledEnglishRealization | undefined => {
+): ControlledEnglishSurface | undefined => {
   const action = actionForConstraint(snapshot, constraint);
   if (action === undefined) return undefined;
   const semantics = deleteSemantics(snapshot, action.actor, action.parameters);
@@ -244,7 +251,7 @@ const renderConstraint = (
 const renderQuestion = (
   snapshot: GraphSnapshot,
   proposition: PropositionNode,
-): ControlledEnglishRealization | undefined => {
+): ControlledEnglishSurface | undefined => {
   if (
     proposition.predicate !== "concept:core.delete" ||
     proposition.epistemic?.status !== "questioned" ||
@@ -280,7 +287,7 @@ const prohibitedState = (
 const renderCondition = (
   snapshot: GraphSnapshot,
   condition: ConstraintNode,
-): ControlledEnglishRealization | undefined => {
+): ControlledEnglishSurface | undefined => {
   if (
     condition.constraintKind !== "condition" ||
     condition.predicate !== "concept:core.condition"
@@ -310,7 +317,7 @@ const renderCondition = (
 const renderCause = (
   snapshot: GraphSnapshot,
   relation: RelationNode,
-): ControlledEnglishRealization | undefined => {
+): ControlledEnglishSurface | undefined => {
   if (
     relation.relation !== "concept:core.cause" ||
     relation.polarity !== "positive"
@@ -337,37 +344,50 @@ const renderCause = (
   return resultWithMap(text, [relation.id, main.id], q);
 };
 
+const attachPlan = (
+  snapshot: GraphSnapshot,
+  surface: ControlledEnglishSurface,
+): Result<ControlledEnglishRealization> => {
+  const plan = buildControlledRealizationPlan(
+    snapshot,
+    surface.semanticRoots,
+  );
+  return plan.ok
+    ? ok({ ...surface, plan: plan.value })
+    : err(plan.error);
+};
+
 export const realizeControlledEnglishCorpusArtifact = (
   snapshot: GraphSnapshot,
 ): Result<ControlledEnglishRealization> => {
   for (const node of snapshot.nodes) {
     if (node.kind === "constraint" && node.constraintKind === "condition") {
       const rendered = renderCondition(snapshot, node);
-      if (rendered !== undefined) return ok(rendered);
+      if (rendered !== undefined) return attachPlan(snapshot, rendered);
     }
   }
   for (const node of snapshot.nodes) {
     if (node.kind === "relation" && node.relation === "concept:core.cause") {
       const rendered = renderCause(snapshot, node);
-      if (rendered !== undefined) return ok(rendered);
+      if (rendered !== undefined) return attachPlan(snapshot, rendered);
     }
   }
   for (const node of snapshot.nodes) {
     if (node.kind === "proposition") {
       const rendered = renderQuestion(snapshot, node);
-      if (rendered !== undefined) return ok(rendered);
+      if (rendered !== undefined) return attachPlan(snapshot, rendered);
     }
   }
   for (const node of snapshot.nodes) {
     if (node.kind === "constraint" && node.constraintKind !== "condition") {
       const rendered = renderConstraint(snapshot, node);
-      if (rendered !== undefined) return ok(rendered);
+      if (rendered !== undefined) return attachPlan(snapshot, rendered);
     }
   }
   for (const node of snapshot.nodes) {
     if (node.kind === "event") {
       const rendered = renderEvent(snapshot, node);
-      if (rendered !== undefined) return ok(rendered);
+      if (rendered !== undefined) return attachPlan(snapshot, rendered);
     }
   }
 
