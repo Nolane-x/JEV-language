@@ -38,14 +38,13 @@ const eventFrame = (
 });
 
 const parseVietnameseFrame = (text: string): ControlledFrame | undefined => {
-  let match =
-    /^Dịch vụ\s+(đã|đang|sẽ)\s+xóa\s+đúng\s+(\d+)\s+(?:cái\s+)?(?:tệp(?:\s+tin)?|file)\.?$/iu.exec(
-      text,
-    );
+  let match = viRe(
+    String.raw`^Dịch vụ\s+(đã|đang|sẽ)\s+xóa\s+đúng\s+(\d+)\s+(?:cái\s+)?(?:tệp(?:\s+tin)?|file)\.?$`,
+  ).exec(text);
   if (match !== null) {
     const amount = integer(match[2]);
     if (amount === undefined) return undefined;
-    const marker = match[1]?.toLocaleLowerCase();
+    const marker = match[1]?.normalize("NFC").toLocaleLowerCase("vi");
     const aspect =
       marker === "đã"
         ? "completed"
@@ -55,10 +54,9 @@ const parseVietnameseFrame = (text: string): ControlledFrame | undefined => {
     return eventFrame(amount, { aspect });
   }
 
-  match =
-    /^Dịch vụ\s+xóa\s+đúng\s+(\d+)\s+(?:cái\s+)?(?:tệp(?:\s+tin)?|file)(?:\s+vào\s+(\d{4}-\d{2}-\d{2}))?\.?$/iu.exec(
-      text,
-    );
+  match = viRe(
+    String.raw`^Dịch vụ\s+xóa\s+đúng\s+(\d+)\s+(?:cái\s+)?(?:tệp(?:\s+tin)?|file)(?:\s+vào\s+(\d{4}-\d{2}-\d{2}))?\.?$`,
+  ).exec(text);
   if (match !== null) {
     const amount = integer(match[1]);
     if (amount === undefined) return undefined;
@@ -67,10 +65,9 @@ const parseVietnameseFrame = (text: string): ControlledFrame | undefined => {
     });
   }
 
-  match =
-    /^Dịch vụ\s+không\s+xóa\s+đúng\s+(\d+)\s+(?:cái\s+)?(?:tệp(?:\s+tin)?|file)\.?$/iu.exec(
-      text,
-    );
+  match = viRe(
+    String.raw`^Dịch vụ\s+không\s+xóa\s+đúng\s+(\d+)\s+(?:cái\s+)?(?:tệp(?:\s+tin)?|file)\.?$`,
+  ).exec(text);
   if (match !== null) {
     const amount = integer(match[1]);
     return amount === undefined
@@ -78,10 +75,9 @@ const parseVietnameseFrame = (text: string): ControlledFrame | undefined => {
       : eventFrame(amount, { polarity: "negative" });
   }
 
-  match =
-    /^Dịch vụ\s+phải\s+xóa\s+đúng\s+(\d+)\s+(?:cái\s+)?(?:tệp(?:\s+tin)?|file)\.?$/iu.exec(
-      text,
-    );
+  match = viRe(
+    String.raw`^Dịch vụ\s+phải\s+xóa\s+đúng\s+(\d+)\s+(?:cái\s+)?(?:tệp(?:\s+tin)?|file)\.?$`,
+  ).exec(text);
   if (match !== null) {
     const amount = integer(match[1]);
     if (amount === undefined) return undefined;
@@ -95,10 +91,9 @@ const parseVietnameseFrame = (text: string): ControlledFrame | undefined => {
     };
   }
 
-  match =
-    /^Dịch vụ\s+(?:được\s+phép|có\s+thể)\s+xóa\s+(?:tối\s+đa|không\s+quá)\s+(\d+)\s+(?:cái\s+)?(?:tệp(?:\s+tin)?|file)\.?$/iu.exec(
-      text,
-    );
+  match = viRe(
+    String.raw`^Dịch vụ\s+(?:được\s+phép|có\s+thể)\s+xóa\s+(?:tối\s+đa|không\s+quá)\s+(\d+)\s+(?:cái\s+)?(?:tệp(?:\s+tin)?|file)\.?$`,
+  ).exec(text);
   if (match !== null) {
     const amount = integer(match[1]);
     if (amount === undefined) return undefined;
@@ -113,9 +108,9 @@ const parseVietnameseFrame = (text: string): ControlledFrame | undefined => {
   }
 
   if (
-    /^Dịch vụ\s+không\s+được(?:\s+phép)?\s+xóa\s+(?:bất\s+kỳ\s+)?(?:cái\s+)?(?:tệp(?:\s+tin)?|file)\s+nào\.?$/iu.test(
-      text,
-    )
+    viRe(
+      String.raw`^Dịch vụ\s+không\s+được(?:\s+phép)?\s+xóa\s+(?:bất\s+kỳ\s+)?(?:cái\s+)?(?:tệp(?:\s+tin)?|file)\s+nào\.?$`,
+    ).test(text)
   ) {
     return {
       kind: "constraint",
@@ -127,10 +122,9 @@ const parseVietnameseFrame = (text: string): ControlledFrame | undefined => {
     };
   }
 
-  match =
-    /^Dịch vụ\s+không\s+được(?:\s+phép)?\s+xóa\s+quá\s+(\d+)\s+(?:cái\s+)?(?:tệp(?:\s+tin)?|file)\.?$/iu.exec(
-      text,
-    );
+  match = viRe(
+    String.raw`^Dịch vụ\s+không\s+được(?:\s+phép)?\s+xóa\s+quá\s+(\d+)\s+(?:cái\s+)?(?:tệp(?:\s+tin)?|file)\.?$`,
+  ).exec(text);
   if (match !== null) {
     const amount = integer(match[1]);
     if (amount === undefined) return undefined;
@@ -144,10 +138,9 @@ const parseVietnameseFrame = (text: string): ControlledFrame | undefined => {
     };
   }
 
-  match =
-    /^Nếu\s+việc\s+xóa\s+bị\s+cấm,\s*dịch vụ\s+không\s+được(?:\s+phép)?\s+xóa\s+quá\s+(\d+)\s+(?:cái\s+)?(?:tệp(?:\s+tin)?|file)\.?$/iu.exec(
-      text,
-    );
+  match = viRe(
+    String.raw`^Nếu\s+việc\s+xóa\s+bị\s+cấm,\s*dịch vụ\s+không\s+được(?:\s+phép)?\s+xóa\s+quá\s+(\d+)\s+(?:cái\s+)?(?:tệp(?:\s+tin)?|file)\.?$`,
+  ).exec(text);
   if (match !== null) {
     const amount = integer(match[1]);
     if (amount === undefined) return undefined;
@@ -158,10 +151,9 @@ const parseVietnameseFrame = (text: string): ControlledFrame | undefined => {
     };
   }
 
-  match =
-    /^Dịch vụ\s+không\s+được(?:\s+phép)?\s+xóa\s+quá\s+(\d+)\s+(?:cái\s+)?(?:tệp(?:\s+tin)?|file)\s+vì\s+việc\s+xóa\s+bị\s+cấm\.?$/iu.exec(
-      text,
-    );
+  match = viRe(
+    String.raw`^Dịch vụ\s+không\s+được(?:\s+phép)?\s+xóa\s+quá\s+(\d+)\s+(?:cái\s+)?(?:tệp(?:\s+tin)?|file)\s+vì\s+việc\s+xóa\s+bị\s+cấm\.?$`,
+  ).exec(text);
   if (match !== null) {
     const amount = integer(match[1]);
     if (amount === undefined) return undefined;
@@ -172,10 +164,9 @@ const parseVietnameseFrame = (text: string): ControlledFrame | undefined => {
     };
   }
 
-  match =
-    /^Theo\s+dịch vụ,\s*dịch vụ\s+xóa\s+đúng\s+(\d+)\s+(?:cái\s+)?(?:tệp(?:\s+tin)?|file)\.?$/iu.exec(
-      text,
-    );
+  match = viRe(
+    String.raw`^Theo\s+dịch vụ,\s*dịch vụ\s+xóa\s+đúng\s+(\d+)\s+(?:cái\s+)?(?:tệp(?:\s+tin)?|file)\.?$`,
+  ).exec(text);
   if (match !== null) {
     const amount = integer(match[1]);
     if (amount === undefined) return undefined;
@@ -186,10 +177,9 @@ const parseVietnameseFrame = (text: string): ControlledFrame | undefined => {
     };
   }
 
-  match =
-    /^Dịch vụ\s+có\s+được(?:\s+phép)?\s+xóa\s+đúng\s+(\d+)\s+(?:cái\s+)?(?:tệp(?:\s+tin)?|file)\s+không\?$/iu.exec(
-      text,
-    );
+  match = viRe(
+    String.raw`^Dịch vụ\s+có\s+được(?:\s+phép)?\s+xóa\s+đúng\s+(\d+)\s+(?:cái\s+)?(?:tệp(?:\s+tin)?|file)\s+không\?$`,
+  ).exec(text);
   if (match !== null) {
     const amount = integer(match[1]);
     if (amount === undefined) return undefined;
