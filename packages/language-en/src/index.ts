@@ -627,6 +627,10 @@ export const englishLanguagePack = {
     choose: chooseEnglishAddressStrategy,
   },
   tests: englishConformanceManifest,
+  // Compatibility aliases for existing callers; the common ABI uses
+  // parserHooks/realizationHooks as the normative provider surface.
+  parse: parseControlledEnglishCorpus,
+  realize: realizeControlledEnglishCorpus,
 } satisfies HumanLanguagePack<
   EnglishToken,
   string,
