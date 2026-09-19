@@ -1,7 +1,9 @@
 import {
   err,
   ok,
+  parseVersion,
   StructuredError,
+  type JsonValue,
   type Result,
 } from "../../core-types/src/index.ts";
 import type {
@@ -17,6 +19,12 @@ export type DecisionPackLifecycle =
   | "production"
   | "deprecated";
 
+export type LowConfidenceFallback =
+  | "preserve-ambiguity"
+  | "abstain"
+  | "deterministic-fallback"
+  | "consumer-clarification";
+
 export interface DecisionPackManifest {
   id: string;
   version: string;
@@ -25,19 +33,98 @@ export interface DecisionPackManifest {
   questions: Record<string, DecisionQuestion>;
   calibrationProfile?: string;
   fallback: {
-    onLowConfidence:
-      | "preserve-ambiguity"
-      | "abstain"
-      | "deterministic-fallback"
-      | "consumer-clarification";
+    onLowConfidence: LowConfidenceFallback;
   };
   fixtures: string[];
+
+  // Normative quality assets from the v0.4 Decision Pack contract. They remain
+  // optional for draft/bootstrap packs, but candidate/production gates require
+  // increasing evidence instead of silently treating source code as proof.
+  semanticPurpose?: string;
+  inputSchema?: JsonValue;
+  candidateSemantics?: string[];
+  hardConstraints?: string[];
+  counterexamples?: string[];
+  knownFailureModes?: string[];
+  versionHistory?: string[];
+  traceOutput?: boolean;
 }
 
 export interface StateProjector<I> {
   readonly id: string;
   project(input: I): DecisionState;
 }
+
+export interface DecisionPackQualityReport {
+  readyForCandidate: boolean;
+  readyForProduction: boolean;
+  missingCandidateEvidence: string[];
+  missingProductionEvidence: string[];
+}
+
+const lifecycle = new Set<DecisionPackLifecycle>([
+  "draft",
+  "fixture-tested",
+  "calibration-tested",
+  "candidate",
+  "production",
+  "deprecated",
+]);
+
+const fallbackPolicies = new Set<LowConfidenceFallback>([
+  "preserve-ambiguity",
+  "abstain",
+  "deterministic-fallback",
+  "consumer-clarification",
+]);
+
+const hasText = (value: string | undefined): boolean =>
+  value !== undefined && value.trim().length > 0;
+
+const hasItems = (value: readonly unknown[] | undefined): boolean =>
+  value !== undefined && value.length > 0;
+
+export const assessDecisionPackQuality = (
+  input: DecisionPackManifest,
+): DecisionPackQualityReport => {
+  const missingCandidateEvidence: string[] = [];
+  if (!hasText(input.semanticPurpose)) {
+    missingCandidateEvidence.push("semanticPurpose");
+  }
+  if (input.inputSchema === undefined) {
+    missingCandidateEvidence.push("inputSchema");
+  }
+  if (!hasItems(input.hardConstraints)) {
+    missingCandidateEvidence.push("hardConstraints");
+  }
+  if (!hasItems(input.fixtures)) {
+    missingCandidateEvidence.push("fixtures");
+  }
+  if (!hasItems(input.counterexamples)) {
+    missingCandidateEvidence.push("counterexamples");
+  }
+  if (!hasItems(input.knownFailureModes)) {
+    missingCandidateEvidence.push("knownFailureModes");
+  }
+  if (input.traceOutput !== true) {
+    missingCandidateEvidence.push("traceOutput");
+  }
+
+  const missingProductionEvidence = [...missingCandidateEvidence];
+  if (!hasText(input.calibrationProfile)) {
+    missingProductionEvidence.push("calibrationProfile");
+  }
+  if (!hasItems(input.versionHistory)) {
+    missingProductionEvidence.push("versionHistory");
+  }
+
+  return {
+    readyForCandidate: missingCandidateEvidence.length === 0,
+    readyForProduction: missingProductionEvidence.length === 0,
+    missingCandidateEvidence,
+    missingProductionEvidence,
+  };
+};
 
 export const validateDecisionPack = (
   input: DecisionPackManifest,
@@ -50,6 +137,38 @@ export const validateDecisionPack = (
       ),
     );
   }
+  if (!parseVersion(input.version).ok) {
+    return err(
+      new StructuredError(
+        "DPACK_INVALID_VERSION",
+        `Decision pack version must be semantic-version compatible: ${input.version}.`,
+      ),
+    );
+  }
+  if (!lifecycle.has(input.maturity)) {
+    return err(
+      new StructuredError(
+        "DPACK_INVALID_MATURITY",
+        `Unsupported decision pack maturity: ${String(input.maturity)}.`,
+      ),
+    );
+  }
+  if (input.stateProjector.trim() === "") {
+    return err(
+      new StructuredError(
+        "DPACK_STATE_PROJECTOR",
+        "Decision pack stateProjector is required.",
+      ),
+    );
+  }
+  if (!fallbackPolicies.has(input.fallback.onLowConfidence)) {
+    return err(
+      new StructuredError(
+        "DPACK_INVALID_FALLBACK",
+        "Decision pack has an unsupported low-confidence fallback.",
+      ),
+    );
+  }
   if (Object.keys(input.questions).length === 0) {
     return err(
       new StructuredError(
@@ -58,18 +177,58 @@ export const validateDecisionPack = (
       ),
     );
   }
-  if (
-    input.maturity === "production" &&
-    (input.fixtures.length === 0 || input.calibrationProfile === undefined)
-  ) {
+
+  const quality = assessDecisionPackQuality(input);
+  if (input.maturity === "candidate" && !quality.readyForCandidate) {
+    return err(
+      new StructuredError(
+        "DPACK_CANDIDATE_GATE",
+        "Candidate decision packs require explicit semantic purpose, schema, constraints, fixtures, counterexamples, known failure modes, and trace output.",
+        { missing: quality.missingCandidateEvidence },
+      ),
+    );
+  }
+  if (input.maturity === "production" && !quality.readyForProduction) {
     return err(
       new StructuredError(
         "DPACK_PRODUCTION_GATE",
-        "Production packs require fixtures and a calibration profile.",
+        "Production decision packs require the candidate evidence plus calibration and version history.",
+        { missing: quality.missingProductionEvidence },
       ),
     );
   }
   return ok(structuredClone(input));
+};
+
+const isRecord = (value: unknown): value is Record<string, unknown> =>
+  typeof value === "object" && value !== null && !Array.isArray(value);
+
+export const loadDecisionPack = (
+  input: unknown,
+): Result<DecisionPackManifest> => {
+  if (!isRecord(input)) {
+    return err(
+      new StructuredError("DPACK_SCHEMA", "Decision pack must be an object."),
+    );
+  }
+  if (
+    typeof input.id !== "string" ||
+    typeof input.version !== "string" ||
+    typeof input.maturity !== "string" ||
+    typeof input.stateProjector !== "string" ||
+    !isRecord(input.questions) ||
+    !isRecord(input.fallback) ||
+    typeof input.fallback.onLowConfidence !== "string" ||
+    !Array.isArray(input.fixtures)
+  ) {
+    return err(
+      new StructuredError(
+        "DPACK_SCHEMA",
+        "Decision pack is missing required runtime manifest fields.",
+      ),
+    );
+  }
+  return validateDecisionPack(input as unknown as DecisionPackManifest);
 };
 
 export const sentinelDecisionPack: DecisionPackManifest = {
@@ -90,6 +249,13 @@ export const sentinelDecisionPack: DecisionPackManifest = {
   },
   fallback: { onLowConfidence: "preserve-ambiguity" },
   fixtures: [],
+  semanticPurpose:
+    "Detect whether a candidate transformation preserves a critical semantic restriction.",
+  knownFailureModes: [
+    "The projected state omits a source restriction.",
+    "The source/candidate pair is genuinely ambiguous.",
+  ],
+  traceOutput: true,
 };
 
 export class DecisionPackRegistry {
