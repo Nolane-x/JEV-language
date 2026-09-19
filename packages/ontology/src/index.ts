@@ -141,9 +141,15 @@ export class OntologyStore {
     const sortById = <T extends { id: string }>(values: T[]): T[] =>
       values.sort((a, b) => a.id.localeCompare(b.id));
     return {
-      concepts: sortById([...this.#concepts.values()].map(structuredClone)),
-      relations: sortById([...this.#relations.values()].map(structuredClone)),
-      roles: sortById([...this.#roles.values()].map(structuredClone)),
+      concepts: sortById(
+        [...this.#concepts.values()].map((value) => structuredClone(value)),
+      ),
+      relations: sortById(
+        [...this.#relations.values()].map((value) => structuredClone(value)),
+      ),
+      roles: sortById(
+        [...this.#roles.values()].map((value) => structuredClone(value)),
+      ),
     };
   }
 }
