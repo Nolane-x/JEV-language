@@ -32,6 +32,7 @@ import {
   type CandidateGenerationContext,
   type CandidateGenerator,
   type ExpansionCandidate,
+  type ProgramAcceptanceVerifier,
   type SearchBudget,
   type SynthesisProblem,
 } from "../../packages/synthesis-core/src/index.ts";
@@ -143,6 +144,30 @@ const hole = (input: {
 const registry = (...generators: CandidateGenerator[]) =>
   createCoreGeneratorRegistry(generators);
 
+const acceptanceVerifier = (
+  id: string,
+  accepts: (program: PirProgram) => boolean,
+): ProgramAcceptanceVerifier => ({
+  id,
+  verify({ problem, program }) {
+    const accepted = accepts(program);
+    return {
+      accepted,
+      evidence: accepted
+        ? [`requirement-set:${problem.id}:accepted`]
+        : [],
+      diagnostics: accepted
+        ? []
+        : [
+            {
+              code: "TEST_REQUIREMENT_UNSATISFIED",
+              message: `Program does not satisfy test requirement for ${problem.id}.`,
+            },
+          ],
+    };
+  },
+});
+
 describe("M11 synthesis core conformance", () => {
   it("synthesizes an unseen identity body from an in-scope typed symbol", async () => {
     const parameter = {
@@ -171,6 +196,14 @@ describe("M11 synthesis core conformance", () => {
     const result = await synthesizeProgram(problem, {
       registry: registry(new InScopeSymbolGenerator()),
       budget: budget(),
+      verifiers: [
+        acceptanceVerifier(
+          "verifier:identity",
+          (program) =>
+            program.functions.at(-1)?.body?.kind === "variable" &&
+            program.functions.at(-1)?.body?.symbolId === parameter.id,
+        ),
+      ],
     });
 
     expect(result.status).toBe("success");
@@ -248,6 +281,19 @@ describe("M11 synthesis core conformance", () => {
       registry: registry(new LiteralGenerator()),
       budget: budget({ maxJevCalls: 1 }),
       ranker,
+      verifiers: [
+        acceptanceVerifier(
+          "verifier:true-literal",
+          (program) => {
+            const body = program.functions[0]?.body;
+            return (
+              body?.kind === "literal" &&
+              body.value === true &&
+              body.type.kind === "boolean"
+            );
+          },
+        ),
+      ],
     });
 
     expect(result.status).toBe("success");
@@ -258,6 +304,12 @@ describe("M11 synthesis core conformance", () => {
       type: booleanType,
     });
     expect(result.usage.jevCalls).toBe(1);
+    expect(result.verificationEvidence).toEqual(
+      expect.arrayContaining([
+        "pir:validated",
+        "verifier:true-literal:requirement-set:problem:boolean-literal:accepted",
+      ]),
+    );
     expect(runtime.requestsUsed).toBe(1);
     expect(
       result.trace.some((event) => event.kind === "jev-ranked"),
@@ -332,6 +384,23 @@ describe("M11 synthesis core conformance", () => {
         new InScopeSymbolGenerator(),
       ),
       budget: budget(),
+      verifiers: [
+        acceptanceVerifier(
+          "verifier:function-call",
+          (program) => {
+            const body = program.functions.find(
+              (fn) => fn.id === "function:caller",
+            )?.body;
+            return (
+              body?.kind === "call" &&
+              body.callee.kind === "symbol-ref" &&
+              body.callee.symbolId === helper.id &&
+              body.arguments[0]?.kind === "variable" &&
+              body.arguments[0].symbolId === input.id
+            );
+          },
+        ),
+      ],
     });
 
     expect(result.status).toBe("success");
@@ -410,6 +479,21 @@ describe("M11 synthesis core conformance", () => {
     const result = await synthesizeProgram(problem, {
       registry: registry(rootBranch, childLiteral),
       budget: budget(),
+      verifiers: [
+        acceptanceVerifier(
+          "verifier:branch",
+          (program) => {
+            const body = program.functions[0]?.body;
+            return (
+              body?.kind === "conditional" &&
+              body.condition.kind === "variable" &&
+              body.condition.symbolId === condition.id &&
+              body.whenTrue.kind === "literal" &&
+              body.whenFalse.kind === "literal"
+            );
+          },
+        ),
+      ],
     });
 
     expect(result.status).toBe("success");
@@ -613,6 +697,21 @@ describe("M11 synthesis core conformance", () => {
     const result = await synthesizeProgram(problem, {
       registry: registry(new CollectionPatternGenerator()),
       budget: budget(),
+      verifiers: [
+        acceptanceVerifier(
+          "verifier:collection-map",
+          (program) => {
+            const body = program.functions[0]?.body;
+            return (
+              body?.kind === "map" &&
+              body.collection.kind === "variable" &&
+              body.collection.symbolId === users.id &&
+              body.mapper.kind === "property" &&
+              body.mapper.property === "name"
+            );
+          },
+        ),
+      ],
     });
 
     expect(result.status).toBe("success");
@@ -663,6 +762,20 @@ describe("M11 synthesis core conformance", () => {
     const result = await synthesizeProgram(problem, {
       registry: registry(new ReturnGenerator()),
       budget: budget(),
+      verifiers: [
+        acceptanceVerifier(
+          "verifier:return",
+          (program) => {
+            const statements = program.functions[0]?.statements;
+            return (
+              statements?.length === 1 &&
+              statements[0]?.kind === "return" &&
+              statements[0].value?.kind === "variable" &&
+              statements[0].value.symbolId === parameter.id
+            );
+          },
+        ),
+      ],
     });
 
     expect(result.status).toBe("success");
