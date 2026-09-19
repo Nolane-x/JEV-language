@@ -8,6 +8,8 @@ import {
 } from "../../packages/decision-runtime/src/index.ts";
 import {
   DecisionPackRegistry,
+  assessDecisionPackQuality,
+  loadDecisionPack,
   sentinelDecisionPack,
 } from "../../packages/decision-packs/src/index.ts";
 
@@ -62,5 +64,41 @@ describe("M3 deterministic runtime hardening", () => {
       },
     });
     expect(result.answers[0]?.probabilities.true).toBe(0.7);
+  });
+
+  it("rejects malformed runtime decision-pack manifests", () => {
+    const loaded = loadDecisionPack({
+      id: "broken",
+      version: "1.0.0",
+      maturity: "draft",
+    });
+    expect(loaded.ok).toBe(false);
+  });
+
+  it("requires evidence before candidate or production maturity claims", () => {
+    const candidate = {
+      ...sentinelDecisionPack,
+      maturity: "candidate" as const,
+    };
+    const candidateQuality = assessDecisionPackQuality(candidate);
+    expect(candidateQuality.readyForCandidate).toBe(false);
+    expect(candidateQuality.missingCandidateEvidence).toContain("fixtures");
+
+    const result = loadDecisionPack(candidate);
+    expect(result.ok).toBe(false);
+    if (!result.ok) {
+      expect(result.error.code).toBe("DPACK_CANDIDATE_GATE");
+    }
+  });
+
+  it("rejects non-semver decision pack versions", () => {
+    const result = loadDecisionPack({
+      ...sentinelDecisionPack,
+      version: "latest",
+    });
+    expect(result.ok).toBe(false);
+    if (!result.ok) {
+      expect(result.error.code).toBe("DPACK_INVALID_VERSION");
+    }
   });
 });
