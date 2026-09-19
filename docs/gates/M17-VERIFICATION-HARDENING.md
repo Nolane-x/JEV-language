@@ -1,6 +1,6 @@
 # M17 — Verification Hardening Gate Evidence
 
-Status: **candidate — pending CI**
+Status: **verified**
 
 Specification basis: Section 427 and tasks T259–T267 of the v0.4 master specification.
 
@@ -81,8 +81,14 @@ Negative controls prove:
 
 M17 does not claim naturalness correctness from grammar correctness, a safe runtime sandbox for arbitrary program execution, or coverage of future extension/domain verifiers.
 
-## Gate rule
+## Verified gate evidence
 
-Do not mark M17 verified or advance to M18 until package boundaries, strict TypeScript and the full deterministic suite pass on the complete branch head.
+- implementation head: `8e41eb9577d7ef63d67dd283a5e65a6f7bd36f89`
+- GitHub Actions CI: run `#202` / run id `35439243337`
+- result: `success`
+- package boundaries: pass
+- strict TypeScript: pass
+- full deterministic suite: pass
+- live Jev requests consumed by M17: `0`
 
-Live Jev requests required by M17: **0**.
+The implementation state may advance to M18. The final documentation/evidence commit must itself pass CI before merge.
