@@ -2,11 +2,18 @@ import {
   StructuredError,
   type JsonValue,
 } from "../../core-types/src/index.ts";
-import type { Lexeme, PartOfSpeech } from "../../lexicon-core/src/index.ts";
+import type {
+  LexemeId,
+  PartOfSpeech,
+} from "../../lexicon-core/src/index.ts";
+
+export type MorphNumber = "singular" | "plural";
+export type MorphPerson = "first" | "second" | "third" | 1 | 2 | 3;
+export type MorphDegree = "positive" | "comparative" | "superlative";
 
 export interface MorphFeatures {
-  number?: "singular" | "plural" | string;
-  person?: "first" | "second" | "third" | string;
+  number?: MorphNumber | string;
+  person?: MorphPerson | string;
   gender?: string;
   nounClass?: string;
   case?: string;
@@ -14,11 +21,12 @@ export interface MorphFeatures {
   aspect?: string;
   mood?: string;
   voice?: string;
-  degree?: string;
+  degree?: MorphDegree | string;
   definiteness?: string;
   politeness?: string;
   animacy?: string;
   classifier?: string;
+  verbForm?: string;
   extra?: Record<string, JsonValue>;
 }
 
@@ -30,8 +38,17 @@ export interface MorphContext {
 
 export interface MorphAnalysis {
   surface: string;
+  lexemeId?: LexemeId;
   lemma: string;
   partOfSpeech?: PartOfSpeech;
+  features: MorphFeatures;
+  confidence?: number;
+  source: "rule" | "lexicon" | "configured";
+}
+
+export interface SurfaceCandidate {
+  surface: string;
+  lexemeId: LexemeId;
   features: MorphFeatures;
   confidence?: number;
   source: "rule" | "lexicon" | "configured";
@@ -41,39 +58,42 @@ export interface MorphologyProvider {
   readonly id: string;
   readonly language: string;
   analyze(surface: string, context: MorphContext): MorphAnalysis[];
-  realize(lexeme: Lexeme, features: MorphFeatures): string[];
+  realize(lemma: LexemeId, features: MorphFeatures): SurfaceCandidate[];
 }
 
 export class MorphologyRegistry {
   readonly #providers = new Map<string, MorphologyProvider>();
 
   register(provider: MorphologyProvider): void {
-    const key = provider.language;
-    if (this.#providers.has(key)) {
+    if (provider.language.trim().length === 0 || provider.id.trim().length === 0) {
       throw new StructuredError(
-        "MORPH_PROVIDER_DUPLICATE",
-        `Morphology provider already registered for language ${key}.`,
+        "MORPH_PROVIDER_ID",
+        "Morphology provider id and language are required.",
       );
     }
-    this.#providers.set(key, provider);
+    if (this.#providers.has(provider.language)) {
+      throw new StructuredError(
+        "MORPH_PROVIDER_DUPLICATE",
+        `Morphology provider already registered for language ${provider.language}.`,
+      );
+    }
+    this.#providers.set(provider.language, provider);
   }
 
   provider(language: string): MorphologyProvider | undefined {
     return this.#providers.get(language);
   }
 
-  analyze(
-    surface: string,
-    context: MorphContext,
-  ): MorphAnalysis[] {
+  analyze(surface: string, context: MorphContext): MorphAnalysis[] {
     return this.#providers.get(context.language)?.analyze(surface, context) ?? [];
   }
 
   realize(
-    lexeme: Lexeme,
+    language: string,
+    lemma: LexemeId,
     features: MorphFeatures,
-  ): string[] {
-    return this.#providers.get(lexeme.language)?.realize(lexeme, features) ?? [];
+  ): SurfaceCandidate[] {
+    return this.#providers.get(language)?.realize(lemma, features) ?? [];
   }
 }
 
