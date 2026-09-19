@@ -23,6 +23,10 @@ export type JsgNodeKind =
   | "property"
   | "relation"
   | "proposition"
+  | "scope"
+  | "scope-constraint"
+  | "quantifier"
+  | "negation"
   | "quantity"
   | "temporal"
   | "location"
@@ -70,6 +74,52 @@ export interface ScopeSpec {
   kind: "resolved" | "underspecified";
   scopeId?: SemanticId;
 }
+
+export type ScopeRelation =
+  | "outscopes"
+  | "qeq"
+  | "same-scope"
+  | "disjoint"
+  | "unknown";
+
+export type ScopeConstraintStatus =
+  | "asserted"
+  | "derived"
+  | "candidate";
+
+export type QuantifierKind =
+  | "existential"
+  | "universal"
+  | "negative"
+  | "cardinal"
+  | "proportional"
+  | "comparative"
+  | "approximate"
+  | "most"
+  | "few"
+  | "many"
+  | "exactly-N"
+  | "at-least-N"
+  | "at-most-N"
+  | "between-N-M";
+
+export type QuantityConstraint =
+  | { kind: "exact"; value: number }
+  | { kind: "at-least"; value: number }
+  | { kind: "at-most"; value: number }
+  | { kind: "between"; minimum: number; maximum: number }
+  | { kind: "proportion"; value: number }
+  | {
+      kind: "comparative";
+      operator: "more-than" | "less-than" | "at-least" | "at-most";
+      value: number;
+    }
+  | { kind: "approximate"; value: number; tolerance?: number };
+
+export type Distributivity =
+  | "collective"
+  | "distributive"
+  | "ambiguous";
 
 export interface JsgNodeBase<K extends JsgNodeKind> {
   id: SemanticId;
@@ -189,6 +239,32 @@ export interface PropositionNode extends JsgNodeBase<"proposition"> {
   attribution?: SemanticRef;
 }
 
+export interface ScopeNode extends JsgNodeBase<"scope"> {
+  operatorRef: SemanticRef;
+  bodyRef?: SemanticRef;
+}
+
+export interface ScopeConstraintNode extends JsgNodeBase<"scope-constraint"> {
+  left: SemanticRef;
+  relation: ScopeRelation;
+  right: SemanticRef;
+  status: ScopeConstraintStatus;
+}
+
+export interface QuantifierNode extends JsgNodeBase<"quantifier"> {
+  quantifierKind: QuantifierKind;
+  restrictor: SemanticRef;
+  body: SemanticRef;
+  cardinality?: QuantityConstraint;
+  distributivity?: Distributivity;
+  scope: SemanticRef;
+}
+
+export interface NegationNode extends JsgNodeBase<"negation"> {
+  body: SemanticRef;
+  scope: SemanticRef;
+}
+
 export interface QuantityNode extends JsgNodeBase<"quantity"> {
   amount: number;
   unit?: ConceptRef;
@@ -277,6 +353,10 @@ export type JsgNode =
   | PropertyNode
   | RelationNode
   | PropositionNode
+  | ScopeNode
+  | ScopeConstraintNode
+  | QuantifierNode
+  | NegationNode
   | QuantityNode
   | TemporalNode
   | LocationNode

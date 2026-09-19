@@ -1,0 +1,31 @@
+{
+  "id": "t320-scope-quantification-adversarial",
+  "version": "1.0.0",
+  "milestone": "M11-deep-semantics",
+  "taskRange": "T311-T320",
+  "liveJevRequests": 0,
+  "focus": [
+    "scope-underspecification",
+    "quantifier-negation-scope",
+    "generalized-cardinality",
+    "collective-distributive-ambiguity",
+    "resolution-priority",
+    "ambiguity-preserving-generation"
+  ],
+  "adversarialCases": [
+    "unresolved-universal-vs-negation",
+    "hard-outscope-cycle",
+    "between-cardinality-inversion",
+    "invalid-proportion",
+    "nested-negation-scope",
+    "same-scope-vs-disjoint-conflict"
+  ],
+  "assertions": [
+    "unknown-relative-scope-preserved",
+    "no-surface-order-default",
+    "hard-grammar-precedes-lexical-contextual-jev",
+    "cardinality-domain-validated",
+    "negation-has-explicit-scope-object",
+    "generation-does-not-invent-scope-reading"
+  ]
+}
