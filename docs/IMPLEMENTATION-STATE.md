@@ -17,6 +17,8 @@ experimental_packages:
   - decision-runtime
   - decision-packs
   - verifier-core
+  - lexicon-core
+  - morphology-core
 partial_vertical_slices:
   - controlled-English-requirement-roundtrip
   - recorded-Jev-reference-choice
@@ -29,11 +31,13 @@ next_tasks:
   - complete remaining M1 staged semantic validators and graph operations
   - expand M2 ontology/open-world conformance beyond transactional evolution
   - build M3 calibration fixtures/report before candidate quality claim
+  - implement T096 live/recorded Jev ambiguity resolver with strict budget
+  - implement T107-T120 grammar categories/rules and controlled English syntax-to-JSG
   - complete remaining verifier adapters T262-T266
   - continue formal IR/universal expression T239-T258
   - run exactly one manual live-Jev smoke only when explicitly desired
 last_verified_main_commit: 7dac106cdf08bc89be50833ed7dc4e7e6f5cd20e
-last_verified_pr_head: 2a57258c552e370944a3a7483e9a9b6901b1c5c4
+last_verified_pr_head: 8e752001af62c7dc5caffd2cef15cce66cc48169
 ```
 
 ## Current state
@@ -55,6 +59,8 @@ A runnable foundation now exists, but this ledger deliberately does **not** mark
 - Ontology transactional batch merge, parent-cycle rejection, ancestry queries, deprecation/replacement resolution, and replacement-cycle rejection.
 - Generic VerificationObligation/Verifier ABI, evidence grading, deterministic-verifier precedence, and critical semantic-preservation checks including role bindings and temporal values.
 - TypeScript 7 CLI compatibility with the official TypeScript 6 programmatic compiler API bridge for embedded compile checks.
+- M4 normalization/segmentation/tokenization/literal/language-span/packed-parser substrate and validated JSG parse commits; Jev ambiguity resolution remains open.
+- M5 typed Lexeme/LexicalSense, valency/collocation contracts, language-neutral lexicon index, unknown-lexeme preservation, MWE matching, controlled English seed lexicon, and deterministic English morphology subset.
 - First four narrow vertical slices required by the bootstrap sequence: controlled English, recorded reference choice, controlled Vietnamese, and PIR typed-hole → TypeScript.
 
 ## Still partial by design
