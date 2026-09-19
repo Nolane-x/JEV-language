@@ -91,6 +91,12 @@ export interface HumanLanguagePack<
   grammar: GrammarProvider;
   parserHooks: ParserHookProvider<TParseInput, TParseResult>;
   realizationHooks: RealizationHookProvider<TRealizeInput, TRealizeResult>;
+  /**
+   * Compatibility aliases for pre-ABI callers. New integrations SHOULD use
+   * parserHooks/realizationHooks so provider identity remains inspectable.
+   */
+  parse?: ParserHookProvider<TParseInput, TParseResult>["parse"];
+  realize?: RealizationHookProvider<TRealizeInput, TRealizeResult>["realize"];
   punctuation: PunctuationProvider;
   discourse: LanguageDiscourseProvider<TDiscourseContext, TDiscourseChoice>;
   tests: LanguageConformanceManifest;
