@@ -4,6 +4,7 @@ import {
   ok,
   StructuredError,
   type Result,
+  type SemanticId,
 } from "../../core-types/src/index.ts";
 import {
   makeUtf16Span,
@@ -25,10 +26,10 @@ export interface ControlledRequirementParse {
   snapshot: GraphSnapshot;
   source: GroundingSource;
   ids: {
-    actor: string;
-    action: string;
-    quantity: string;
-    constraint: string;
+    actor: SemanticId;
+    action: SemanticId;
+    quantity: SemanticId;
+    constraint: SemanticId;
   };
 }
 
