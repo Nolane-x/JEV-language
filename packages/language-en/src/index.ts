@@ -764,6 +764,27 @@ export const createEnglishControlledGrammar = (): GrammarRegistry => {
       { question: "yes-no", modality: "possible" },
     ),
     grammarRule(
+      "grammar:en.question.wh-do",
+      "QUESTION",
+      [
+        {
+          kind: "lexical",
+          semanticTag: "question.wh",
+          capture: "question-word",
+        },
+        {
+          kind: "lexical",
+          partOfSpeech: "auxiliary",
+          semanticTag: "auxiliary.do-support",
+          capture: "auxiliary",
+        },
+        { kind: "category", category: "NP", capture: "subject" },
+        { kind: "category", category: "VP", capture: "predicate" },
+      ],
+      40,
+      { question: "wh" },
+    ),
+    grammarRule(
       "grammar:en.question.wh",
       "QUESTION",
       [
