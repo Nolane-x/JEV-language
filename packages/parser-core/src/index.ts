@@ -357,3 +357,5 @@ export const commitParseCandidate = (
   graph.commit(graph.beginTransaction(candidate.operations), validate);
 
 export * from "./jev-ambiguity.ts";
+
+export * from "./chart-parser.ts";
