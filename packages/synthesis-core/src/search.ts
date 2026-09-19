@@ -1,5 +1,5 @@
+import { StructuredError } from "../../core-types/src/index.ts";
 import {
-  StructuredError,
   validatePirProgram,
   type PirExpression,
   type PirFunction,
@@ -11,6 +11,7 @@ import { applyExpansionCandidate } from "./apply.ts";
 import { BestFirstFrontier } from "./frontier.ts";
 import { hashSynthesisState } from "./hashing.ts";
 import type {
+  CandidateGenerationContext,
   CandidateGenerator,
   CandidateRanker,
   ExpansionCandidate,
@@ -688,7 +689,7 @@ export const synthesizeProgram = async (
     const owner = ownerOfHole(state.program, hole.id);
     if (owner === undefined) continue;
 
-    const context = {
+    const context: CandidateGenerationContext = {
       problem,
       state,
       functionId: owner.fn.id,
@@ -696,7 +697,7 @@ export const synthesizeProgram = async (
       expectedType: hole.expectedType,
       location: owner.location,
       scopeSymbols: [...hole.scopeSymbols],
-    } as const;
+    };
 
     const generated = options.registry.generate(context);
     const limited =
@@ -776,7 +777,7 @@ export const synthesizeProgram = async (
       if (!applied.ok) continue;
 
       const openHoles = (applied.value.holes ?? [])
-        .map((value) => value.id)
+        .map((value: ProgramHole) => value.id)
         .sort();
       const nextBase = {
         program: applied.value,
