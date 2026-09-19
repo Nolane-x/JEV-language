@@ -69,14 +69,11 @@ const requireOk = <T>(
 describe("M8 independent Vietnamese parsing/realization and cross-lingual semantics", () => {
   for (const fixture of bilingual) {
     it(`maps English and Vietnamese to equivalent JSG: ${fixture.vi}`, () => {
-      const en = parseControlledEnglishCorpus(fixture.en);
-      const vi = parseControlledVietnameseCorpus(fixture.vi);
-      expect(en.ok).toBe(true);
-      expect(vi.ok).toBe(true);
-      if (!en.ok || !vi.ok) return;
+      const enValue = requireOk(parseControlledEnglishCorpus(fixture.en));
+      const viValue = requireOk(parseControlledVietnameseCorpus(fixture.vi));
 
       const equivalence = verifyControlledCorpusEquivalence(
-        en.value.snapshot,
+        enValue.snapshot,
         viValue.snapshot,
       );
       expect(equivalence.equivalent).toBe(true);
@@ -122,24 +119,20 @@ describe("M8 independent Vietnamese parsing/realization and cross-lingual semant
     });
 
     it(`round-trips JSG -> Vietnamese -> JSG semantically: ${fixture.en}`, () => {
-      const source = parseControlledEnglishCorpus(fixture.en);
-      expect(source.ok).toBe(true);
-      if (!source.ok) return;
-
-      const vietnamese = realizeControlledVietnameseCorpus(
-        source.value.snapshot,
+      const sourceValue = requireOk(
+        parseControlledEnglishCorpus(fixture.en),
       );
-      expect(vietnamese.ok).toBe(true);
-      if (!vietnamese.ok) return;
-
-      const roundTrip = parseControlledVietnameseCorpus(vietnamese.value);
-      expect(roundTrip.ok).toBe(true);
-      if (!roundTrip.ok) return;
+      const vietnameseValue = requireOk(
+        realizeControlledVietnameseCorpus(sourceValue.snapshot),
+      );
+      const roundTripValue = requireOk(
+        parseControlledVietnameseCorpus(vietnameseValue),
+      );
 
       expect(
         verifyControlledCorpusEquivalence(
-          source.value.snapshot,
-          roundTrip.value.snapshot,
+          sourceValue.snapshot,
+          roundTripValue.snapshot,
         ).equivalent,
       ).toBe(true);
     });
