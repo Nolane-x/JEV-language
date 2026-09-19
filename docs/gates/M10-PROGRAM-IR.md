@@ -1,6 +1,6 @@
 # M10 — Program IR Gate Evidence
 
-Status: **candidate — pending CI**
+Status: **verified**
 
 Specification basis: Sections 261–271, 417–418 and tasks T181–T193 of the v0.4 master specification.
 
@@ -61,4 +61,12 @@ No source generation is claimed by this milestone. Section 417 explicitly leaves
 
 ## Gate rule
 
-Do not mark M10 verified or advance `last_completed_gate` until the complete branch head passes package-boundary validation, strict TypeScript and the full deterministic test suite. No live Jev request is required for M10.
+Verified evidence:
+
+- implementation head: `11d350679b2afd3df4491da207a5a6f946b8b109`
+- GitHub Actions CI: run `#142` / run id `35428254025`
+- result: `success`
+- deterministic gate: package boundaries → strict TypeScript → full test suite
+- live Jev requests: `0`
+
+The implementation-state ledger may therefore advance to M11 synthesis core. The final documentation commit must itself pass CI before merge.
