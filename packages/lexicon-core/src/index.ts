@@ -1,3 +1,4 @@
+import type { SelectionalPreference } from "./open-vocabulary.ts";
 import {
   err,
   ok,
@@ -29,6 +30,7 @@ export interface ValencySlot {
   syntacticFunctions: string[];
   required: boolean;
   expectedConcepts?: ConceptRef[];
+  selectionalPreference?: SelectionalPreference;
   prepositions?: string[];
 }
 
@@ -442,3 +444,5 @@ export const preserveUnknownLexicalItem = (
   preservedExact: true,
   ...(language === undefined ? {} : { language }),
 });
+
+export * from "./open-vocabulary.ts";
