@@ -396,3 +396,5 @@ export const evaluateGrammarConstraints = (
       binding,
     }),
   );
+
+export * from "./typology.ts";
