@@ -107,7 +107,10 @@ const condition = (): ConstraintNode => ({
   parameters: [{ role: "role:test.limit", value: { kind: "ref", ref: "quantity:limit" } }],
 });
 
-const causal = (source = "event:a", target = "event:b"): RelationNode => ({
+const causal = (
+  source: RelationNode["source"] = "event:a",
+  target: RelationNode["target"] = "event:b",
+): RelationNode => ({
   id: "relation:cause",
   kind: "relation",
   schemaVersion: "0.1.0",
