@@ -635,20 +635,19 @@ const liftStatementList = (
         collection.value,
         context,
       );
-      const itemType =
-        collectionType.kind === "list"
-          ? collectionType.element
-          : declaration.type === undefined
-            ? { kind: "unknown" as const }
-            : liftTypeScriptType(
-                declaration.type,
-                context.typeParameters,
-              );
-      if ("ok" in itemType) {
-        if (!itemType.ok) return itemType;
+      let resolvedItemType: PirType;
+      if (collectionType.kind === "list") {
+        resolvedItemType = collectionType.element;
+      } else if (declaration.type === undefined) {
+        resolvedItemType = { kind: "unknown" };
+      } else {
+        const liftedItemType = liftTypeScriptType(
+          declaration.type,
+          context.typeParameters,
+        );
+        if (!liftedItemType.ok) return liftedItemType;
+        resolvedItemType = liftedItemType.value;
       }
-      const resolvedItemType =
-        "ok" in itemType ? itemType.value : itemType;
       const itemId = idFor("local", declaration.name.text, declaration);
       const nested = {
         ...context,
