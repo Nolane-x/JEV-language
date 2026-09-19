@@ -132,9 +132,9 @@ interface SemVer {
 }
 
 const SEMVER =
-  /^(\\d+)\\.(\\d+)\\.(\\d+)(?:-([0-9A-Za-z.-]+))?$/u;
+  /^(\d+)\.(\d+)\.(\d+)(?:-([0-9A-Za-z.-]+))?$/u;
 const PARTIAL_SEMVER =
-  /^(\\d+)(?:\\.(\\d+))?(?:\\.(\\d+))?(?:-([0-9A-Za-z.-]+))?$/u;
+  /^(\d+)(?:\.(\d+))?(?:\.(\d+))?(?:-([0-9A-Za-z.-]+))?$/u;
 
 const parseSemver = (value: string): SemVer | undefined => {
   const match = SEMVER.exec(value);
@@ -207,8 +207,8 @@ const comparePrerelease = (
     if (l === undefined) return -1;
     if (r === undefined) return 1;
 
-    const lNumber = /^\\d+$/u.test(l) ? Number(l) : undefined;
-    const rNumber = /^\\d+$/u.test(r) ? Number(r) : undefined;
+    const lNumber = /^\d+$/u.test(l) ? Number(l) : undefined;
+    const rNumber = /^\d+$/u.test(r) ? Number(r) : undefined;
     if (lNumber !== undefined && rNumber !== undefined) {
       return lNumber < rNumber ? -1 : 1;
     }
@@ -263,13 +263,13 @@ const comparatorMatches = (
 ): boolean | undefined => {
   if (comparator === "*" || comparator.toLowerCase() === "x") return true;
 
-  const prefixed = /^(\\^|~|>=|<=|>|<|=)?(.+)$/u.exec(comparator);
+  const prefixed = /^(\^|~|>=|<=|>|<|=)?(.+)$/u.exec(comparator);
   if (prefixed === null) return undefined;
   const operator = prefixed[1] ?? "=";
   const raw = prefixed[2];
   if (raw === undefined) return undefined;
 
-  const wildcard = /^(\\d+)(?:\\.(\\d+|x|\\*))?(?:\\.(\\d+|x|\\*))?$/iu.exec(raw);
+  const wildcard = /^(\d+)(?:\.(\d+|x|\*))?(?:\.(\d+|x|\*))?$/iu.exec(raw);
   if (wildcard !== null && (raw.includes("x") || raw.includes("*"))) {
     const major = Number(wildcard[1]);
     if (version.major !== major) return false;
