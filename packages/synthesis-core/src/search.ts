@@ -4,6 +4,7 @@ import {
   type PirExpression,
   type PirFunction,
   type PirProgram,
+  type PirStatement,
   type ProgramHole,
 } from "../../program-ir/src/index.ts";
 import { applyExpansionCandidate } from "./apply.ts";
@@ -97,13 +98,146 @@ const containsHole = (
   }
 };
 
+const statementsContainStatementHole = (
+  statements: readonly PirStatement[],
+  holeId: string,
+): boolean =>
+  statements.some((statement) => {
+    if (statement.kind === "hole") return statement.holeId === holeId;
+    switch (statement.kind) {
+      case "if":
+        return (
+          statementsContainStatementHole(statement.then, holeId) ||
+          statementsContainStatementHole(statement.else ?? [], holeId)
+        );
+      case "loop":
+      case "for-each":
+      case "defer":
+        return statementsContainStatementHole(statement.body, holeId);
+      case "match":
+        return (
+          statement.cases.some((entry) =>
+            statementsContainStatementHole(entry.body, holeId),
+          ) ||
+          statementsContainStatementHole(statement.default ?? [], holeId)
+        );
+      case "try":
+        return (
+          statementsContainStatementHole(statement.body, holeId) ||
+          statementsContainStatementHole(
+            statement.catch?.body ?? [],
+            holeId,
+          ) ||
+          statementsContainStatementHole(statement.finally ?? [], holeId)
+        );
+      case "block":
+        return statementsContainStatementHole(statement.statements, holeId);
+      default:
+        return false;
+    }
+  });
+
+const statementsContainExpressionHole = (
+  statements: readonly PirStatement[],
+  holeId: string,
+): boolean =>
+  statements.some((statement) => {
+    switch (statement.kind) {
+      case "declare":
+        return (
+          statement.initializer !== undefined &&
+          containsHole(statement.initializer, holeId)
+        );
+      case "assign":
+        return (
+          containsHole(statement.target, holeId) ||
+          containsHole(statement.value, holeId)
+        );
+      case "expression":
+        return containsHole(statement.expression, holeId);
+      case "return":
+        return (
+          statement.value !== undefined &&
+          containsHole(statement.value, holeId)
+        );
+      case "if":
+        return (
+          containsHole(statement.condition, holeId) ||
+          statementsContainExpressionHole(statement.then, holeId) ||
+          statementsContainExpressionHole(statement.else ?? [], holeId)
+        );
+      case "loop":
+        return (
+          (statement.condition !== undefined &&
+            containsHole(statement.condition, holeId)) ||
+          statementsContainExpressionHole(statement.body, holeId)
+        );
+      case "for-each":
+        return (
+          containsHole(statement.collection, holeId) ||
+          statementsContainExpressionHole(statement.body, holeId)
+        );
+      case "match":
+        return (
+          containsHole(statement.value, holeId) ||
+          statement.cases.some((entry) =>
+            statementsContainExpressionHole(entry.body, holeId),
+          ) ||
+          statementsContainExpressionHole(statement.default ?? [], holeId)
+        );
+      case "try":
+        return (
+          statementsContainExpressionHole(statement.body, holeId) ||
+          statementsContainExpressionHole(
+            statement.catch?.body ?? [],
+            holeId,
+          ) ||
+          statementsContainExpressionHole(statement.finally ?? [], holeId)
+        );
+      case "throw":
+        return containsHole(statement.value, holeId);
+      case "assert":
+        return containsHole(statement.condition, holeId);
+      case "defer":
+        return statementsContainExpressionHole(statement.body, holeId);
+      case "block":
+        return statementsContainExpressionHole(statement.statements, holeId);
+      case "break":
+      case "continue":
+      case "hole":
+        return false;
+    }
+  });
+
+interface HoleOwner {
+  fn: PirFunction;
+  location: "expression" | "statement";
+}
+
 const ownerOfHole = (
   program: PirProgram,
   holeId: string,
-): PirFunction | undefined =>
-  program.functions.find(
-    (fn) => fn.body !== undefined && containsHole(fn.body, holeId),
-  );
+): HoleOwner | undefined => {
+  for (const fn of program.functions) {
+    if (fn.body !== undefined && containsHole(fn.body, holeId)) {
+      return { fn, location: "expression" };
+    }
+    if (fn.statements !== undefined) {
+      const statementHole = statementsContainStatementHole(
+        fn.statements,
+        holeId,
+      );
+      const expressionHole = statementsContainExpressionHole(
+        fn.statements,
+        holeId,
+      );
+      if (statementHole && expressionHole) return undefined;
+      if (statementHole) return { fn, location: "statement" };
+      if (expressionHole) return { fn, location: "expression" };
+    }
+  }
+  return undefined;
+};
 
 const holeById = (
   program: PirProgram,
@@ -412,11 +546,12 @@ export const synthesizeProgram = async (
     const context = {
       problem,
       state,
-      functionId: owner.id,
+      functionId: owner.fn.id,
       hole,
       expectedType: hole.expectedType,
+      location: owner.location,
       scopeSymbols: [...hole.scopeSymbols],
-    };
+    } as const;
 
     const generated = options.registry.generate(context);
     const limited =
@@ -489,7 +624,7 @@ export const synthesizeProgram = async (
 
       const applied = applyExpansionCandidate(
         state.program,
-        owner.id,
+        owner.fn.id,
         hole.id,
         candidate,
       );
