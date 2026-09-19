@@ -60,22 +60,22 @@ const semanticValueEqual = (a: SemanticValue, b: SemanticValue): boolean =>
 
 const roleBearingNode = (
   node: JsgNode,
-): node is Extract<JsgNode, { roles: unknown }> =>
+): node is JsgNode & { roles: unknown[] } =>
   "roles" in node && Array.isArray(node.roles);
 
 const argumentsBearingNode = (
   node: JsgNode,
-): node is Extract<JsgNode, { arguments: unknown }> =>
+): node is JsgNode & { arguments: unknown[] } =>
   "arguments" in node && Array.isArray(node.arguments);
 
 const modalityBearingNode = (
   node: JsgNode,
-): node is Extract<JsgNode, { modality?: unknown }> =>
+): node is JsgNode & { modality?: unknown } =>
   "modality" in node;
 
 const polarityBearingNode = (
   node: JsgNode,
-): node is Extract<JsgNode, { polarity: unknown }> =>
+): node is JsgNode & { polarity: "positive" | "negative" } =>
   "polarity" in node;
 
 const push = (
