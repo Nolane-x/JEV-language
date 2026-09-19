@@ -356,6 +356,97 @@ export class UnitDimensionRegistry {
   }
 }
 
+export interface QuantityMeasurement {
+  amount: number;
+  unit: string;
+  tolerance?: QuantityTolerance;
+}
+
+export interface QuantityNearMatchResult {
+  equivalent: boolean;
+  leftAmount: number;
+  rightAmountInLeftUnit: number;
+  delta: number;
+  allowedDelta: number;
+  conversion: UnitConversionEvidence | null;
+}
+
+const allowedTolerance = (
+  measurement: QuantityMeasurement,
+): number => {
+  const absolute = measurement.tolerance?.absolute ?? 0;
+  const relative =
+    (measurement.tolerance?.relative ?? 0) * Math.abs(measurement.amount);
+  return Math.max(absolute, relative);
+};
+
+export const compareQuantityMeasurements = (
+  left: QuantityMeasurement,
+  right: QuantityMeasurement,
+  registry: UnitDimensionRegistry,
+  provenance: ProvenanceRef[],
+): Result<QuantityNearMatchResult> => {
+  if (
+    !Number.isFinite(left.amount) ||
+    !Number.isFinite(right.amount) ||
+    left.unit.trim() === "" ||
+    right.unit.trim() === ""
+  ) {
+    return err(
+      new StructuredError(
+        "SEM_QUANTITY_COMPARISON_INVALID",
+        "Quantity comparison requires finite amounts and explicit units.",
+      ),
+    );
+  }
+  const leftTolerance = validateQuantityTolerance(left.tolerance);
+  if (!leftTolerance.ok) return leftTolerance;
+  const rightTolerance = validateQuantityTolerance(right.tolerance);
+  if (!rightTolerance.ok) return rightTolerance;
+
+  let convertedRight = right.amount;
+  let conversion: UnitConversionEvidence | null = null;
+  if (left.unit !== right.unit) {
+    const converted = registry.convert({
+      value: right.amount,
+      sourceUnit: right.unit,
+      targetUnit: left.unit,
+      provenance,
+    });
+    if (!converted.ok) return converted;
+    convertedRight = converted.value.output;
+    conversion = converted.value;
+  } else {
+    const dimension = registry.get(left.unit)?.dimension;
+    if (dimension === undefined) {
+      return err(
+        new StructuredError(
+          "SEM_UNIT_UNKNOWN",
+          `Unknown unit: ${left.unit}`,
+        ),
+      );
+    }
+  }
+
+  const delta = Math.abs(left.amount - convertedRight);
+  const allowedDelta = Math.max(
+    allowedTolerance(left),
+    allowedTolerance({
+      ...right,
+      amount: convertedRight,
+    }),
+  );
+
+  return ok({
+    equivalent: delta <= allowedDelta,
+    leftAmount: left.amount,
+    rightAmountInLeftUnit: convertedRight,
+    delta,
+    allowedDelta,
+    conversion,
+  });
+};
+
 export type SpatialRelationKind =
   | "inside"
   | "contains"
