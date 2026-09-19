@@ -1,0 +1,37 @@
+{
+  "id": "m18-open-world-lexicon-code-switch",
+  "version": "1.0.0",
+  "milestone": "M18.1",
+  "taskRange": "T098-T106",
+  "liveJevRequests": 0,
+  "specSections": [
+    209,
+    717,
+    718,
+    719,
+    428
+  ],
+  "stages": [
+    "exact",
+    "named-opaque",
+    "morphology",
+    "compound",
+    "foreign",
+    "provisional",
+    "opaque"
+  ],
+  "assertions": [
+    "lexeme-sense-validation",
+    "valency-frame-evidence",
+    "collocation-evidence",
+    "language-neutral-index",
+    "english-morphology",
+    "unknown-exact-preservation",
+    "multiword-expression-match",
+    "foreign-code-switch-lookup",
+    "mixed-language-segmentation",
+    "provisional-sense-without-auto-ontology-mutation",
+    "explicit-borrowing-policy",
+    "provider-language-identity"
+  ]
+}

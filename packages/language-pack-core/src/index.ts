@@ -136,3 +136,5 @@ export const assertLanguagePackIdentity = (
     );
   }
 };
+
+export * from "./open-world-lexicon.ts";
