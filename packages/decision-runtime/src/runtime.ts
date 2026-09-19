@@ -69,6 +69,20 @@ export class DecisionRuntime {
     request: DecisionBatchRequest,
     signal?: AbortSignal,
   ): Promise<DecisionBatchResponse> {
+    this.#validateDeadline(request.deadlineMs);
+    if (signal?.aborted === true) {
+      throw new JdrError(
+        "JDR_CANCELLED",
+        "Decision request was cancelled before execution.",
+      );
+    }
+    if (request.deadlineMs === 0) {
+      throw new JdrError(
+        "JDR_TIMEOUT",
+        "Decision request deadline expired before execution.",
+      );
+    }
+
     const traceId = request.traceContext?.traceId ?? createTraceId();
     const requestWithTrace: DecisionBatchRequest = {
       ...request,
@@ -111,7 +125,10 @@ export class DecisionRuntime {
       });
 
       try {
-        const response = await this.#adapter.execute(requestWithTrace, signal);
+        const response = await this.#executeAdapter(
+          requestWithTrace,
+          signal,
+        );
         const validated = validateDecisionBatchResponse(
           requestWithTrace,
           response,
@@ -193,6 +210,81 @@ export class DecisionRuntime {
         "Decision execution ended without a response or structured error.",
       )
     );
+  }
+
+  #validateDeadline(deadlineMs: number | undefined): void {
+    if (
+      deadlineMs !== undefined &&
+      (!Number.isFinite(deadlineMs) || deadlineMs < 0)
+    ) {
+      throw new JdrError(
+        "JDR_INVALID_REQUEST",
+        "deadlineMs must be a non-negative finite duration in milliseconds.",
+      );
+    }
+  }
+
+  async #executeAdapter(
+    request: DecisionBatchRequest,
+    externalSignal?: AbortSignal,
+  ): Promise<DecisionBatchResponse> {
+    const deadlineMs = request.deadlineMs;
+    if (deadlineMs === undefined && externalSignal === undefined) {
+      return this.#adapter.execute(request);
+    }
+
+    const controller = new AbortController();
+    let timedOut = false;
+    let timer: ReturnType<typeof setTimeout> | undefined;
+
+    const abortFromExternal = (): void => {
+      controller.abort();
+    };
+    if (externalSignal !== undefined) {
+      if (externalSignal.aborted) {
+        throw new JdrError(
+          "JDR_CANCELLED",
+          "Decision request was cancelled before provider execution.",
+        );
+      }
+      externalSignal.addEventListener("abort", abortFromExternal, {
+        once: true,
+      });
+    }
+
+    if (deadlineMs !== undefined) {
+      timer = setTimeout(() => {
+        timedOut = true;
+        controller.abort();
+      }, deadlineMs);
+    }
+
+    const abortResult = new Promise<never>((_resolve, reject) => {
+      controller.signal.addEventListener(
+        "abort",
+        () => {
+          reject(
+            new JdrError(
+              timedOut ? "JDR_TIMEOUT" : "JDR_CANCELLED",
+              timedOut
+                ? "Decision provider exceeded the request deadline."
+                : "Decision request was cancelled.",
+            ),
+          );
+        },
+        { once: true },
+      );
+    });
+
+    try {
+      return await Promise.race([
+        this.#adapter.execute(request, controller.signal),
+        abortResult,
+      ]);
+    } finally {
+      if (timer !== undefined) clearTimeout(timer);
+      externalSignal?.removeEventListener("abort", abortFromExternal);
+    }
   }
 
   #normalizeRetryPolicy(
