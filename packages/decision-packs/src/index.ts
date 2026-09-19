@@ -10,6 +10,10 @@ import type {
   DecisionQuestion,
   DecisionState,
 } from "../../decision-runtime/src/index.ts";
+import {
+  validateCandidateSourceBindings,
+  type CandidateSourceBinding,
+} from "./scheduler.ts";
 
 export type DecisionPackLifecycle =
   | "draft"
@@ -48,6 +52,12 @@ export interface DecisionPackManifest {
   knownFailureModes?: string[];
   versionHistory?: string[];
   traceOutput?: boolean;
+  candidateSources?: CandidateSourceBinding[];
+  candidateRecallReport?: {
+    datasetRef: string;
+    recall: number;
+    cases: number;
+  };
 }
 
 export interface StateProjector<I> {
@@ -111,6 +121,15 @@ export const assessDecisionPackQuality = (
   }
   if (input.traceOutput !== true) {
     missingCandidateEvidence.push("traceOutput");
+  }
+  const hasChoiceQuestion = Object.values(input.questions).some(
+    (question) => question.type === "choice",
+  );
+  if (hasChoiceQuestion && !hasItems(input.candidateSources)) {
+    missingCandidateEvidence.push("candidateSources");
+  }
+  if (hasChoiceQuestion && input.candidateRecallReport === undefined) {
+    missingCandidateEvidence.push("candidateRecallReport");
   }
 
   const missingProductionEvidence = [...missingCandidateEvidence];
@@ -179,6 +198,29 @@ export const validateDecisionPack = (
         "Decision pack must contain at least one question.",
       ),
     );
+  }
+
+  if (input.candidateSources !== undefined) {
+    const bindings = validateCandidateSourceBindings(input, input.candidateSources);
+    if (!bindings.ok) return bindings;
+  }
+  if (input.candidateRecallReport !== undefined) {
+    const report = input.candidateRecallReport;
+    if (
+      report.datasetRef.trim() === "" ||
+      !Number.isFinite(report.recall) ||
+      report.recall < 0 ||
+      report.recall > 1 ||
+      !Number.isInteger(report.cases) ||
+      report.cases < 1
+    ) {
+      return err(
+        new StructuredError(
+          "DPACK_CANDIDATE_RECALL_REPORT",
+          "Candidate recall reports require a dataset ref, recall in [0,1], and at least one case.",
+        ),
+      );
+    }
   }
 
   const quality = assessDecisionPackQuality(input);
@@ -252,6 +294,41 @@ export const loadDecisionPack = (
       );
     }
   }
+  if (
+    input.candidateSources !== undefined &&
+    (!Array.isArray(input.candidateSources) ||
+      input.candidateSources.some(
+        (binding) =>
+          !isRecord(binding) ||
+          typeof binding.id !== "string" ||
+          typeof binding.kind !== "string" ||
+          typeof binding.sourceRef !== "string" ||
+          !Array.isArray(binding.questionIds) ||
+          binding.questionIds.some((id) => typeof id !== "string"),
+      ))
+  ) {
+    return err(
+      new StructuredError(
+        "DPACK_SCHEMA",
+        "Decision pack candidateSources must contain typed candidate-source bindings.",
+      ),
+    );
+  }
+  if (
+    input.candidateRecallReport !== undefined &&
+    (!isRecord(input.candidateRecallReport) ||
+      typeof input.candidateRecallReport.datasetRef !== "string" ||
+      typeof input.candidateRecallReport.recall !== "number" ||
+      typeof input.candidateRecallReport.cases !== "number")
+  ) {
+    return err(
+      new StructuredError(
+        "DPACK_SCHEMA",
+        "Decision pack candidateRecallReport has an invalid shape.",
+      ),
+    );
+  }
+
   if (input.traceOutput !== undefined && typeof input.traceOutput !== "boolean") {
     return err(
       new StructuredError(
@@ -324,3 +401,6 @@ export class DecisionPackRegistry {
       );
   }
 }
+
+export * from "./scheduler.ts";
+export * from "./calibration.ts";
