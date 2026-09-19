@@ -370,6 +370,8 @@ export const englishControlledCoverage = {
     quantification: "partial",
     "numbers-units": "controlled",
     "causal-adjuncts": "partial",
+    "dialogue-reference": "controlled",
+    "instruction-as-content": "controlled",
   },
 } as const;
 
@@ -591,6 +593,7 @@ export const englishConformanceManifest: LanguageConformanceManifest = {
   corpusRefs: [
     "tests/conformance/m5-controlled-roundtrip.conformance.test.ts",
     "tests/conformance/m6-bidirectional-variants.conformance.test.ts",
+    "tests/conformance/m9-multilingual-semantic-equivalence.conformance.test.ts",
   ],
   requiredPhenomena: [
     "negation",
@@ -599,6 +602,8 @@ export const englishConformanceManifest: LanguageConformanceManifest = {
     "causality",
     "modality",
     "attribution",
+    "dialogue-reference",
+    "instruction-as-content",
   ],
   determinism: "D0",
 };
