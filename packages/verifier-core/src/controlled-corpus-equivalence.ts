@@ -62,6 +62,15 @@ export type ControlledCorpusProjection =
       modality?: string;
       epistemic?: string;
       quantity: ControlledQuantityProjection;
+    }
+  | {
+      kind: "attributed-proposition";
+      actorConcept: string;
+      predicate: string;
+      polarity: PropositionNode["polarity"];
+      epistemic: "reported";
+      attributionConcept: string;
+      quantity: ControlledQuantityProjection;
     };
 
 const refForRole = (
@@ -168,6 +177,38 @@ export const projectControlledCorpusSemantics = (
         kind: "cause",
         reasonPredicate: reason.predicate,
         main,
+      });
+    }
+  }
+
+  const attributed = snapshot.nodes.find(
+    (node): node is PropositionNode =>
+      node.kind === "proposition" &&
+      node.epistemic?.status === "reported" &&
+      node.attribution !== undefined,
+  );
+  if (attributed !== undefined) {
+    const actorId = refForRole(attributed.arguments, "role:core.agent");
+    const actor = nodeById(snapshot, actorId, "entity");
+    const attribution = nodeById(
+      snapshot,
+      attributed.attribution,
+      "entity",
+    );
+    const quantity = quantityProjection(snapshot, attributed.arguments);
+    if (
+      actor !== undefined &&
+      attribution !== undefined &&
+      quantity !== undefined
+    ) {
+      return ok({
+        kind: "attributed-proposition",
+        actorConcept: actor.concept,
+        predicate: attributed.predicate,
+        polarity: attributed.polarity,
+        epistemic: "reported",
+        attributionConcept: attribution.concept,
+        quantity,
       });
     }
   }
