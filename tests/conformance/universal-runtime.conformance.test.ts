@@ -64,7 +64,9 @@ const transformer: TransformerAdapter = {
         {
           artifactType: "text",
           text: request.input.text.toUpperCase(),
-          language: request.language ?? request.input.language,
+          ...((request.language ?? request.input.language) === undefined
+            ? {}
+            : { language: request.language ?? request.input.language }),
         },
       ],
       diagnostics: [],
