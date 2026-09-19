@@ -79,6 +79,16 @@ export class InMemorySemanticGraph {
     this.#revision = this.#deriveRevision("genesis", []);
   }
 
+  static fromSnapshot(snapshot: GraphSnapshot): InMemorySemanticGraph {
+    const graph = new InMemorySemanticGraph(
+      snapshot.schemaVersion,
+      snapshot.ontologyVersion,
+      snapshot.nodes,
+    );
+    graph.#revision = snapshot.revision;
+    return graph;
+  }
+
   get revision(): string {
     return this.#revision;
   }

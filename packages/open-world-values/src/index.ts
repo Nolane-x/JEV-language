@@ -166,3 +166,90 @@ export const makeUtf16Span = (
   coordinateSystem: "utf16",
   digest: spanDigest(source, start, end),
 });
+
+export type ParsedLiteral =
+  | { kind: "number"; value: number; source: string }
+  | { kind: "boolean"; value: boolean; source: string }
+  | { kind: "url"; value: string; source: string }
+  | { kind: "email"; value: string; source: string }
+  | { kind: "path"; value: string; source: string }
+  | { kind: "date"; value: string; source: string }
+  | { kind: "text"; value: string; source: string };
+
+export const resolveUtf16Span = (
+  source: GroundingSource,
+  span: SpanRef,
+): Result<string> => {
+  if (typeof source.content !== "string") {
+    return err(
+      new StructuredError(
+        "OWV_NON_TEXT_SOURCE",
+        "Cannot resolve a UTF-16 span against a non-text source.",
+      ),
+    );
+  }
+  if (span.coordinateSystem !== "utf16") {
+    return err(
+      new StructuredError(
+        "OWV_COORDINATE_MISMATCH",
+        "Only UTF-16 span resolution is implemented in the bootstrap runtime.",
+      ),
+    );
+  }
+  if (span.sourceId !== source.id || span.sourceVersion !== source.version) {
+    return err(
+      new StructuredError(
+        "OWV_STALE_SPAN",
+        "Span source identity/version no longer matches the grounding source.",
+      ),
+    );
+  }
+  if (
+    span.start < 0 ||
+    span.end < span.start ||
+    span.end > source.content.length
+  ) {
+    return err(
+      new StructuredError("OWV_SPAN_BOUNDS", "Span is outside source bounds."),
+    );
+  }
+  const value = source.content.slice(span.start, span.end);
+  if (sha256(value) !== span.digest) {
+    return err(
+      new StructuredError(
+        "OWV_STALE_SPAN",
+        "Span digest no longer matches the referenced source content.",
+      ),
+    );
+  }
+  return ok(value);
+};
+
+export const parseKnownLiteral = (source: string): ParsedLiteral => {
+  const value = source.trim();
+  if (/^[+-]?(?:\d+(?:\.\d+)?|\.\d+)$/.test(value)) {
+    return { kind: "number", value: Number(value), source };
+  }
+  if (/^(true|false)$/i.test(value)) {
+    return { kind: "boolean", value: value.toLowerCase() === "true", source };
+  }
+  if (/^https?:\/\/[^\s]+$/i.test(value)) {
+    return { kind: "url", value, source };
+  }
+  if (/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) {
+    return { kind: "email", value, source };
+  }
+  if (/^\d{4}-\d{2}-\d{2}$/.test(value)) {
+    return { kind: "date", value, source };
+  }
+  if (
+    /^(?:[A-Za-z]:[\\/]|\.{0,2}[\\/]|\/)[^\0]*$/.test(value) ||
+    /^[\w.-]+(?:[\\/][\w .-]+)+$/.test(value)
+  ) {
+    return { kind: "path", value, source };
+  }
+  return { kind: "text", value: source, source };
+};
+
+export const opaqueRedaction = (ref: OpaqueValueRef): string =>
+  `<opaque:${ref.sensitivity}:${ref.digest.slice("sha256:".length, "sha256:".length + 12)}>`;

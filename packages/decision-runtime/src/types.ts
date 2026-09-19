@@ -101,3 +101,17 @@ export interface DecisionCache {
   get(key: string): DecisionBatchResponse | undefined;
   set(key: string, value: DecisionBatchResponse): void;
 }
+
+export interface StateProjector<I> {
+  readonly id: string;
+  project(input: I): DecisionState;
+}
+
+export interface CalibrationHook {
+  readonly id: string;
+  calibrate(input: {
+    questionId: string;
+    question: DecisionQuestion;
+    answer: DecisionAnswer;
+  }): DecisionAnswer;
+}
