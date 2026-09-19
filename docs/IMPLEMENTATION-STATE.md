@@ -44,9 +44,12 @@ partial_vertical_slices:
   - m14-compiler-test-repair-loop
   - m16-universal-expression-api
   - t268-t275-extension-framework
+  - t301-t310-graph-topology
 known_failures: []
 blocked_items: []
 next_tasks:
+  - verify T301-T310 graph topology and semantic-view expansion on deterministic CI
+  - continue T311-T320 scope/quantification after T301-T310 verification
   - continue M18 language expansion beyond the verified grammar/parser wave
   - expand M16 multi-target adapters beyond the controlled delete-limit semantic subset
 last_verified_main_commit: 153986e6a703db534bbe413007a0199582a764e3
@@ -91,6 +94,8 @@ M0–M9 are verified at their milestone gates. M3 includes the required one-requ
 - M18.1 verified: Section-209 open-world lexical resolver, EN/VI code-switch evidence, provisional lexical-sense proposals, exact unknown-term preservation and explicit borrowing policy. T098-T106 passed CI #207.
 - M18.2 verified: typed grammar features/categories, GrammarRule-driven packed chart parser, expanded English controlled syntax T110-T119, lexical/morphology grammar evidence and conservative syntax-to-JSG bridging. T107-T120 passed CI #218 with 45/45 test files and 368/368 tests; live Jev requests: 0.\n- M1 validator completion verified: T026-T035 now provide V0–V8 staged validation, stable diagnostic registry, invariant registration/bundle, ontology domain/range/cardinality checks, scope/binding validation and provenance/trust closure. CI #226 passed 46/46 test files and 378/378 tests; live Jev requests: 0.
 - T268-T275 extension foundation verified: runtime-validated extension manifests, duplicate-safe dependency registry, spec-compatible version ranges for engine/semantic-schema/ontology-core/PIR, language/backend/verifier conformance runners, transactional ontology/domain-pack loading, and capability-minimal isolation admission. CI #235 passed 47/47 test files and 386/386 tests; live Jev requests: 0.\n- T276-T288 evaluation foundation verified: reproducible dataset manifests, deterministic benchmark runner, candidate-recall/calibration reporters, semantic/NLU/NLG/dialogue/multilingual/synthesis/repair benchmark reports, zero-generative audit, and replay-manifest generation. CI #246 passed 48/48 test files and 404/404 tests; the T286 executable repair benchmark also produced a regression fix for one-line return-expression patch boundaries. Main merge CI #247 passed.\n- T289-T296 hardening verified: deterministic fuzz-smoke coverage for JSG deserialization, normalization/spans, syntax forests and patch application; canonicalization/transaction properties; adversarial trust escalation and credential redaction tests. CI passed 51/51 test files and 413/413 tests; live Jev requests: 0.\n- T297-T300 bootstrap release hardening verified: deterministic performance recorder with percentile summaries, cache key/copy-isolation/stale-request correctness, cancellation and crash normalization coverage, and an evidence-bound release conformance report that blocks unverified tasks, red CI, incomplete tests, generative violations, known failures, or blocked items. CI passed 52/52 test files and 417/417 tests; merged main commit `153986e` passed the same deterministic suite; live Jev requests: 0.
+
+- T301-T310 graph topology candidate implemented: canonical graph-view/projector APIs, reentrant shared-node analysis, explicit MentionNode/entity separation and mention indexes, provisional disconnected graph fragments with deterministic merge diagnostics, explicit cycle-permission registry/enforcement, and bounded topology property tests. Verification is pending branch CI; live Jev requests: 0.
 
 ## Still partial by design
 
