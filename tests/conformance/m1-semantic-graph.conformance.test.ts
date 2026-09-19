@@ -182,6 +182,23 @@ describe("M1 semantic graph acceptance", () => {
       snapshot.nodes.map((node) => node.id),
     );
 
+    const recoveredProposition = recovered.value.nodes.find(
+      (node) => node.id === id("proposition:policy"),
+    );
+    expect(recoveredProposition?.kind).toBe("proposition");
+    if (recoveredProposition?.kind === "proposition") {
+      expect(recoveredProposition.attribution).toBe(id("entity:reporter"));
+      expect(recoveredProposition.temporal).toBe(id("time:deadline"));
+      expect(recoveredProposition.modality).toEqual({
+        kind: "required",
+        strength: 1,
+      });
+      expect(recoveredProposition.scope).toEqual({
+        kind: "resolved",
+        scopeId: id("scope:policy"),
+      });
+    }
+
     const replayed = InMemorySemanticGraph.fromSnapshot(recovered.value);
     expect(replayed.revision).toBe(snapshot.revision);
     expect(canonicalSnapshotJson(replayed.snapshot())).toBe(
