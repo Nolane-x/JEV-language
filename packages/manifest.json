@@ -290,6 +290,14 @@
         "code-backend-core",
         "verifier-core"
       ]
+    },
+    "evaluation-core": {
+      "maturity": "prototype",
+      "layer": 11,
+      "dependencies": [
+        "core-types",
+        "trace-replay"
+      ]
     }
   }
 }

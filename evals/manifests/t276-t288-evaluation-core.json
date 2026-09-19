@@ -1,0 +1,52 @@
+{
+  "id": "t276-t288-evaluation-core",
+  "version": "1.0.0",
+  "taskRange": "T276-T288",
+  "liveJevRequests": 0,
+  "requiredCapabilities": [
+    "dataset-manifest",
+    "benchmark-runner",
+    "candidate-recall-reporter",
+    "calibration-reporter",
+    "semantic-benchmark-reporter",
+    "nlu-benchmark-reporter",
+    "nlg-benchmark-reporter",
+    "dialogue-benchmark-reporter",
+    "multilingual-benchmark-reporter",
+    "synthesis-benchmark-reporter",
+    "repair-benchmark-reporter",
+    "zero-generative-audit",
+    "benchmark-replay-manifest"
+  ],
+  "requiredDatasetSplits": [
+    "development",
+    "calibration",
+    "validation",
+    "test"
+  ],
+  "requiredDecisionMetrics": [
+    "candidate-recall",
+    "selection-accuracy-conditioned-on-candidate-present",
+    "end-to-end-accuracy"
+  ],
+  "requiredCalibrationMetrics": [
+    "reliability-bins",
+    "brier-score",
+    "expected-calibration-error",
+    "coverage",
+    "selective-accuracy",
+    "risk-coverage"
+  ],
+  "zeroGenerativeRequiredForJevNative": true,
+  "controlledIntegrations": [
+    "english-controlled-parser",
+    "english-controlled-roundtrip",
+    "dialogue-act-parser",
+    "english-vietnamese-semantic-equivalence"
+  ],
+  "scopeLimitations": [
+    "broad-open-domain-datasets-not-yet-established",
+    "human-naturalness-is-unscored-without-human-labels",
+    "synthesis-and-repair-reporters-do-not-yet-constitute-broad-corpus-benchmarks"
+  ]
+}

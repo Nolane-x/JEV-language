@@ -80,6 +80,83 @@ const replaceDiagnosticRange = (
       ];
 };
 
+const findReturnExpressionEnd = (input: {
+  text: string;
+  start: number;
+  lineEnd: number;
+  language: string;
+}): number => {
+  let quote: "'" | '"' | "`" | undefined;
+  let escaped = false;
+  let parentheses = 0;
+  let brackets = 0;
+  let braces = 0;
+
+  for (let index = input.start; index < input.lineEnd; index += 1) {
+    const char = input.text[index]!;
+    const next = input.text[index + 1];
+
+    if (quote !== undefined) {
+      if (escaped) {
+        escaped = false;
+        continue;
+      }
+      if (char === "\\") {
+        escaped = true;
+        continue;
+      }
+      if (char === quote) quote = undefined;
+      continue;
+    }
+
+    if (char === "'" || char === '"' || char === "`") {
+      quote = char;
+      continue;
+    }
+
+    const atTopLevel =
+      parentheses === 0 &&
+      brackets === 0 &&
+      braces === 0;
+
+    if (atTopLevel) {
+      if (char === ";") return index;
+      if (char === "}") return index;
+      if (input.language === "python" && char === "#") return index;
+      if (
+        input.language !== "python" &&
+        char === "/" &&
+        next === "/"
+      ) {
+        return index;
+      }
+    }
+
+    switch (char) {
+      case "(":
+        parentheses += 1;
+        break;
+      case ")":
+        parentheses = Math.max(0, parentheses - 1);
+        break;
+      case "[":
+        brackets += 1;
+        break;
+      case "]":
+        brackets = Math.max(0, brackets - 1);
+        break;
+      case "{":
+        braces += 1;
+        break;
+      case "}":
+        braces = Math.max(0, braces - 1);
+        break;
+    }
+  }
+
+  return input.lineEnd;
+};
+
 const returnExpressionRange = (
   context: RepairGenerationContext,
   diagnostic: NormalizedCompilerDiagnostic,
@@ -111,22 +188,13 @@ const returnExpressionRange = (
   while (start < lineEnd && /\s/u.test(text[start]!)) start += 1;
   if (start >= lineEnd) return undefined;
 
-  let end = lineEnd;
-  const lineTail = text.slice(start, lineEnd);
-  const commentIndex =
-    context.source.language === "python"
-      ? lineTail.indexOf("#")
-      : lineTail.indexOf("//");
-  if (commentIndex >= 0) end = start + commentIndex;
-
+  let end = findReturnExpressionEnd({
+    text,
+    start,
+    lineEnd,
+    language: context.source.language,
+  });
   while (end > start && /\s/u.test(text[end - 1]!)) end -= 1;
-  if (
-    context.source.language === "typescript" &&
-    text[end - 1] === ";"
-  ) {
-    end -= 1;
-    while (end > start && /\s/u.test(text[end - 1]!)) end -= 1;
-  }
 
   return end > start ? { start, end } : undefined;
 };

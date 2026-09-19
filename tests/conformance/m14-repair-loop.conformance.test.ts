@@ -599,6 +599,45 @@ describe("M14 compiler/test repair loop", () => {
     );
   });
 
+  it("keeps one-line return repairs inside the return-expression boundary", () => {
+    const backend = createTypeScriptBackend();
+    expect(backend.ok).toBe(true);
+    if (!backend.ok) return;
+
+    const source = document(
+      "m14-inline-return-boundary",
+      'export function answer(): number { return "41"; }\n',
+    );
+    const compiler = new BackendRepairCompiler(backend.value);
+    const initial = compiler.compile({ source });
+    expect(initial.ok).toBe(false);
+
+    const candidates = generateRepairCandidates({
+      source,
+      diagnostics: initial.diagnostics,
+      knowledge: {
+        symbolImports: {},
+        argumentDefaults: {},
+        nullGuards: {},
+        returnReplacements: {
+          TS2322: [{ source: "41", cost: 1 }],
+        },
+      },
+    });
+    expect(candidates).toHaveLength(1);
+
+    const patched = applySourcePatches(
+      source,
+      candidates[0]!.sourcePatches,
+    );
+    expect(patched.ok).toBe(true);
+    if (!patched.ok) return;
+    expect(patched.value.text).toBe(
+      "export function answer(): number { return 41; }\n",
+    );
+    expect(compiler.compile({ source: patched.value }).ok).toBe(true);
+  });
+
   it("rolls back a non-improving repair instead of accepting compiler failure", async () => {
     const backend = createTypeScriptBackend();
     expect(backend.ok).toBe(true);
