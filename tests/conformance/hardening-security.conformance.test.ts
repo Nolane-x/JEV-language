@@ -31,10 +31,10 @@ const snapshotWith = (node: EntityNode): GraphSnapshot => ({
   nodes: [node],
 });
 
-describe("T295-T296 adversarial trust and redaction hardening", () => {
+const sid = (value: string): SemanticId => value as SemanticId;\n\ndescribe("T295-T296 adversarial trust and redaction hardening", () => {
   it("T295 keeps injection-like external text as content and rejects authority escalation", () => {
     for (let index = 0; index < injectionPayloads.length; index += 1) {
-      const provenanceId = `prov:external-${index}`;
+      const provenanceId = sid(`prov:external-${index}`);
       const provenance: ProvenanceRecord = {
         id: provenanceId,
         originType: "external-content",
@@ -49,7 +49,7 @@ describe("T295-T296 adversarial trust and redaction hardening", () => {
       store.add(provenance);
 
       const base: EntityNode = {
-        id: `entity:external-${index}`,
+        id: sid(`entity:external-${index}`),
         kind: "entity",
         schemaVersion: "0.1.0",
         ontologyVersion: "0.1.0",
@@ -105,10 +105,10 @@ describe("T295-T296 adversarial trust and redaction hardening", () => {
 
     for (const secret of secrets) {
       const registry = new InMemoryOpaqueValueRegistry();
-      const ref = registry.put(secret, "credential-like", []);
+      const ref = registry.put(secret, "secret", []);
       const marker = opaqueRedaction(ref);
       expect(marker).not.toContain(secret);
-      expect(marker).toContain("credential-like");
+      expect(marker).toContain("secret");
 
       const denied = projectOpaqueToState(
         ref,
@@ -129,7 +129,7 @@ describe("T295-T296 adversarial trust and redaction hardening", () => {
       const allowed = projectOpaqueToState(
         ref,
         registry,
-        { allowedContentSensitivities: new Set(["credential-like"]) },
+        { allowedContentSensitivities: new Set(["secret"]) },
       );
       expect(allowed.ok).toBe(true);
       if (!allowed.ok) continue;
