@@ -64,6 +64,15 @@ Unsupported free-form inputs return `GROUNDING_CONTROLLED_CORPUS_UNSUPPORTED` ra
 - unresolved deterministic ambiguity is preserved;
 - a semantic construction candidate commits into JSG through semantic validation.
 
+## Deterministic CI evidence
+
+- PR #18 implementation head: `23faede275db2e84a2268be54b55580059ae79c3`
+- GitHub Actions CI run `#81` / run id `35420951692`: `success`
+- merged squash commit: `5451dd15e20cf83e6c97848b4be1936e0997c758`
+- live Jev requests consumed by that PR: `0`
+
+This verifies the deterministic M4 implementation while preserving the predecessor-gate rule below.
+
 ## Milestone-order rule
 
 The implementation for T085–T097 may be merged once deterministic CI passes, but M4 MUST NOT become `last_completed_gate` while the predecessor M3 live-smoke requirement remains open. The active milestone therefore remains M3 until that single explicitly authorized live test is recorded.
