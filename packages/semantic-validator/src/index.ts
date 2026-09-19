@@ -21,6 +21,7 @@ import type {
 import {
   validateContextSemantics,
   validateGraphTopology,
+  validatePragmaticSemantics,
   validateScopeGraph,
   validateTemporalModalGraph,
   type CyclePermissionRegistry,
@@ -463,6 +464,10 @@ export const internalRefs = (node: JsgNode): SemanticId[] => {
         ...(node.temporal === undefined ? [] : [node.temporal]),
         ...(node.attribution === undefined ? [] : [node.attribution]),
         ...(node.context === undefined ? [] : [node.context]),
+        ...(node.presupposition?.host === undefined ? [] : [node.presupposition.host]),
+        ...(node.presupposition?.context === undefined ? [] : [node.presupposition.context]),
+        ...(node.presupposition?.linkedRef === undefined ? [] : [node.presupposition.linkedRef]),
+        ...(node.pragmaticInference?.premiseRefs ?? []),
         ...(node.epistemic?.source === undefined ? [] : [node.epistemic.source]),
         ...(node.modality?.source === undefined ? [] : [node.modality.source]),
         ...(node.modality?.scope === undefined ? [] : [node.modality.scope]),
@@ -871,6 +876,16 @@ export const createCoreInvariantRegistry = (): SemanticInvariantRegistry => {
     },
   });
   if (!quantities.ok) throw quantities.error;
+
+  const pragmatics = registry.register({
+    id: "core.presupposition-pragmatic-inference-consistency",
+    description:
+      "Presupposed and pragmatic inferred content must remain explicit, defeasible where required, and separate from asserted truth.",
+    check({ snapshot }) {
+      return validatePragmaticSemantics(snapshot);
+    },
+  });
+  if (!pragmatics.ok) throw pragmatics.error;
 
   const contextSemantics = registry.register({
     id: "core.context-deixis-attitude-evidence-consistency",
