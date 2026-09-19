@@ -22,6 +22,9 @@ import {
   filterScopeSafeGenerationCandidates,
   planScopeRealization,
 } from "../../packages/realizer-core/src/index.ts";
+import {
+  verifySemanticPreservation,
+} from "../../packages/verifier-core/src/index.ts";
 
 const sid = (value: string): SemanticId => value as SemanticId;
 const provenance = ["prov:t311"] as ProvenanceRef[];
@@ -456,6 +459,25 @@ describe("T311-T320 scope and quantification conformance", () => {
         "REALIZE_SCOPE_AMBIGUITY_LOST",
       );
     }
+  });
+
+  it("verification detects changes to explicit scope, quantifier, and negation semantics", () => {
+    const source = ambiguousQuantifierNegationGraph();
+    const candidate = structuredClone(source);
+    const constraintNode = candidate.nodes.find(
+      (node): node is ScopeConstraintNode =>
+        node.kind === "scope-constraint",
+    );
+    expect(constraintNode).toBeDefined();
+    if (constraintNode === undefined) return;
+    constraintNode.relation = "outscopes";
+    constraintNode.status = "derived";
+
+    const report = verifySemanticPreservation(source, candidate);
+    expect(report.ok).toBe(false);
+    expect(report.violations.map((violation) => violation.code)).toContain(
+      "SEM_SCOPE_CONSTRAINT_CHANGED",
+    );
   });
 
   it("T320 executes an adversarial quantifier/negation benchmark", async () => {
