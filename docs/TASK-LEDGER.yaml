@@ -21,7 +21,9 @@ tasks:
   - {id: T145-T180, title: dialogue/Vietnamese/discourse/pragmatics, status: partial}
   - {id: T181-T199, title: PIR typed foundation and typed-hole contracts, status: partial}
   - {id: T200-T238, title: synthesis/backends/repair/compiler-loop, status: partial}
-  - {id: T239-T247, title: formal/data/query/math/logic/command/action IR schemas validators and deterministic renderers, status: implemented}\n  - {id: T248-T252, title: universal expression target/request/artifact/result and capability manifest, status: implemented}\n  - {id: T253-T258, title: universal parse/realize/express/transform/verify handlers and trace/replay integration, status: partial}
+  - {id: T239-T247, title: formal/data/query/math/logic/command/action IR schemas validators and deterministic renderers, status: implemented}
+  - {id: T248-T252, title: universal expression target/request/artifact/result and capability manifest, status: implemented}
+  - {id: T253-T258, title: universal parse/realize/express/transform/verify handlers and trace/replay integration, status: partial}
   - {id: T259, title: define VerificationObligation, status: implemented}
   - {id: T260, title: define Verifier ABI, status: implemented}
   - {id: T261, title: implement semantic equivalence/preservation verifier, status: implemented}
