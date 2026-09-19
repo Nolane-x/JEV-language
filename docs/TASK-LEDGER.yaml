@@ -28,11 +28,11 @@ tasks:
   - {id: T259, title: define VerificationObligation, status: implemented}
   - {id: T260, title: define Verifier ABI, status: implemented}
   - {id: T261, title: implement semantic equivalence/preservation verifier, status: implemented}
-  - {id: T262, title: implement round-trip verifier, status: partial}
-  - {id: T263, title: implement trust verifier, status: partial}
-  - {id: T264, title: implement grammar verifier adapter, status: todo}
-  - {id: T265, title: implement requirement satisfaction report, status: todo}
-  - {id: T266, title: implement program compile/test evidence adapter, status: partial}
+  - {id: T262, title: implement round-trip verifier, status: implemented}
+  - {id: T263, title: implement trust verifier, status: implemented}
+  - {id: T264, title: implement grammar verifier adapter, status: implemented}
+  - {id: T265, title: implement requirement satisfaction report, status: implemented}
+  - {id: T266, title: implement program compile/test evidence adapter, status: implemented}
   - {id: T267, title: implement evidence grading, status: implemented}
   - {id: T268-T300, title: extensions/evaluation/hardening, status: todo}
   - {id: T301+, title: v0.4 research-expansion semantics/synthesis/conformance tasks, status: todo}
