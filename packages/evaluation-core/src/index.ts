@@ -310,7 +310,7 @@ export const runBenchmark = async <TCase extends BenchmarkCaseBase>(input: {
   }
 
   const validDataset = validateDatasetManifest(input.dataset);
-  if (!validDataset.ok) return validDataset;
+  if (!validDataset.ok) return err(validDataset.error);
 
   if (input.cases.length !== validDataset.value.itemCount) {
     return err(
@@ -967,7 +967,7 @@ export const generateBenchmarkReplayManifest = (
   input: BenchmarkReplayInput,
 ): Result<ReplayManifest> => {
   const dataset = validateDatasetManifest(input.dataset);
-  if (!dataset.ok) return dataset;
+  if (!dataset.ok) return err(dataset.error);
   if (input.benchmarkId.trim() === "" || input.benchmarkVersion.trim() === "") {
     return err(
       new StructuredError(
