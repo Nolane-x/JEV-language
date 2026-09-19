@@ -1,6 +1,7 @@
 import ts from "@typescript/typescript6";
 import { describe, expect, it } from "vitest";
 import {
+  applySourcePatches,
   createTypeScriptBackend,
   type SourceDocument,
 } from "../../packages/code-backend-core/src/index.ts";
@@ -478,6 +479,39 @@ describe("M14 compiler/test repair loop", () => {
     expect(
       initial.diagnostics.map((diagnostic) => diagnostic.compiler.code),
     ).toContain("TS2322");
+
+    const previewCandidates = generateRepairCandidates({
+      source,
+      diagnostics: initial.diagnostics,
+      knowledge: {
+        symbolImports: {},
+        argumentDefaults: {},
+        nullGuards: {},
+        returnReplacements: {
+          TS2322: [{ source: "41", cost: 1 }],
+        },
+      },
+    });
+    expect(previewCandidates).toHaveLength(1);
+    const preview = applySourcePatches(
+      source,
+      previewCandidates[0]!.sourcePatches,
+    );
+    expect(preview.ok).toBe(true);
+    if (preview.ok) {
+      expect(preview.value.text).toBe(
+        [
+          "export function answer(): number {",
+          "  return 41;",
+          "}",
+          "",
+          "export function keep(): number {",
+          "  return 7;",
+          "}",
+          "",
+        ].join("\n"),
+      );
+    }
 
     const result = await repairProgram({
       source,
