@@ -6,9 +6,15 @@ import {
 } from "../../packages/code-backend-core/src/index.ts";
 import {
   BackendRepairCompiler,
+  JevRepairCandidateRanker,
+  classifyRepairDiagnostic,
+  generateRepairCandidates,
+  locateImplicatedProgramNodes,
   normalizeRepairDiagnostic,
+  repairCandidateDecisionPack,
   repairProgram,
   type NormalizedTestResult,
+  type RepairCandidate,
   type RepairTestRunner,
 } from "../../packages/repair-core/src/index.ts";
 
@@ -169,6 +175,326 @@ class ExportBehaviorRunner implements RepairTestRunner {
 }
 
 describe("M14 compiler/test repair loop", () => {
+
+  it("classifies stable diagnostics and maps compiler spans to implicated PIR nodes", () => {
+    const source = document(
+      "locator",
+      "export function add(a: number): number { return missing(a); }\n",
+    );
+    const start = source.text.indexOf("missing");
+    const compilerDiagnostic = {
+      code: "TS2304",
+      severity: "error" as const,
+      message: "Cannot find name 'missing'.",
+      sourceId: source.path,
+      start,
+      length: "missing".length,
+      line: 1,
+      column: start + 1,
+      category: "Error",
+    };
+
+    expect(classifyRepairDiagnostic(compilerDiagnostic)).toBe(
+      "missing-symbol",
+    );
+
+    const program = {
+      version: "1.0.0",
+      modules: [
+        {
+          id: "module:locator",
+          kind: "module" as const,
+          nameIntent: { preferredTerms: ["locator"] },
+          exports: ["function:add"],
+          imports: [],
+          declarations: ["function:add"],
+          sourceBinding: {
+            sourceId: source.sourceId,
+            language: "typescript",
+            start: 0,
+            end: source.text.length,
+          },
+        },
+      ],
+      functions: [
+        {
+          kind: "function" as const,
+          id: "function:add",
+          name: "add",
+          parameters: [
+            {
+              id: "param:add:a",
+              name: "a",
+              type: { kind: "number" as const },
+              sourceBinding: {
+                sourceId: source.sourceId,
+                language: "typescript",
+                existingName: "a",
+                start: source.text.indexOf("a: number"),
+                end: source.text.indexOf("a: number") + 1,
+              },
+            },
+          ],
+          returnType: { kind: "number" as const },
+          body: {
+            kind: "variable" as const,
+            symbolId: "param:add:a",
+          },
+          sourceBinding: {
+            sourceId: source.sourceId,
+            language: "typescript",
+            existingName: "add",
+            start: 0,
+            end: source.text.length,
+          },
+        },
+      ],
+    };
+
+    const implicated = locateImplicatedProgramNodes(
+      source,
+      program,
+      compilerDiagnostic,
+    );
+    expect(implicated).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          refId: "function:add",
+          nodeKind: "function",
+          relation: "overlap",
+          distance: 0,
+        }),
+      ]),
+    );
+  });
+
+  it("generates only bounded configured guard/import/argument/return candidates", () => {
+    const source = document(
+      "generator",
+      "const target = broken;\n",
+    );
+    const at = source.text.indexOf("broken");
+    const diagnostics = [
+      normalizeRepairDiagnostic({
+        backendId: "backend.typescript",
+        source,
+        compiler: {
+          code: "TS18048",
+          severity: "error",
+          message: "target is possibly undefined",
+          sourceId: source.path,
+          start: at,
+          length: 6,
+        },
+      }),
+      normalizeRepairDiagnostic({
+        backendId: "backend.typescript",
+        source,
+        compiler: {
+          code: "TS2304",
+          severity: "error",
+          message: "Cannot find name 'helper'.",
+          sourceId: source.path,
+          start: at,
+          length: 6,
+        },
+      }),
+      normalizeRepairDiagnostic({
+        backendId: "backend.typescript",
+        source,
+        compiler: {
+          code: "TS2554",
+          severity: "error",
+          message: "Expected 2 arguments, but got 1.",
+          sourceId: source.path,
+          start: at,
+          length: 6,
+        },
+        metadata: { callable: "helper" },
+      }),
+      normalizeRepairDiagnostic({
+        backendId: "backend.typescript",
+        source,
+        compiler: {
+          code: "TS2322",
+          severity: "error",
+          message: "Type string is not assignable to type number.",
+          sourceId: source.path,
+          start: at,
+          length: 6,
+        },
+      }),
+    ];
+
+    const candidates = generateRepairCandidates({
+      source,
+      diagnostics,
+      knowledge: {
+        nullGuards: {
+          TS18048: [{ source: "target ?? 0", cost: 2 }],
+        },
+        symbolImports: {
+          helper: [
+            {
+              module: "./helper",
+              imported: "helper",
+              cost: 1,
+            },
+          ],
+        },
+        argumentDefaults: {
+          helper: [{ source: "helper(1, 2)", cost: 3 }],
+        },
+        returnReplacements: {
+          TS2322: [{ source: "41", cost: 1 }],
+        },
+      },
+    });
+
+    expect(candidates.map((candidate) => candidate.kind)).toEqual(
+      expect.arrayContaining([
+        "add-guard",
+        "import-symbol",
+        "argument",
+        "return-type",
+      ]),
+    );
+    expect(candidates.every((candidate) => candidate.cost >= 0)).toBe(
+      true,
+    );
+    expect(
+      candidates.every(
+        (candidate) =>
+          candidate.sourcePatches.length > 0 &&
+          candidate.diagnosticIds.length > 0,
+      ),
+    ).toBe(true);
+  });
+
+  it("keeps repair ranking bounded to existing candidate IDs and uses deterministic fallback on low confidence", async () => {
+    expect(repairCandidateDecisionPack.id).toBe(
+      "repair.candidate.select",
+    );
+
+    const candidates: RepairCandidate[] = [
+      {
+        id: "candidate:cheap",
+        kind: "return-type",
+        diagnosticIds: ["diagnostic:1"],
+        pirOperations: [],
+        sourcePatches: [],
+        expectedRemovedCodes: ["TS2322"],
+        cost: 1,
+        rationale: "cheap deterministic repair",
+        evidenceRefs: ["diagnostic:1"],
+      },
+      {
+        id: "candidate:expensive",
+        kind: "argument",
+        diagnosticIds: ["diagnostic:1"],
+        pirOperations: [],
+        sourcePatches: [],
+        expectedRemovedCodes: ["TS2322"],
+        cost: 5,
+        rationale: "expensive alternative",
+        evidenceRefs: ["diagnostic:1"],
+      },
+    ];
+    const diagnostic = normalizeRepairDiagnostic({
+      backendId: "backend.typescript",
+      source: document("rank", "const value = 1;\n"),
+      compiler: {
+        code: "TS2322",
+        severity: "error",
+        message: "Type mismatch.",
+        sourceId: "/virtual/rank.ts",
+        start: 0,
+        length: 1,
+      },
+    });
+
+    const lowConfidence = new JevRepairCandidateRanker({
+      modelProfile: "recorded-repair",
+      minimumConfidence: 0.8,
+      executor: {
+        async execute(request) {
+          return {
+            requestId: request.id,
+            answers: [
+              {
+                questionId: "select_repair",
+                type: "choice",
+                selected: "candidate:expensive",
+                probabilities: {
+                  "candidate:cheap": 0.49,
+                  "candidate:expensive": 0.51,
+                },
+                confidence: 0.51,
+                model: "recorded",
+                latencyMs: 0,
+              },
+            ],
+            model: "recorded",
+            usage: {
+              requests: 0,
+              inputTokens: 0,
+              outputTokens: 0,
+            },
+            traceId: "trace:repair-low-confidence",
+            source: "recorded",
+          };
+        },
+      },
+    });
+    await expect(
+      lowConfidence.rank({
+        diagnostics: [diagnostic],
+        candidates,
+      }),
+    ).resolves.toEqual([
+      "candidate:cheap",
+      "candidate:expensive",
+    ]);
+
+    const outOfSet = new JevRepairCandidateRanker({
+      modelProfile: "recorded-repair",
+      executor: {
+        async execute(request) {
+          return {
+            requestId: request.id,
+            answers: [
+              {
+                questionId: "select_repair",
+                type: "choice",
+                selected: "candidate:invented",
+                probabilities: { "candidate:invented": 1 },
+                confidence: 1,
+                model: "recorded",
+                latencyMs: 0,
+              },
+            ],
+            model: "recorded",
+            usage: {
+              requests: 0,
+              inputTokens: 0,
+              outputTokens: 0,
+            },
+            traceId: "trace:repair-out-of-set",
+            source: "recorded",
+          };
+        },
+      },
+    });
+
+    await expect(
+      outOfSet.rank({
+        diagnostics: [diagnostic],
+        candidates,
+      }),
+    ).rejects.toMatchObject({
+      code: "REPAIR_RANKER_OUT_OF_SET",
+    });
+  });
   it("repairs broken TypeScript deterministically and verifies behavior plus regression", async () => {
     const backend = createTypeScriptBackend();
     expect(backend.ok).toBe(true);
