@@ -5,39 +5,44 @@ import {
   validatePirProgram,
   type PirExpression,
   type PirProgram,
+  type PirStatement,
   type Result,
 } from "../../program-ir/src/index.ts";
 import type { ExpansionCandidate } from "./model.ts";
+
+interface ExpressionReplaceResult {
+  expression: PirExpression;
+  replacements: number;
+}
 
 const replaceInExpression = (
   expression: PirExpression,
   holeId: string,
   replacement: PirExpression,
-): { expression: PirExpression; replaced: boolean } => {
+): ExpressionReplaceResult => {
   if (expression.kind === "hole" && expression.id === holeId) {
-    return { expression: structuredClone(replacement), replaced: true };
+    return {
+      expression: structuredClone(replacement),
+      replacements: 1,
+    };
   }
 
-  const one = (
-    child: PirExpression,
-  ): { child: PirExpression; replaced: boolean } => {
-    const result = replaceInExpression(child, holeId, replacement);
-    return { child: result.expression, replaced: result.replaced };
-  };
+  const one = (child: PirExpression): ExpressionReplaceResult =>
+    replaceInExpression(child, holeId, replacement);
 
   switch (expression.kind) {
     case "property": {
-      const result = one(expression.object);
+      const object = one(expression.object);
       return {
-        expression: { ...structuredClone(expression), object: result.child },
-        replaced: result.replaced,
+        expression: { ...structuredClone(expression), object: object.expression },
+        replacements: object.replacements,
       };
     }
     case "field-access": {
-      const result = one(expression.object);
+      const object = one(expression.object);
       return {
-        expression: { ...structuredClone(expression), object: result.child },
-        replaced: result.replaced,
+        expression: { ...structuredClone(expression), object: object.expression },
+        replacements: object.replacements,
       };
     }
     case "index-access": {
@@ -46,46 +51,52 @@ const replaceInExpression = (
       return {
         expression: {
           ...structuredClone(expression),
-          object: object.child,
-          index: index.child,
+          object: object.expression,
+          index: index.expression,
         },
-        replaced: object.replaced || index.replaced,
+        replacements: object.replacements + index.replacements,
       };
     }
     case "call": {
       const callee = one(expression.callee);
-      let replaced = callee.replaced;
-      const args = expression.arguments.map((argument) => {
+      let replacements = callee.replacements;
+      const argumentsList = expression.arguments.map((argument) => {
         const result = one(argument);
-        replaced ||= result.replaced;
-        return result.child;
+        replacements += result.replacements;
+        return result.expression;
       });
       return {
         expression: {
           ...structuredClone(expression),
-          callee: callee.child,
-          arguments: args,
+          callee: callee.expression,
+          arguments: argumentsList,
         },
-        replaced,
+        replacements,
       };
     }
     case "construct": {
-      let replaced = false;
-      const args = expression.arguments.map((argument) => {
+      let replacements = 0;
+      const argumentsList = expression.arguments.map((argument) => {
         const result = one(argument);
-        replaced ||= result.replaced;
-        return result.child;
+        replacements += result.replacements;
+        return result.expression;
       });
       return {
-        expression: { ...structuredClone(expression), arguments: args },
-        replaced,
+        expression: {
+          ...structuredClone(expression),
+          arguments: argumentsList,
+        },
+        replacements,
       };
     }
     case "unary": {
-      const result = one(expression.operand);
+      const operand = one(expression.operand);
       return {
-        expression: { ...structuredClone(expression), operand: result.child },
-        replaced: result.replaced,
+        expression: {
+          ...structuredClone(expression),
+          operand: operand.expression,
+        },
+        replacements: operand.replacements,
       };
     }
     case "binary":
@@ -95,22 +106,22 @@ const replaceInExpression = (
       return {
         expression: {
           ...structuredClone(expression),
-          left: left.child,
-          right: right.child,
+          left: left.expression,
+          right: right.expression,
         },
-        replaced: left.replaced || right.replaced,
+        replacements: left.replacements + right.replacements,
       };
     }
     case "logical": {
-      let replaced = false;
+      let replacements = 0;
       const values = expression.values.map((value) => {
         const result = one(value);
-        replaced ||= result.replaced;
-        return result.child;
+        replacements += result.replacements;
+        return result.expression;
       });
       return {
         expression: { ...structuredClone(expression), values },
-        replaced,
+        replacements,
       };
     }
     case "conditional": {
@@ -120,76 +131,81 @@ const replaceInExpression = (
       return {
         expression: {
           ...structuredClone(expression),
-          condition: condition.child,
-          whenTrue: whenTrue.child,
-          whenFalse: whenFalse.child,
+          condition: condition.expression,
+          whenTrue: whenTrue.expression,
+          whenFalse: whenFalse.expression,
         },
-        replaced:
-          condition.replaced || whenTrue.replaced || whenFalse.replaced,
+        replacements:
+          condition.replacements +
+          whenTrue.replacements +
+          whenFalse.replacements,
       };
     }
     case "lambda": {
       const body = one(expression.body);
       return {
-        expression: { ...structuredClone(expression), body: body.child },
-        replaced: body.replaced,
+        expression: { ...structuredClone(expression), body: body.expression },
+        replacements: body.replacements,
       };
     }
     case "await": {
       const value = one(expression.value);
       return {
-        expression: { ...structuredClone(expression), value: value.child },
-        replaced: value.replaced,
+        expression: { ...structuredClone(expression), value: value.expression },
+        replacements: value.replacements,
       };
     }
     case "cast": {
       const value = one(expression.value);
       return {
-        expression: { ...structuredClone(expression), value: value.child },
-        replaced: value.replaced,
+        expression: { ...structuredClone(expression), value: value.expression },
+        replacements: value.replacements,
       };
     }
     case "collection": {
-      let replaced = false;
+      let replacements = 0;
       const elements = expression.elements.map((element) => {
         const result = one(element);
-        replaced ||= result.replaced;
-        return result.child;
+        replacements += result.replacements;
+        return result.expression;
       });
       return {
         expression: { ...structuredClone(expression), elements },
-        replaced,
+        replacements,
       };
     }
     case "record": {
-      let replaced = false;
+      let replacements = 0;
       const fields = Object.fromEntries(
         Object.entries(expression.fields).map(([name, value]) => {
           const result = one(value);
-          replaced ||= result.replaced;
-          return [name, result.child];
+          replacements += result.replacements;
+          return [name, result.expression];
         }),
       );
       return {
         expression: { ...structuredClone(expression), fields },
-        replaced,
+        replacements,
       };
     }
     case "match": {
       const value = one(expression.value);
-      let replaced = value.replaced;
+      let replacements = value.replacements;
       const cases = expression.cases.map((entry) => {
         const result = one(entry.expression);
-        replaced ||= result.replaced;
-        return { ...structuredClone(entry), expression: result.child };
+        replacements += result.replacements;
+        return {
+          ...structuredClone(entry),
+          expression: result.expression,
+        };
       });
       return {
         expression: {
           ...structuredClone(expression),
-          value: value.child,
+          value: value.expression,
           cases,
         },
-        replaced,
+        replacements,
       };
     }
     case "filter": {
@@ -198,10 +214,10 @@ const replaceInExpression = (
       return {
         expression: {
           ...structuredClone(expression),
-          collection: collection.child,
-          predicate: predicate.child,
+          collection: collection.expression,
+          predicate: predicate.expression,
         },
-        replaced: collection.replaced || predicate.replaced,
+        replacements: collection.replacements + predicate.replacements,
       };
     }
     case "map": {
@@ -210,18 +226,250 @@ const replaceInExpression = (
       return {
         expression: {
           ...structuredClone(expression),
-          collection: collection.child,
-          mapper: mapper.child,
+          collection: collection.expression,
+          mapper: mapper.expression,
         },
-        replaced: collection.replaced || mapper.replaced,
+        replacements: collection.replacements + mapper.replacements,
       };
     }
     case "hole":
     case "literal":
     case "variable":
     case "symbol-ref":
-      return { expression: structuredClone(expression), replaced: false };
+      return {
+        expression: structuredClone(expression),
+        replacements: 0,
+      };
   }
+};
+
+interface StatementReplaceResult {
+  statements: PirStatement[];
+  replacements: number;
+}
+
+const replaceExpressionHolesInStatements = (
+  statements: readonly PirStatement[],
+  holeId: string,
+  replacement: PirExpression,
+): StatementReplaceResult => {
+  let replacements = 0;
+
+  const expression = (value: PirExpression): PirExpression => {
+    const result = replaceInExpression(value, holeId, replacement);
+    replacements += result.replacements;
+    return result.expression;
+  };
+
+  const nested = (value: readonly PirStatement[]): PirStatement[] => {
+    const result = replaceExpressionHolesInStatements(
+      value,
+      holeId,
+      replacement,
+    );
+    replacements += result.replacements;
+    return result.statements;
+  };
+
+  const mapped = statements.map((statement): PirStatement => {
+    switch (statement.kind) {
+      case "declare":
+        return {
+          ...structuredClone(statement),
+          ...(statement.initializer === undefined
+            ? {}
+            : { initializer: expression(statement.initializer) }),
+        };
+      case "assign":
+        return {
+          ...structuredClone(statement),
+          target: expression(statement.target),
+          value: expression(statement.value),
+        };
+      case "expression":
+        return {
+          kind: "expression",
+          expression: expression(statement.expression),
+        };
+      case "return":
+        return {
+          kind: "return",
+          ...(statement.value === undefined
+            ? {}
+            : { value: expression(statement.value) }),
+        };
+      case "if":
+        return {
+          ...structuredClone(statement),
+          condition: expression(statement.condition),
+          then: nested(statement.then),
+          ...(statement.else === undefined
+            ? {}
+            : { else: nested(statement.else) }),
+        };
+      case "loop":
+        return {
+          ...structuredClone(statement),
+          ...(statement.condition === undefined
+            ? {}
+            : { condition: expression(statement.condition) }),
+          body: nested(statement.body),
+        };
+      case "for-each":
+        return {
+          ...structuredClone(statement),
+          collection: expression(statement.collection),
+          body: nested(statement.body),
+        };
+      case "match":
+        return {
+          ...structuredClone(statement),
+          value: expression(statement.value),
+          cases: statement.cases.map((entry) => ({
+            ...structuredClone(entry),
+            body: nested(entry.body),
+          })),
+          ...(statement.default === undefined
+            ? {}
+            : { default: nested(statement.default) }),
+        };
+      case "try":
+        return {
+          ...structuredClone(statement),
+          body: nested(statement.body),
+          ...(statement.catch === undefined
+            ? {}
+            : {
+                catch: {
+                  ...structuredClone(statement.catch),
+                  body: nested(statement.catch.body),
+                },
+              }),
+          ...(statement.finally === undefined
+            ? {}
+            : { finally: nested(statement.finally) }),
+        };
+      case "throw":
+        return {
+          kind: "throw",
+          value: expression(statement.value),
+        };
+      case "assert":
+        return {
+          ...structuredClone(statement),
+          condition: expression(statement.condition),
+        };
+      case "defer":
+        return {
+          kind: "defer",
+          body: nested(statement.body),
+        };
+      case "block":
+        return {
+          kind: "block",
+          statements: nested(statement.statements),
+        };
+      case "break":
+      case "continue":
+      case "hole":
+        return structuredClone(statement);
+    }
+  });
+
+  return { statements: mapped, replacements };
+};
+
+const replaceStatementHole = (
+  statements: readonly PirStatement[],
+  holeId: string,
+  replacement: readonly PirStatement[],
+): StatementReplaceResult => {
+  let replacements = 0;
+  const output: PirStatement[] = [];
+
+  const nested = (value: readonly PirStatement[]): PirStatement[] => {
+    const result = replaceStatementHole(value, holeId, replacement);
+    replacements += result.replacements;
+    return result.statements;
+  };
+
+  for (const statement of statements) {
+    if (statement.kind === "hole" && statement.holeId === holeId) {
+      output.push(...replacement.map((entry) => structuredClone(entry)));
+      replacements += 1;
+      continue;
+    }
+
+    switch (statement.kind) {
+      case "if":
+        output.push({
+          ...structuredClone(statement),
+          then: nested(statement.then),
+          ...(statement.else === undefined
+            ? {}
+            : { else: nested(statement.else) }),
+        });
+        break;
+      case "loop":
+        output.push({
+          ...structuredClone(statement),
+          body: nested(statement.body),
+        });
+        break;
+      case "for-each":
+        output.push({
+          ...structuredClone(statement),
+          body: nested(statement.body),
+        });
+        break;
+      case "match":
+        output.push({
+          ...structuredClone(statement),
+          cases: statement.cases.map((entry) => ({
+            ...structuredClone(entry),
+            body: nested(entry.body),
+          })),
+          ...(statement.default === undefined
+            ? {}
+            : { default: nested(statement.default) }),
+        });
+        break;
+      case "try":
+        output.push({
+          ...structuredClone(statement),
+          body: nested(statement.body),
+          ...(statement.catch === undefined
+            ? {}
+            : {
+                catch: {
+                  ...structuredClone(statement.catch),
+                  body: nested(statement.catch.body),
+                },
+              }),
+          ...(statement.finally === undefined
+            ? {}
+            : { finally: nested(statement.finally) }),
+        });
+        break;
+      case "defer":
+        output.push({
+          kind: "defer",
+          body: nested(statement.body),
+        });
+        break;
+      case "block":
+        output.push({
+          kind: "block",
+          statements: nested(statement.statements),
+        });
+        break;
+      default:
+        output.push(structuredClone(statement));
+        break;
+    }
+  }
+
+  return { statements: output, replacements };
 };
 
 export const applyExpansionCandidate = (
@@ -232,21 +480,55 @@ export const applyExpansionCandidate = (
 ): Result<PirProgram> => {
   const next = structuredClone(program);
   const fn = next.functions.find((value) => value.id === functionId);
-  if (fn === undefined || fn.body === undefined) {
+  if (fn === undefined) {
     return err(
       new StructuredError(
         "SYNTH_TARGET_FUNCTION",
-        "Synthesis expansion requires an expression-bodied target function.",
+        `Target function was not found: ${functionId}.`,
       ),
     );
   }
 
-  const replaced = replaceInExpression(
-    fn.body,
-    holeId,
-    candidate.replacement,
-  );
-  if (!replaced.replaced) {
+  let replacements = 0;
+
+  if (candidate.replacement.kind === "expression") {
+    if (fn.body !== undefined) {
+      const result = replaceInExpression(
+        fn.body,
+        holeId,
+        candidate.replacement.value,
+      );
+      fn.body = result.expression;
+      replacements += result.replacements;
+    }
+    if (fn.statements !== undefined) {
+      const result = replaceExpressionHolesInStatements(
+        fn.statements,
+        holeId,
+        candidate.replacement.value,
+      );
+      fn.statements = result.statements;
+      replacements += result.replacements;
+    }
+  } else {
+    if (fn.statements === undefined) {
+      return err(
+        new StructuredError(
+          "SYNTH_STATEMENT_TARGET",
+          "Statement replacement requires a statement-bodied target function.",
+        ),
+      );
+    }
+    const result = replaceStatementHole(
+      fn.statements,
+      holeId,
+      candidate.replacement.value,
+    );
+    fn.statements = result.statements;
+    replacements = result.replacements;
+  }
+
+  if (replacements === 0) {
     return err(
       new StructuredError(
         "SYNTH_HOLE_NOT_FOUND",
@@ -254,7 +536,14 @@ export const applyExpansionCandidate = (
       ),
     );
   }
-  fn.body = replaced.expression;
+  if (replacements > 1) {
+    return err(
+      new StructuredError(
+        "SYNTH_HOLE_DUPLICATE_LOCATION",
+        `Hole ${holeId} occurs in more than one program location.`,
+      ),
+    );
+  }
 
   next.holes = [
     ...(next.holes ?? []).filter((hole) => hole.id !== holeId),
