@@ -5,6 +5,10 @@ import type {
 import { buildAction } from "../../action-ir/src/index.ts";
 import type { DataIr } from "../../formal-ir/src/index.ts";
 import {
+  validatePirProgram,
+  type PirProgram,
+} from "../../program-ir/src/index.ts";
+import {
   realizeControlledEnglish,
   realizeControlledVietnamese,
 } from "../../realizer-core/src/index.ts";
@@ -153,6 +157,113 @@ const textAdapter = (
 
 export const controlledEnglishSemanticRealizer = textAdapter("en");
 export const controlledVietnameseSemanticRealizer = textAdapter("vi");
+
+export const controlledDeleteLimitProgramRealizer: RealizerAdapter = {
+  id: "realizer.controlled.delete-limit.program.v1",
+  targets: ["program"],
+  async realize(request) {
+    const semantics = resolveControlledDeleteLimit(request);
+    if (semantics === undefined) {
+      return failure(
+        "EXPRESSION_CONTROLLED_PROGRAM_UNSUPPORTED",
+        "No supported delete-limit semantic requirement was found.",
+      );
+    }
+
+    const parameterId =
+      `param:requested-delete-count:${semantics.constraint.id}`;
+    const functionId =
+      `function:can-delete-files:${semantics.constraint.id}`;
+    const moduleId =
+      `module:delete-limit:${semantics.constraint.id}`;
+
+    const program: PirProgram = {
+      version: "1.0.0",
+      modules: [
+        {
+          id: moduleId,
+          kind: "module",
+          nameIntent: {
+            preferredTerms: ["deleteLimit"],
+            style: "backend-default",
+            semanticPurpose: semantics.constraint.id,
+          },
+          exports: [functionId],
+          imports: [],
+          declarations: [functionId],
+          documentation: [semantics.constraint.id],
+        },
+      ],
+      functions: [
+        {
+          kind: "function",
+          id: functionId,
+          name: "canDeleteFiles",
+          parameters: [
+            {
+              id: parameterId,
+              name: "requestedDeleteCount",
+              type: { kind: "number" },
+              semanticPurpose: semantics.quantity.id,
+            },
+          ],
+          returnType: { kind: "boolean" },
+          body: {
+            kind: "comparison",
+            operator: "lte",
+            left: {
+              kind: "variable",
+              symbolId: parameterId,
+            },
+            right: {
+              kind: "literal",
+              value: semantics.quantity.amount,
+              type: { kind: "number" },
+            },
+          },
+          effects: [{ kind: "pure" }],
+          visibility: "public",
+          semanticPurpose: semantics.constraint.id,
+        },
+      ],
+      annotations: {
+        sourceSemanticRoot: semantics.constraint.id,
+        constrainedAction: semantics.action.id,
+        maximumDeleteFiles: semantics.quantity.amount,
+      },
+    };
+
+    const valid = validatePirProgram(program);
+    if (!valid.ok) {
+      return {
+        status: "error",
+        diagnostics: [
+          {
+            code: valid.error.code,
+            message: valid.error.message,
+            severity: "error",
+          },
+        ],
+        evidence: [],
+        provenance: [...semantics.constraint.provenance],
+      };
+    }
+
+    return {
+      status: "ok",
+      value: [
+        {
+          artifactType: "program",
+          program,
+          semanticRefs: semanticRefs(semantics),
+        },
+      ],
+      diagnostics: [],
+      evidence: [],
+      provenance: [...semantics.constraint.provenance],
+    };
+  },
+};
 
 export const controlledDeleteLimitDataRealizer: RealizerAdapter = {
   id: "realizer.controlled.delete-limit.data.v1",
