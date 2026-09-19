@@ -18,11 +18,13 @@ import type {
   ProvenanceRecord,
   ProvenanceRef,
 } from "../../provenance/src/index.ts";
-import type {
-  Diagnostic,
-  GraphSnapshot,
-  JsgNode,
-  SemanticValue,
+import {
+  validateGraphTopology,
+  type CyclePermissionRegistry,
+  type Diagnostic,
+  type GraphSnapshot,
+  type JsgNode,
+  type SemanticValue,
 } from "../../semantic-graph/src/index.ts";
 
 export type ValidationStage =
@@ -176,6 +178,12 @@ export const DIAGNOSTIC_REGISTRY = {
     defaultSeverity: "error",
     description: "One evidence node both supports and contradicts the same semantic node.",
   },
+  JSG050_UNPERMITTED_CYCLE: {
+    code: "JSG050_UNPERMITTED_CYCLE",
+    stage: "V1",
+    defaultSeverity: "error",
+    description: "A semantic cycle is present without an explicit cycle-permission rule.",
+  },
   JSG900_UNSUPPORTED_NODE_KIND: {
     code: "JSG900_UNSUPPORTED_NODE_KIND",
     stage: "V0",
@@ -232,6 +240,7 @@ const makeDiagnostic = (
 
 const knownKinds = new Set<string>([
   "entity",
+  "mention",
   "event",
   "state",
   "action",
@@ -359,6 +368,8 @@ export const internalRefs = (node: JsgNode): SemanticId[] => {
         ...node.memberships,
         ...node.attributes.flatMap((attribute) => refsFromValue(attribute.value)),
       ];
+    case "mention":
+      return [node.entityRef];
     case "event":
       return [
         ...(node.temporal === undefined ? [] : [node.temporal]),
@@ -778,6 +789,7 @@ export interface ValidationContext {
   ontology?: OntologyStore;
   provenance?: ProvenanceLookup;
   invariants?: SemanticInvariantRegistry;
+  cyclePermissions?: CyclePermissionRegistry;
   profileValidators?: readonly ProfileValidator[];
 }
 
@@ -851,6 +863,8 @@ const validateV0 = (snapshot: GraphSnapshot): Diagnostic[] => {
 
     const nodeHasInvalidNumber =
       (node.kind === "quantity" && !Number.isFinite(node.amount)) ||
+      (node.kind === "mention" &&
+        (!Number.isFinite(node.salience) || node.salience < 0)) ||
       semanticValues(node).some(hasInvalidNumber) ||
       (node.kind === "alternative-set" &&
         node.alternatives.some(
@@ -875,7 +889,10 @@ const validateV0 = (snapshot: GraphSnapshot): Diagnostic[] => {
   return diagnostics;
 };
 
-const validateV1 = (snapshot: GraphSnapshot): Diagnostic[] => {
+const validateV1 = (
+  snapshot: GraphSnapshot,
+  context: ValidationContext,
+): Diagnostic[] => {
   const diagnostics: Diagnostic[] = [];
   const ids = new Set<SemanticId>();
 
@@ -913,6 +930,25 @@ const validateV1 = (snapshot: GraphSnapshot): Diagnostic[] => {
       }
     }
   }
+
+  diagnostics.push(
+    ...validateGraphTopology(snapshot, context.cyclePermissions).map((diagnostic) =>
+      diagnostic.code === "JSG050_UNPERMITTED_CYCLE"
+        ? makeDiagnostic(
+            "JSG050_UNPERMITTED_CYCLE",
+            diagnostic.message,
+            {
+              ...(diagnostic.nodeRefs === undefined
+                ? {}
+                : { nodeRefs: diagnostic.nodeRefs }),
+              ...(diagnostic.details === undefined
+                ? {}
+                : { details: diagnostic.details }),
+            },
+          )
+        : diagnostic,
+    ),
+  );
 
   return diagnostics;
 };
@@ -1280,7 +1316,7 @@ const stageDiagnostics = (
     case "V0":
       return validateV0(snapshot);
     case "V1":
-      return validateV1(snapshot);
+      return validateV1(snapshot, context);
     case "V2":
       return validateV2(snapshot, context);
     case "V3":

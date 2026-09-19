@@ -47,7 +47,8 @@ tasks:
   - {id: T276-T288, title: evaluation manifests runners reporters benchmarks zero-generative audit and replay manifests, status: verified}
   - {id: T289-T296, title: deserializer normalization forest patch fuzzing canonical and transaction properties trust injection and redaction hardening, status: verified}
   - {id: T297-T300, title: performance instrumentation cache correctness cancellation crash and release conformance report, status: verified}
-  - {id: T301+, title: v0.4 research-expansion semantics/synthesis/conformance tasks, status: todo}
+  - {id: T301-T310, title: graph topology semantic views mention/entity separation fragments merge cycle policy and topology properties, status: verified}
+  - {id: T311+, title: remaining v0.4 research-expansion semantics/synthesis/conformance tasks, status: todo}
 vertical_slices:
   - {id: VS1, title: controlled English requirement parse-realize-roundtrip, status: implemented}
   - {id: VS2, title: recorded Jev Choice reference resolution with ambiguity preservation, status: implemented}

@@ -22,6 +22,29 @@ const optionalString = (value: unknown): boolean =>
 const optionalNumber = (value: unknown): boolean =>
   value === undefined || (typeof value === "number" && Number.isFinite(value));
 
+const isSpanRef = (value: unknown): boolean =>
+  isRecord(value) &&
+  typeof value.sourceId === "string" &&
+  typeof value.sourceVersion === "string" &&
+  typeof value.start === "number" &&
+  Number.isSafeInteger(value.start) &&
+  value.start >= 0 &&
+  typeof value.end === "number" &&
+  Number.isSafeInteger(value.end) &&
+  value.end >= value.start &&
+  (value.coordinateSystem === "utf16" ||
+    value.coordinateSystem === "unicode-scalar" ||
+    value.coordinateSystem === "byte") &&
+  typeof value.digest === "string";
+
+const isMentionExpressionType = (value: unknown): boolean =>
+  value === "name" ||
+  value === "pronoun" ||
+  value === "description" ||
+  value === "demonstrative" ||
+  value === "zero" ||
+  value === "other";
+
 const isJsonValue = (value: unknown): boolean => {
   if (
     value === null ||
@@ -144,6 +167,16 @@ const structurallyValidNode = (value: unknown): value is JsgNode => {
         isStringArray(value.memberships) &&
         (value.names === undefined ||
           (Array.isArray(value.names) && value.names.every(isStringLikeValue)))
+      );
+    case "mention":
+      return (
+        typeof value.entityRef === "string" &&
+        (value.sourceSpan === undefined || isSpanRef(value.sourceSpan)) &&
+        isMentionExpressionType(value.expressionType) &&
+        (value.language === undefined || typeof value.language === "string") &&
+        typeof value.salience === "number" &&
+        Number.isFinite(value.salience) &&
+        value.salience >= 0
       );
     case "event":
       return (
