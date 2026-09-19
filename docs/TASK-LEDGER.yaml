@@ -43,7 +43,8 @@ tasks:
   - {id: T265, title: implement requirement satisfaction report, status: verified}
   - {id: T266, title: implement program compile/test evidence adapter, status: verified}
   - {id: T267, title: implement evidence grading, status: verified}
-  - {id: T268-T300, title: extensions/evaluation/hardening, status: todo}
+  - {id: T268-T275, title: extension manifest registry compatibility conformance loaders and isolation, status: verified}
+  - {id: T276-T300, title: evaluation and hardening tasks, status: todo}
   - {id: T301+, title: v0.4 research-expansion semantics/synthesis/conformance tasks, status: todo}
 vertical_slices:
   - {id: VS1, title: controlled English requirement parse-realize-roundtrip, status: implemented}

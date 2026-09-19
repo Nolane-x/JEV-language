@@ -279,6 +279,17 @@
         "decision-runtime",
         "decision-packs"
       ]
+    },
+    "extension-core": {
+      "maturity": "prototype",
+      "layer": 10,
+      "dependencies": [
+        "core-types",
+        "ontology",
+        "language-pack-core",
+        "code-backend-core",
+        "verifier-core"
+      ]
     }
   }
 }
