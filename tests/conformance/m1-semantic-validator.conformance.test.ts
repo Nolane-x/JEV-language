@@ -34,7 +34,7 @@ const common = {
   provenance: ["prov:test"] as const,
 };
 
-const entity = (id = "entity:service"): EntityNode => ({
+const entity = (id: EntityNode["id"] = "entity:service"): EntityNode => ({
   ...common,
   provenance: [...common.provenance],
   id,
