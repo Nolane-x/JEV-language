@@ -2,6 +2,7 @@ import {
   err,
   ok,
   StructuredError,
+  canonicalJson,
   type JsonValue,
   type Result,
 } from "../../core-types/src/index.ts";
@@ -383,13 +384,16 @@ export const renderActionIr = (
 ): Result<string> => {
   const valid = validateActionIr(action, context);
   if (!valid.ok) return err(valid.error);
-  const rendered = JSON.stringify(valid.value);
-  return rendered === undefined
-    ? err(
-        new StructuredError(
-          "ACTION_RENDER_UNDEFINED",
-          "Validated Action IR did not produce a serializable rendering.",
-        ),
-      )
-    : ok(rendered);
+  try {
+    return ok(canonicalJson(valid.value as unknown as JsonValue));
+  } catch (error) {
+    return err(
+      new StructuredError(
+        "ACTION_RENDER_UNSERIALIZABLE",
+        error instanceof Error
+          ? error.message
+          : "Validated Action IR could not be serialized canonically.",
+      ),
+    );
+  }
 };
