@@ -45,6 +45,74 @@ const isMentionExpressionType = (value: unknown): boolean =>
   value === "zero" ||
   value === "other";
 
+const isScopeRelation = (value: unknown): boolean =>
+  value === "outscopes" ||
+  value === "qeq" ||
+  value === "same-scope" ||
+  value === "disjoint" ||
+  value === "unknown";
+
+const isScopeConstraintStatus = (value: unknown): boolean =>
+  value === "asserted" || value === "derived" || value === "candidate";
+
+const isQuantifierKind = (value: unknown): boolean =>
+  value === "existential" ||
+  value === "universal" ||
+  value === "negative" ||
+  value === "cardinal" ||
+  value === "proportional" ||
+  value === "comparative" ||
+  value === "approximate" ||
+  value === "most" ||
+  value === "few" ||
+  value === "many" ||
+  value === "exactly-N" ||
+  value === "at-least-N" ||
+  value === "at-most-N" ||
+  value === "between-N-M";
+
+const isQuantityConstraint = (value: unknown): boolean => {
+  if (!isRecord(value) || typeof value.kind !== "string") return false;
+  switch (value.kind) {
+    case "exact":
+    case "at-least":
+    case "at-most":
+    case "proportion":
+      return typeof value.value === "number" && Number.isFinite(value.value);
+    case "between":
+      return (
+        typeof value.minimum === "number" &&
+        Number.isFinite(value.minimum) &&
+        typeof value.maximum === "number" &&
+        Number.isFinite(value.maximum)
+      );
+    case "comparative":
+      return (
+        (value.operator === "more-than" ||
+          value.operator === "less-than" ||
+          value.operator === "at-least" ||
+          value.operator === "at-most") &&
+        typeof value.value === "number" &&
+        Number.isFinite(value.value)
+      );
+    case "approximate":
+      return (
+        typeof value.value === "number" &&
+        Number.isFinite(value.value) &&
+        (value.tolerance === undefined ||
+          (typeof value.tolerance === "number" &&
+            Number.isFinite(value.tolerance)))
+      );
+    default:
+      return false;
+  }
+};
+
+const isDistributivity = (value: unknown): boolean =>
+  value === "collective" ||
+  value === "distributive" ||
+  value === "ambiguous";
+
 const isJsonValue = (value: unknown): boolean => {
   if (
     value === null ||
@@ -222,6 +290,34 @@ const structurallyValidNode = (value: unknown): value is JsgNode => {
         isPolarity(value.polarity) &&
         optionalString(value.temporal) &&
         optionalString(value.attribution)
+      );
+    case "scope":
+      return (
+        typeof value.operatorRef === "string" &&
+        optionalString(value.bodyRef)
+      );
+    case "scope-constraint":
+      return (
+        typeof value.left === "string" &&
+        isScopeRelation(value.relation) &&
+        typeof value.right === "string" &&
+        isScopeConstraintStatus(value.status)
+      );
+    case "quantifier":
+      return (
+        isQuantifierKind(value.quantifierKind) &&
+        typeof value.restrictor === "string" &&
+        typeof value.body === "string" &&
+        (value.cardinality === undefined ||
+          isQuantityConstraint(value.cardinality)) &&
+        (value.distributivity === undefined ||
+          isDistributivity(value.distributivity)) &&
+        typeof value.scope === "string"
+      );
+    case "negation":
+      return (
+        typeof value.body === "string" &&
+        typeof value.scope === "string"
       );
     case "quantity":
       return (
