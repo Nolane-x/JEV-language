@@ -107,7 +107,7 @@
       ]
     },
     "lexicon-core": {
-      "maturity": "prototype",
+      "maturity": "experimental",
       "layer": 6,
       "dependencies": [
         "core-types",
@@ -124,7 +124,7 @@
       ]
     },
     "morphology-core": {
-      "maturity": "prototype",
+      "maturity": "experimental",
       "layer": 7,
       "dependencies": [
         "core-types",
