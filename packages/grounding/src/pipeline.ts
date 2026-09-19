@@ -60,12 +60,21 @@ export interface GroundingToken {
   literal?: ParsedLiteral;
 }
 
+export interface LanguageHypothesis {
+  language: string;
+  confidence: number;
+  evidence: string[];
+}
+
 export interface LanguageSpan {
   start: number;
   end: number;
   language: string;
   confidence?: number;
   source: "hint" | "deterministic" | "external";
+  script?: string;
+  ambiguous?: boolean;
+  hypotheses?: LanguageHypothesis[];
 }
 
 export interface LanguageSpanTagger {
