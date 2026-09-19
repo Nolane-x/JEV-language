@@ -37,15 +37,16 @@ partial_vertical_slices:
   - m8-vietnamese-language-pack
   - m10-program-ir
   - m11-synthesis-core
+  - m12-typescript-backend
 known_failures: []
 blocked_items: []
 next_tasks:
-  - complete M12 TypeScript backend ABI parse/lift/lower/print/patch/diagnostics/typecheck gate
+  - verify M12 TypeScript backend gate on CI before advancing to M13 Python backend
   - complete remaining M1 staged semantic validators and graph operations
   - harden M17 verifier orchestration, provenance edge cases, and cross-adapter conformance
   - expand M16 multi-target adapters beyond the controlled delete-limit semantic subset
-last_verified_main_commit: ac7d59bf15e4db9f854fa430ef3d5b50f1378c71
-last_verified_pr_head: 589c559563c02cd80d9b55430ff732d773f90210
+last_verified_main_commit: aca7e39cec5519d6ba20a747e83d30c36d98cf28
+last_verified_pr_head: c218297456573abb3979d985e4b0035e30ef965b
 ```
 
 ## Current state
@@ -75,6 +76,7 @@ M0–M9 are verified at their milestone gates. M3 includes the required one-requ
 - M9 verified multilingual semantic gate: independent English/Vietnamese G→surface→G round trips, resolved-reference and instruction-as-content JSG structures, and dimension-level diagnostics for predicate/roles/polarity/modality/quantity/time/condition/causality/attribution/reference/instruction content.
 - M10 verified Program IR: backend-neutral graph/model with modules, symbols, expanded types/expressions/statements, contracts/effects, typed holes, source bindings, atomic transactions, deterministic validation/serialization, derived CFG/def-use analysis and all eight required corpus fixtures.
 - M11 verified synthesis core: typed expression/statement holes, six generator families, deterministic hard pruning, best-first/beam frontiers, state deduplication, bounded search budgets, bounded recorded-Jev ranking, acceptance verifiers, structured partial failures and traceable multi-step composition.
+- M12 TypeScript backend candidate: backend ABI/manifest, compiler-API parser, AST↔PIR subset, source bindings, AST/source printer, minimal patching, normalized diagnostics, strict typecheck adapter and conformance over the M12 source subset plus the verified M10 PIR corpus.
 - Graph-structured Discourse IR foundation with deterministic prerequisite-aware ordering.
 - Formal IR family foundation (Data/Schema/Query/Math/Logic/Command), capability-validated Action IR, and harness-neutral Universal Expression contract.
 - Registry-driven Universal Expression runtime plus trace DAG/config-digest/replay-manifest foundation.
