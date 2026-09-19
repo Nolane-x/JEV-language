@@ -17,7 +17,12 @@ const renderType = (type: PirType): string => {
     case "boolean":
     case "number":
     case "string":
+    case "never":
+    case "unknown":
+    case "void":
       return type.kind;
+    case "null":
+      return "null";
     case "list":
       return `Array<${renderType(type.element)}>`;
     case "record":
@@ -25,6 +30,47 @@ const renderType = (type: PirType): string => {
         .sort(([a], [b]) => a.localeCompare(b))
         .map(([name, field]) => `${name}: ${renderType(field)}`)
         .join("; ")} }`;
+    case "tuple":
+      return `[${type.elements.map(renderType).join(", ")}]`;
+    case "optional":
+      return `${renderType(type.inner)} | undefined`;
+    case "union":
+      return type.options.map(renderType).join(" | ");
+    case "intersection":
+      return type.members.map(renderType).join(" & ");
+    case "function":
+      return `(${type.parameters
+        .map((parameter, index) => `arg${index}: ${renderType(parameter)}`)
+        .join(", ")}) => ${renderType(type.returns)}`;
+    case "named":
+      return type.symbolId.replace(/[^A-Za-z0-9_$]/gu, "_");
+    case "generic":
+      return `${renderType(type.base)}<${type.arguments
+        .map(renderType)
+        .join(", ")}>`;
+    case "collection":
+      if (type.collectionKind === "map" && type.key !== undefined) {
+        return `Map<${renderType(type.key)}, ${renderType(type.value)}>`;
+      }
+      if (type.collectionKind === "set") {
+        return `Set<${renderType(type.value)}>`;
+      }
+      return `Iterable<${renderType(type.value)}>`;
+    case "type-variable":
+      return type.name;
+    case "result":
+      return `{ ok: true; value: ${renderType(type.ok)} } | { ok: false; error: ${renderType(type.error)} }`;
+    case "variant":
+      return Object.entries(type.cases)
+        .sort(([a], [b]) => a.localeCompare(b))
+        .map(([tag, payload]) =>
+          payload === null
+            ? `{ kind: ${JSON.stringify(tag)} }`
+            : `{ kind: ${JSON.stringify(tag)}; value: ${renderType(payload)} }`,
+        )
+        .join(" | ");
+    case "promise":
+      return `Promise<${renderType(type.value)}>`;
   }
 };
 
@@ -68,10 +114,25 @@ const renderExpression = (
         `${collection.value}.filter((${expression.item.name}) => ${predicate.value})`,
       );
     }
+    default:
+      return err(
+        new StructuredError(
+          "TS_BACKEND_EXPRESSION_UNSUPPORTED",
+          `TypeScript backend does not yet lower PIR expression kind ${expression.kind}.`,
+        ),
+      );
   }
 };
 
 const renderFunction = (fn: PirFunction): Result<string> => {
+  if (fn.body === undefined) {
+    return err(
+      new StructuredError(
+        "TS_BACKEND_STATEMENT_BODY_UNSUPPORTED",
+        `TypeScript backend does not yet lower statement-bodied function ${fn.id}.`,
+      ),
+    );
+  }
   const names = new Map(fn.parameters.map((parameter) => [parameter.id, parameter.name]));
   const body = renderExpression(fn.body, names);
   if (!body.ok) return body;
