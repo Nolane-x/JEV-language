@@ -1,3 +1,4 @@
+import type { SelectionalPreference } from "./open-vocabulary.ts";
 import {
   err,
   ok,
@@ -29,6 +30,7 @@ export interface ValencySlot {
   syntacticFunctions: string[];
   required: boolean;
   expectedConcepts?: ConceptRef[];
+  selectionalPreference?: SelectionalPreference;
   prepositions?: string[];
 }
 
@@ -161,6 +163,20 @@ const validateSense = (sense: LexicalSense): Result<void> => {
           new StructuredError(
             "LEXICON_VALENCY_FUNCTION",
             `Valency slot ${slot.id} requires at least one syntactic function.`,
+          ),
+        );
+      }
+      const preference = slot.selectionalPreference;
+      if (
+        preference?.strength !== undefined &&
+        (!Number.isFinite(preference.strength) ||
+          preference.strength < 0 ||
+          preference.strength > 1)
+      ) {
+        return err(
+          new StructuredError(
+            "LEXICON_SELECTIONAL_STRENGTH",
+            `Valency slot ${slot.id} selectional-preference strength must be in [0,1].`,
           ),
         );
       }
@@ -442,3 +458,5 @@ export const preserveUnknownLexicalItem = (
   preservedExact: true,
   ...(language === undefined ? {} : { language }),
 });
+
+export * from "./open-vocabulary.ts";
