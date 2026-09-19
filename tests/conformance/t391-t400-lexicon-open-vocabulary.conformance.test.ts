@@ -231,7 +231,9 @@ describe("T391-T400 lexicon and open vocabulary conformance", () => {
             {
               source: input.surface,
               target: input.surface.normalize("NFD").replace(/[\u0300-\u036f]/g, ""),
-              sourceScript: input.sourceScript,
+              ...(input.sourceScript === undefined
+                ? {}
+                : { sourceScript: input.sourceScript }),
               targetScript: input.targetScript,
               reversible: false,
               confidence: 0.7,
