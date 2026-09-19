@@ -4,26 +4,61 @@ import {
 } from "../../grammar-core/src/index.ts";
 import {
   LanguageNeutralLexiconIndex,
+  caseFoldLexicalSurface,
+  type CollocationRule,
   type Lexeme,
+  type LexemeId,
   type LexicalMatch,
+  type ValencyFrame,
 } from "../../lexicon-core/src/index.ts";
 import {
   type MorphAnalysis,
   type MorphContext,
   type MorphFeatures,
   type MorphologyProvider,
+  type SurfaceCandidate,
 } from "../../morphology-core/src/index.ts";
 
-const require = (ok: { ok: boolean; error?: Error }): void => {
-  if (!ok.ok) throw ok.error ?? new Error("English language-pack registration failed.");
+const requireOk = (result: { ok: boolean; error?: Error }): void => {
+  if (!result.ok) {
+    throw result.error ?? new Error("English language-pack registration failed.");
+  }
 };
 
-type LexicalConcept = NonNullable<Lexeme["senses"][number]["concept"]>;
+const deleteFrame: ValencyFrame = {
+  id: "frame:en.delete.transitive",
+  semanticPredicate: "concept:core.delete",
+  slots: [
+    {
+      id: "agent",
+      role: "role:core.agent",
+      alternatives: [{ function: "subject" }],
+      required: false,
+    },
+    {
+      id: "theme",
+      role: "role:core.theme",
+      alternatives: [{ function: "direct-object" }],
+      required: true,
+      expectedConcepts: ["concept:core.file"],
+    },
+  ],
+};
+
+const deleteFileCollocation: CollocationRule = {
+  id: "collocation:en.delete-file",
+  relation: "prefers",
+  left: { kind: "concept", value: "concept:core.delete" },
+  right: { kind: "concept", value: "concept:core.file" },
+  window: 4,
+  domain: "concept:core.software-service",
+  preference: 0.9,
+};
 
 const noun = (
-  id: string,
+  id: LexemeId,
   lemma: string,
-  concept: LexicalConcept,
+  concept: Lexeme["senses"][number]["concept"],
   forms: string[] = [],
 ): Lexeme => ({
   id,
@@ -31,20 +66,30 @@ const noun = (
   lemma,
   partOfSpeech: "noun",
   forms,
-  senses: [{ id: `${id}.sense.1`, concept }],
+  senses: [{ senseId: `${id}.sense.1`, concept }],
+  morphologyClass: "en.regular-noun",
+  frequencyBand: 0.75,
 });
 
 const functionLexeme = (
-  id: string,
+  id: LexemeId,
   lemma: string,
   partOfSpeech: Lexeme["partOfSpeech"],
+  concept: Lexeme["senses"][number]["concept"],
   semanticTag: string,
 ): Lexeme => ({
   id,
   language: "en",
   lemma,
   partOfSpeech,
-  senses: [{ id: `${id}.sense.1`, semanticTag }],
+  senses: [
+    {
+      senseId: `${id}.sense.1`,
+      concept,
+      semanticTag,
+    },
+  ],
+  frequencyBand: 0.8,
 });
 
 export const createEnglishSeedLexicon = (): LanguageNeutralLexiconIndex => {
@@ -58,6 +103,7 @@ export const createEnglishSeedLexicon = (): LanguageNeutralLexiconIndex => {
       ["services"],
     ),
     noun("lexeme:en.file", "file", "concept:core.file", ["files"]),
+    noun("lexeme:en.entity", "entity", "concept:core.entity", ["entities"]),
     {
       id: "lexeme:en.delete",
       language: "en",
@@ -66,53 +112,131 @@ export const createEnglishSeedLexicon = (): LanguageNeutralLexiconIndex => {
       forms: ["deletes", "deleted", "deleting"],
       senses: [
         {
-          id: "sense:en.delete.action",
+          senseId: "sense:en.delete.action",
           concept: "concept:core.delete",
-          valencyFrames: [
-            {
-              id: "frame:en.delete.transitive",
-              slots: [
-                {
-                  id: "agent",
-                  role: "role:core.agent",
-                  syntacticFunctions: ["subject"],
-                  required: true,
-                },
-                {
-                  id: "patient",
-                  syntacticFunctions: ["direct-object"],
-                  required: true,
-                  expectedConcepts: ["concept:core.file"],
-                },
-              ],
-            },
-          ],
         },
       ],
+      morphologyClass: "en.regular-verb",
+      valencyFrames: [deleteFrame],
+      collocations: [deleteFileCollocation],
+      frequencyBand: 0.8,
     },
-    functionLexeme("lexeme:en.must", "must", "auxiliary", "modality.required"),
-    functionLexeme("lexeme:en.not", "not", "particle", "polarity.negative"),
-    functionLexeme("lexeme:en.be", "be", "auxiliary", "copula"),
-    functionLexeme("lexeme:en.if", "if", "conjunction", "condition.marker"),
+    {
+      id: "lexeme:en.bank",
+      language: "en",
+      lemma: "bank",
+      partOfSpeech: "noun",
+      senses: [
+        {
+          senseId: "sense:en.bank.finance",
+          concept: "concept:lex.finance-institution",
+          gloss: "financial institution",
+        },
+        {
+          senseId: "sense:en.bank.river",
+          concept: "concept:lex.river-bank",
+          gloss: "edge of a river",
+        },
+      ],
+      morphologyClass: "en.regular-noun",
+      frequencyBand: 0.65,
+    },
+    functionLexeme(
+      "lexeme:en.must",
+      "must",
+      "auxiliary",
+      "concept:core.requirement",
+      "modality.required",
+    ),
+    functionLexeme(
+      "lexeme:en.not",
+      "not",
+      "particle",
+      "concept:core.negation",
+      "polarity.negative",
+    ),
+    functionLexeme(
+      "lexeme:en.be",
+      "be",
+      "auxiliary",
+      "concept:core.equivalence",
+      "copula",
+    ),
+    functionLexeme(
+      "lexeme:en.if",
+      "if",
+      "conjunction",
+      "concept:core.condition",
+      "condition.marker",
+    ),
     functionLexeme(
       "lexeme:en.because",
       "because",
       "conjunction",
+      "concept:core.causality",
       "causal.marker",
     ),
-    functionLexeme("lexeme:en.and", "and", "conjunction", "coordination.and"),
-    functionLexeme("lexeme:en.or", "or", "conjunction", "coordination.or"),
-    functionLexeme("lexeme:en.more", "more", "adverb", "comparison.more"),
-    functionLexeme("lexeme:en.than", "than", "particle", "comparison.boundary"),
-    functionLexeme("lexeme:en.at", "at", "preposition", "comparison.boundary"),
-    functionLexeme("lexeme:en.most", "most", "adverb", "comparison.maximum"),
-    functionLexeme("lexeme:en.what", "what", "pronoun", "question.wh"),
-    functionLexeme("lexeme:en.which", "which", "determiner", "question.wh"),
+    functionLexeme(
+      "lexeme:en.and",
+      "and",
+      "conjunction",
+      "concept:core.coordination",
+      "coordination.and",
+    ),
+    functionLexeme(
+      "lexeme:en.or",
+      "or",
+      "conjunction",
+      "concept:core.coordination",
+      "coordination.or",
+    ),
+    functionLexeme(
+      "lexeme:en.more",
+      "more",
+      "adverb",
+      "concept:core.comparison",
+      "comparison.more",
+    ),
+    functionLexeme(
+      "lexeme:en.than",
+      "than",
+      "particle",
+      "concept:core.comparison",
+      "comparison.boundary",
+    ),
+    functionLexeme(
+      "lexeme:en.at",
+      "at",
+      "preposition",
+      "concept:core.comparison",
+      "comparison.boundary",
+    ),
+    functionLexeme(
+      "lexeme:en.most",
+      "most",
+      "adverb",
+      "concept:core.comparison",
+      "comparison.maximum",
+    ),
+    functionLexeme(
+      "lexeme:en.what",
+      "what",
+      "pronoun",
+      "concept:core.question",
+      "question.wh",
+    ),
+    functionLexeme(
+      "lexeme:en.which",
+      "which",
+      "determiner",
+      "concept:core.question",
+      "question.wh",
+    ),
   ];
 
-  for (const entry of entries) require(index.registerLexeme(entry));
+  for (const entry of entries) requireOk(index.registerLexeme(entry));
 
-  require(
+  requireOk(
     index.registerMultiword({
       id: "mwe:en.more-than",
       language: "en",
@@ -120,11 +244,14 @@ export const createEnglishSeedLexicon = (): LanguageNeutralLexiconIndex => {
         { kind: "fixed", surface: "more" },
         { kind: "fixed", surface: "than" },
       ],
-      syntacticCategory: "COMPARATOR",
-      semanticMapping: "comparison.more-than",
+      syntacticCategory: "construction:comparator",
+      semanticMapping: {
+        concept: "concept:core.comparison",
+        senseId: "comparison.more-than",
+      },
     }),
   );
-  require(
+  requireOk(
     index.registerMultiword({
       id: "mwe:en.at-most",
       language: "en",
@@ -132,73 +259,171 @@ export const createEnglishSeedLexicon = (): LanguageNeutralLexiconIndex => {
         { kind: "fixed", surface: "at" },
         { kind: "fixed", surface: "most" },
       ],
-      syntacticCategory: "COMPARATOR",
-      semanticMapping: "comparison.at-most",
-    }),
-  );
-  require(
-    index.registerCollocation({
-      id: "collocation:en.delete-file",
-      relation: "prefers",
-      left: "concept:core.delete",
-      right: "concept:core.file",
-      window: 4,
-      domain: "software",
+      syntacticCategory: "construction:comparator",
+      semanticMapping: {
+        concept: "concept:core.comparison",
+        senseId: "comparison.at-most",
+      },
     }),
   );
 
   return index;
 };
 
-const uniqueAnalyses = (values: MorphAnalysis[]): MorphAnalysis[] => {
-  const seen = new Set<string>();
-  return values.filter((value) => {
-    const key = JSON.stringify([
-      value.lemma,
-      value.partOfSpeech ?? "",
-      value.features,
-      value.source,
-    ]);
-    if (seen.has(key)) return false;
-    seen.add(key);
-    return true;
-  });
+interface IrregularVerbForms {
+  third?: string;
+  past: string;
+  pastParticiple: string;
+  progressive?: string;
+}
+
+const irregularNounPlural: Readonly<Record<string, string>> = {
+  child: "children",
+  person: "people",
+  mouse: "mice",
+  foot: "feet",
+  tooth: "teeth",
+  man: "men",
+  woman: "women",
 };
 
-const analysesFromMatches = (
-  surface: string,
-  matches: readonly LexicalMatch[],
-): MorphAnalysis[] =>
-  matches.map((match) => ({
-    surface,
-    lemma: match.lemma,
-    partOfSpeech: match.partOfSpeech,
-    features: {},
-    source: "lexicon" as const,
-  }));
+const irregularVerbs: Readonly<Record<string, IrregularVerbForms>> = {
+  be: { third: "is", past: "was", pastParticiple: "been", progressive: "being" },
+  have: { third: "has", past: "had", pastParticiple: "had", progressive: "having" },
+  do: { third: "does", past: "did", pastParticiple: "done", progressive: "doing" },
+  go: { third: "goes", past: "went", pastParticiple: "gone", progressive: "going" },
+  take: { past: "took", pastParticiple: "taken", progressive: "taking" },
+  give: { past: "gave", pastParticiple: "given", progressive: "giving" },
+  build: { past: "built", pastParticiple: "built", progressive: "building" },
+};
 
 const pluralizeEnglish = (lemma: string): string => {
+  const irregular = irregularNounPlural[lemma.toLowerCase()];
+  if (irregular !== undefined) return irregular;
   if (/[^aeiou]y$/i.test(lemma)) return `${lemma.slice(0, -1)}ies`;
   if (/(?:s|x|z|ch|sh)$/i.test(lemma)) return `${lemma}es`;
   return `${lemma}s`;
 };
 
-const pastEnglish = (lemma: string): string => {
+const thirdPersonEnglish = (lemma: string): string => {
+  const irregular = irregularVerbs[lemma.toLowerCase()]?.third;
+  if (irregular !== undefined) return irregular;
+  if (/[^aeiou]y$/i.test(lemma)) return `${lemma.slice(0, -1)}ies`;
+  if (/(?:s|x|z|ch|sh|o)$/i.test(lemma)) return `${lemma}es`;
+  return `${lemma}s`;
+};
+
+const regularPast = (lemma: string): string => {
   if (/e$/i.test(lemma)) return `${lemma}d`;
   if (/[^aeiou]y$/i.test(lemma)) return `${lemma.slice(0, -1)}ied`;
   return `${lemma}ed`;
 };
 
+const pastEnglish = (lemma: string): string =>
+  irregularVerbs[lemma.toLowerCase()]?.past ?? regularPast(lemma);
+
+const pastParticipleEnglish = (lemma: string): string =>
+  irregularVerbs[lemma.toLowerCase()]?.pastParticiple ?? regularPast(lemma);
+
 const progressiveEnglish = (lemma: string): string => {
+  const irregular = irregularVerbs[lemma.toLowerCase()]?.progressive;
+  if (irregular !== undefined) return irregular;
   if (/ie$/i.test(lemma)) return `${lemma.slice(0, -2)}ying`;
-  if (/e$/i.test(lemma) && !/ee$/i.test(lemma)) {
-    return `${lemma.slice(0, -1)}ing`;
-  }
+  if (/[^e]e$/i.test(lemma)) return `${lemma.slice(0, -1)}ing`;
   return `${lemma}ing`;
 };
 
+const degreeEnglish = (lemma: string, degree: string): string => {
+  if (degree === "positive") return lemma;
+  if (lemma.length > 6 || lemma.includes("-")) {
+    return degree === "comparative" ? `more ${lemma}` : `most ${lemma}`;
+  }
+  if (/y$/i.test(lemma)) {
+    return degree === "comparative"
+      ? `${lemma.slice(0, -1)}ier`
+      : `${lemma.slice(0, -1)}iest`;
+  }
+  if (/e$/i.test(lemma)) {
+    return degree === "comparative" ? `${lemma}r` : `${lemma}st`;
+  }
+  return degree === "comparative" ? `${lemma}er` : `${lemma}est`;
+};
+
+const realizeSurface = (
+  lexeme: Lexeme,
+  features: MorphFeatures,
+): string => {
+  if (lexeme.partOfSpeech === "noun") {
+    return features.number === "plural"
+      ? lexeme.irregularForms?.plural?.[0] ?? pluralizeEnglish(lexeme.lemma)
+      : lexeme.lemma;
+  }
+
+  if (lexeme.partOfSpeech === "verb" || lexeme.partOfSpeech === "auxiliary") {
+    if (features.aspect === "progressive" || features.verbForm === "present-participle") {
+      return lexeme.irregularForms?.progressive?.[0] ?? progressiveEnglish(lexeme.lemma);
+    }
+    if (features.aspect === "perfect" || features.verbForm === "past-participle") {
+      return lexeme.irregularForms?.["past-participle"]?.[0] ??
+        pastParticipleEnglish(lexeme.lemma);
+    }
+    if (features.tense === "past" || features.verbForm === "past") {
+      return lexeme.irregularForms?.past?.[0] ?? pastEnglish(lexeme.lemma);
+    }
+    if (
+      features.verbForm === "third-person-singular" ||
+      (
+        features.tense === "present" &&
+        (features.person === "third" || features.person === 3) &&
+        features.number === "singular"
+      )
+    ) {
+      return lexeme.irregularForms?.["present-third"]?.[0] ??
+        thirdPersonEnglish(lexeme.lemma);
+    }
+    return lexeme.lemma;
+  }
+
+  if (
+    (lexeme.partOfSpeech === "adjective" || lexeme.partOfSpeech === "adverb") &&
+    features.degree !== undefined
+  ) {
+    return degreeEnglish(lexeme.lemma, String(features.degree));
+  }
+
+  return lexeme.lemma;
+};
+
+const featureCandidates = (lexeme: Lexeme): MorphFeatures[] => {
+  if (lexeme.partOfSpeech === "noun") {
+    return [{ number: "singular" }, { number: "plural" }];
+  }
+  if (lexeme.partOfSpeech === "verb" || lexeme.partOfSpeech === "auxiliary") {
+    return [
+      { verbForm: "base" },
+      {
+        verbForm: "third-person-singular",
+        tense: "present",
+        person: "third",
+        number: "singular",
+      },
+      { verbForm: "past", tense: "past" },
+      { verbForm: "past-participle", aspect: "perfect" },
+      { verbForm: "present-participle", aspect: "progressive" },
+    ];
+  }
+  if (lexeme.partOfSpeech === "adjective" || lexeme.partOfSpeech === "adverb") {
+    return [
+      { degree: "positive" },
+      { degree: "comparative" },
+      { degree: "superlative" },
+    ];
+  }
+  return [{}];
+};
+
 export class EnglishMorphologyProvider implements MorphologyProvider {
-  readonly id = "language-en.morphology.controlled-v1";
+  readonly id = "language-en.morphology.controlled-v2";
   readonly language = "en";
   readonly #lexicon: LanguageNeutralLexiconIndex;
 
@@ -208,124 +433,64 @@ export class EnglishMorphologyProvider implements MorphologyProvider {
 
   analyze(surface: string, context: MorphContext): MorphAnalysis[] {
     if (context.language !== "en") return [];
-    const output = analysesFromMatches(
-      surface,
-      this.#lexicon.lookupSurface(surface, "en"),
-    );
+    const expected = context.partOfSpeech;
+    const normalized = caseFoldLexicalSurface(surface, "en");
+    const output: MorphAnalysis[] = [];
+    const seen = new Set<string>();
 
-    const candidates: Array<{
-      lemma: string;
-      features: MorphFeatures;
-      partOfSpeech: Lexeme["partOfSpeech"];
-    }> = [];
-
-    if (/ies$/i.test(surface) && surface.length > 3) {
-      candidates.push({
-        lemma: `${surface.slice(0, -3)}y`,
-        features: { number: "plural" },
-        partOfSpeech: "noun",
-      });
-    }
-    if (/s$/i.test(surface) && surface.length > 1) {
-      candidates.push({
-        lemma: surface.slice(0, -1),
-        features: { number: "plural" },
-        partOfSpeech: "noun",
-      });
-      candidates.push({
-        lemma: surface.slice(0, -1),
-        features: { tense: "present", person: "third", number: "singular" },
-        partOfSpeech: "verb",
-      });
-    }
-    if (/ied$/i.test(surface) && surface.length > 3) {
-      candidates.push({
-        lemma: `${surface.slice(0, -3)}y`,
-        features: { tense: "past" },
-        partOfSpeech: "verb",
-      });
-    } else if (/ed$/i.test(surface) && surface.length > 2) {
-      const stem = surface.slice(0, -2);
-      candidates.push({
-        lemma: stem,
-        features: { tense: "past" },
-        partOfSpeech: "verb",
-      });
-      candidates.push({
-        lemma: `${stem}e`,
-        features: { tense: "past" },
-        partOfSpeech: "verb",
-      });
-    }
-    if (/ing$/i.test(surface) && surface.length > 3) {
-      const stem = surface.slice(0, -3);
-      candidates.push({
-        lemma: stem,
-        features: { aspect: "progressive" },
-        partOfSpeech: "verb",
-      });
-      candidates.push({
-        lemma: `${stem}e`,
-        features: { aspect: "progressive" },
-        partOfSpeech: "verb",
-      });
-    }
-
-    for (const candidate of candidates) {
-      const matches = this.#lexicon.lookupSurface(candidate.lemma, "en");
-      for (const match of matches) {
-        if (match.partOfSpeech !== candidate.partOfSpeech) continue;
+    for (const lexeme of this.#lexicon.allLexemes("en")) {
+      if (expected !== undefined && lexeme.partOfSpeech !== expected) continue;
+      for (const features of featureCandidates(lexeme)) {
+        const candidate = realizeSurface(lexeme, features);
+        if (caseFoldLexicalSurface(candidate, "en") !== normalized) continue;
+        const key = `${lexeme.id}\u0000${JSON.stringify(features)}`;
+        if (seen.has(key)) continue;
+        seen.add(key);
         output.push({
           surface,
-          lemma: match.lemma,
-          partOfSpeech: match.partOfSpeech,
-          features: candidate.features,
+          lexemeId: lexeme.id,
+          lemma: lexeme.lemma,
+          partOfSpeech: lexeme.partOfSpeech,
+          features,
+          confidence: 1,
           source: "rule",
         });
       }
     }
 
-    return uniqueAnalyses(output);
+    for (const match of this.#lexicon.lookupSurface(surface, "en")) {
+      const key = `${match.lexemeId}\u0000exact`;
+      if (seen.has(key)) continue;
+      seen.add(key);
+      output.push({
+        surface,
+        lexemeId: match.lexemeId,
+        lemma: match.lemma,
+        partOfSpeech: match.partOfSpeech,
+        features: {},
+        confidence: 1,
+        source: "lexicon",
+      });
+    }
+
+    return output.sort((a, b) =>
+      (a.lexemeId ?? "").localeCompare(b.lexemeId ?? "") ||
+      JSON.stringify(a.features).localeCompare(JSON.stringify(b.features))
+    );
   }
 
-  realize(lexeme: Lexeme, features: MorphFeatures): string[] {
-    if (lexeme.language !== "en") return [];
-    if (
-      lexeme.partOfSpeech === "noun" &&
-      features.number === "plural"
-    ) {
-      return [
-        ...(lexeme.irregularForms?.plural ?? []),
-        pluralizeEnglish(lexeme.lemma),
-      ].filter((value, index, values) => values.indexOf(value) === index);
-    }
-
-    if (lexeme.partOfSpeech === "verb") {
-      if (features.tense === "past") {
-        return [
-          ...(lexeme.irregularForms?.past ?? []),
-          pastEnglish(lexeme.lemma),
-        ].filter((value, index, values) => values.indexOf(value) === index);
-      }
-      if (features.aspect === "progressive") {
-        return [
-          ...(lexeme.irregularForms?.progressive ?? []),
-          progressiveEnglish(lexeme.lemma),
-        ].filter((value, index, values) => values.indexOf(value) === index);
-      }
-      if (
-        features.tense === "present" &&
-        features.person === "third" &&
-        features.number === "singular"
-      ) {
-        return [
-          ...(lexeme.irregularForms?.["present-third"] ?? []),
-          pluralizeEnglish(lexeme.lemma),
-        ].filter((value, index, values) => values.indexOf(value) === index);
-      }
-    }
-
-    return [lexeme.lemma];
+  realize(lemma: LexemeId, features: MorphFeatures): SurfaceCandidate[] {
+    const lexeme = this.#lexicon.getLexeme(lemma);
+    if (lexeme === undefined || lexeme.language !== "en") return [];
+    return [
+      {
+        surface: realizeSurface(lexeme, features),
+        lexemeId: lexeme.id,
+        features: structuredClone(features),
+        confidence: 1,
+        source: "rule",
+      },
+    ];
   }
 }
 
@@ -334,12 +499,12 @@ export const englishControlledCoverage = {
   phenomena: {
     "simple-declaratives": "partial",
     negation: "controlled",
-    "yes-no-questions": "unsupported",
-    "wh-questions": "unsupported",
+    "yes-no-questions": "partial",
+    "wh-questions": "partial",
     imperatives: "unsupported",
     "copular-clauses": "partial",
     transitives: "controlled",
-    intransitives: "unsupported",
+    intransitives: "partial",
     coordination: "partial",
     conditionals: "partial",
     modals: "controlled",
@@ -348,7 +513,6 @@ export const englishControlledCoverage = {
     "causal-adjuncts": "partial",
   },
 } as const;
-
 
 const grammarRule = (
   id: string,
@@ -372,6 +536,12 @@ export const createEnglishControlledGrammar = (): GrammarRegistry => {
       "NP",
       [{ kind: "lexical", partOfSpeech: "noun", capture: "head" }],
       20,
+    ),
+    grammarRule(
+      "grammar:en.vp.intransitive",
+      "VP",
+      [{ kind: "lexical", partOfSpeech: "verb", capture: "predicate" }],
+      10,
     ),
     grammarRule(
       "grammar:en.vp.transitive",
