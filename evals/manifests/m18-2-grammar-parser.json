@@ -1,0 +1,36 @@
+{
+  "id": "m18-2-grammar-parser",
+  "version": "1.0.0",
+  "milestone": "M18.2",
+  "taskRange": "T107-T120",
+  "liveJevRequests": 0,
+  "parser": "deterministic-packed-chart",
+  "rootCategories": [
+    "S",
+    "QUESTION"
+  ],
+  "englishPhenomena": [
+    "noun-phrase",
+    "copular",
+    "intransitive",
+    "transitive",
+    "negation",
+    "modal",
+    "yes-no-question",
+    "wh-question",
+    "coordination",
+    "conditional",
+    "causal",
+    "quantity",
+    "time-adjunct"
+  ],
+  "assertions": [
+    "feature-constraint-validation",
+    "packed-ambiguity",
+    "complete-span-root",
+    "rule-driven-parsing",
+    "lexicon-morphology-evidence",
+    "supported-syntax-to-jsg",
+    "unsupported-semantic-no-fabrication"
+  ]
+}
