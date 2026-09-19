@@ -231,6 +231,56 @@ export interface BenchmarkCaseBase {
   tags?: string[];
 }
 
+export interface ReproducibleEvaluationCase extends BenchmarkCaseBase {
+  input: JsonValue;
+  expectedSemanticConstraints: JsonValue[];
+  allowedAlternatives: JsonValue[];
+  forbiddenSemanticErrors: string[];
+  languageDomainVersion: string;
+  expectedVerificationLevel: string;
+}
+
+export const validateReproducibleEvaluationCase = (
+  input: unknown,
+): Result<ReproducibleEvaluationCase> => {
+  if (
+    !isRecord(input) ||
+    typeof input.id !== "string" ||
+    input.id.trim() === "" ||
+    !isJsonValue(input.input) ||
+    !Array.isArray(input.expectedSemanticConstraints) ||
+    !input.expectedSemanticConstraints.every(isJsonValue) ||
+    !Array.isArray(input.allowedAlternatives) ||
+    !input.allowedAlternatives.every(isJsonValue) ||
+    !stringArray(input.forbiddenSemanticErrors) ||
+    typeof input.languageDomainVersion !== "string" ||
+    input.languageDomainVersion.trim() === "" ||
+    typeof input.expectedVerificationLevel !== "string" ||
+    input.expectedVerificationLevel.trim() === "" ||
+    (input.tags !== undefined && !stringArray(input.tags))
+  ) {
+    return err(
+      new StructuredError(
+        "EVAL_CASE_SCHEMA",
+        "Evaluation case must declare input, semantic constraints, alternatives, forbidden semantic errors, language/domain version, and expected verification level.",
+      ),
+    );
+  }
+  if (
+    !unique(input.forbiddenSemanticErrors) ||
+    (input.tags !== undefined && !unique(input.tags))
+  ) {
+    return err(
+      new StructuredError(
+        "EVAL_CASE_DUPLICATE",
+        "Evaluation-case tags and forbidden semantic errors may not contain duplicates.",
+      ),
+    );
+  }
+  return ok(structuredClone(input) as unknown as ReproducibleEvaluationCase);
+};
+
+
 export type BenchmarkCaseStatus = "pass" | "fail" | "unknown";
 
 export interface BenchmarkCaseEvaluation {
