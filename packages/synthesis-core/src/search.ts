@@ -464,8 +464,13 @@ export const synthesizeProgram = async (
       state.id,
     );
 
-    for (const candidate of ordered) {
+    for (let rankIndex = 0; rankIndex < ordered.length; rankIndex += 1) {
+      const candidate = ordered[rankIndex]!;
       const nextCost = state.accumulatedCost + candidate.heuristicCost;
+      // Candidate order (deterministic or Jev-ranked) is a soft tie-break only.
+      // Keep it tiny so a materially lower heuristic cost still wins.
+      const nextPriorityBias =
+        (state.priorityBias ?? 0) + rankIndex * 0.000001;
       if (
         hole.budget.maxCost !== undefined &&
         nextCost > hole.budget.maxCost
@@ -498,6 +503,9 @@ export const synthesizeProgram = async (
         openHoles,
         obligations: [...state.obligations],
         accumulatedCost: nextCost,
+        ...(nextPriorityBias === 0
+          ? {}
+          : { priorityBias: nextPriorityBias }),
         depth: state.depth + 1,
         history: [...state.history],
         verifierFacts: [
