@@ -84,18 +84,18 @@ const resolveControlledDeleteLimit = (
       argument.role === "role:core.quantity-limit" &&
       argument.value.kind === "ref",
   );
-  if (
-    actor === undefined ||
-    quantityArgument === undefined ||
-    quantityArgument.value.kind !== "ref"
-  ) {
+  const quantityRef =
+    quantityArgument?.value.kind === "ref"
+      ? quantityArgument.value.ref
+      : undefined;
+  if (actor === undefined || quantityRef === undefined) {
     return undefined;
   }
 
   const quantity = snapshot.nodes.find(
     (node): node is QuantityNode =>
       node.kind === "quantity" &&
-      node.id === quantityArgument.value.ref &&
+      node.id === quantityRef &&
       node.unit === "concept:core.file" &&
       node.comparator === "at-most",
   );
