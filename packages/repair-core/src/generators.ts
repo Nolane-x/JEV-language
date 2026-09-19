@@ -80,6 +80,81 @@ const replaceDiagnosticRange = (
       ];
 };
 
+const returnExpressionRange = (
+  context: RepairGenerationContext,
+  diagnostic: NormalizedCompilerDiagnostic,
+): { start: number; end: number } | undefined => {
+  const anchorOffset = diagnostic.start;
+  if (anchorOffset === undefined) return undefined;
+
+  const text = context.source.text;
+  const lineStart = text.lastIndexOf("\n", Math.max(0, anchorOffset - 1)) + 1;
+  const newline = text.indexOf("\n", anchorOffset);
+  const lineEnd = newline < 0 ? text.length : newline;
+  const line = text.slice(lineStart, lineEnd);
+
+  const returnMatch = /\breturn\b/u.exec(line);
+  if (returnMatch === null) return undefined;
+
+  const returnStart = lineStart + returnMatch.index;
+  const diagnosticEnd =
+    anchorOffset + Math.max(1, diagnostic.length ?? 1);
+  if (
+    diagnosticEnd < returnStart ||
+    anchorOffset > lineEnd
+  ) {
+    return undefined;
+  }
+
+  let start =
+    lineStart + returnMatch.index + returnMatch[0].length;
+  while (start < lineEnd && /\s/u.test(text[start]!)) start += 1;
+  if (start >= lineEnd) return undefined;
+
+  let end = lineEnd;
+  const lineTail = text.slice(start, lineEnd);
+  const commentIndex =
+    context.source.language === "python"
+      ? lineTail.indexOf("#")
+      : lineTail.indexOf("//");
+  if (commentIndex >= 0) end = start + commentIndex;
+
+  while (end > start && /\s/u.test(text[end - 1]!)) end -= 1;
+  if (
+    context.source.language === "typescript" &&
+    text[end - 1] === ";"
+  ) {
+    end -= 1;
+    while (end > start && /\s/u.test(text[end - 1]!)) end -= 1;
+  }
+
+  return end > start ? { start, end } : undefined;
+};
+
+const replaceReturnExpression = (
+  context: RepairGenerationContext,
+  diagnostic: NormalizedCompilerDiagnostic,
+  replacement: string,
+): SourcePatch[] => {
+  const range = returnExpressionRange(context, diagnostic);
+  return range === undefined
+    ? replaceDiagnosticRange(
+        context.source.sourceId,
+        diagnostic,
+        replacement,
+        "repair-return-or-type",
+      )
+    : [
+        {
+          sourceId: context.source.sourceId,
+          start: range.start,
+          end: range.end,
+          replacement,
+          reason: "repair-return-expression",
+        },
+      ];
+};
+
 export class AddGuardRepairGenerator implements RepairGenerator {
   readonly id = "repair.add-guard.v1";
 
@@ -261,11 +336,10 @@ export class ReturnTypeRepairGenerator implements RepairGenerator {
       const configured = context.knowledge.returnReplacements[key] ?? [];
       for (let index = 0; index < configured.length; index += 1) {
         const option = configured[index]!;
-        const patches = replaceDiagnosticRange(
-          context.source.sourceId,
+        const patches = replaceReturnExpression(
+          context,
           diagnostic.compiler,
           option.source,
-          "repair-return-or-type",
         );
         if (patches.length === 0) continue;
         candidates.push({
