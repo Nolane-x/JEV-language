@@ -2,11 +2,13 @@ import {
   err,
   ok,
   StructuredError,
+  type Result,
+} from "../../core-types/src/index.ts";
+import {
   validatePirProgram,
   type PirExpression,
   type PirProgram,
   type PirStatement,
-  type Result,
 } from "../../program-ir/src/index.ts";
 import type { ExpansionCandidate } from "./model.ts";
 
