@@ -20,6 +20,7 @@ const corpus = [
   "If deletion is prohibited, the service must not delete more than 3 files.",
   "The service must not delete more than 3 files because deletion is prohibited.",
   "May the service delete exactly 3 files?",
+  "According to the service, the service deletes exactly 3 files.",
 ] as const;
 
 describe("M5 controlled English realization and round trip", () => {
@@ -48,6 +49,11 @@ describe("M5 controlled English realization and round trip", () => {
         true,
       );
       expect(realized.value.semanticRoots.length).toBeGreaterThan(0);
+      expect(realized.value.plan.discourse.units.length).toBeGreaterThan(0);
+      expect(realized.value.plan.discourse.goal.semanticRoots).toEqual(
+        realized.value.semanticRoots,
+      );
+      expect(realized.value.plan.clauses.length).toBeGreaterThan(0);
       expect(realized.value.sourceMap[0]).toMatchObject({
         start: 0,
         end: realized.value.text.length,
@@ -106,6 +112,74 @@ describe("M5 controlled English realization and round trip", () => {
         realized.value.text.slice(timeMap?.start, timeMap?.end),
       ).toBe("2026-09-19");
     }
+  });
+
+  it("preserves reported-source attribution through JSG → English → JSG", () => {
+    const parsed = parseControlledEnglishCorpus(
+      "According to the service, the service deletes exactly 3 files.",
+    );
+    expect(parsed.ok).toBe(true);
+    if (!parsed.ok) return;
+
+    const before = projectControlledCorpusSemantics(parsed.value.snapshot);
+    expect(before.ok).toBe(true);
+    if (!before.ok) return;
+    expect(before.value).toMatchObject({
+      kind: "attributed-proposition",
+      epistemic: "reported",
+      attributionConcept: "concept:core.software-service",
+    });
+
+    const realized = realizeControlledEnglishCorpusArtifact(
+      parsed.value.snapshot,
+    );
+    expect(realized.ok).toBe(true);
+    if (!realized.ok) return;
+    expect(realized.value.text).toBe(
+      "According to the service, the service deletes exactly 3 files.",
+    );
+
+    const reparsed = parseControlledEnglishCorpus(realized.value.text);
+    expect(reparsed.ok).toBe(true);
+    if (!reparsed.ok) return;
+    expect(
+      verifyControlledCorpusEquivalence(
+        parsed.value.snapshot,
+        reparsed.value.snapshot,
+      ).equivalent,
+    ).toBe(true);
+  });
+
+  it("meets the explicit 100% semantic round-trip target for the current controlled corpus", () => {
+    let passed = 0;
+    for (const input of corpus) {
+      const parsed = parseControlledEnglishCorpus(input);
+      if (!parsed.ok) continue;
+      const realized = realizeControlledEnglishCorpus(parsed.value.snapshot);
+      if (!realized.ok) continue;
+      const reparsed = parseControlledEnglishCorpus(realized.value);
+      if (!reparsed.ok) continue;
+      if (
+        verifyControlledCorpusEquivalence(
+          parsed.value.snapshot,
+          reparsed.value.snapshot,
+        ).equivalent
+      ) {
+        passed += 1;
+      }
+    }
+
+    expect({
+      target: 1,
+      passed,
+      total: corpus.length,
+      rate: passed / corpus.length,
+    }).toEqual({
+      target: 1,
+      passed: corpus.length,
+      total: corpus.length,
+      rate: 1,
+    });
   });
 
   it("does not realize unsupported unrelated graphs as fake controlled language", () => {
