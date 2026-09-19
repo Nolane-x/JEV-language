@@ -47,18 +47,22 @@ export const realizeControlledEnglish = (
     (node): node is EntityNode =>
       node.kind === "entity" && node.id === action.actor,
   );
-  const quantityRef = action.parameters.find(
+  const quantityArgument = action.parameters.find(
     (argument) =>
       argument.role === "role:core.quantity-limit" &&
       argument.value.kind === "ref",
   );
-  const quantity =
-    quantityRef?.value.kind === "ref"
-      ? snapshot.nodes.find(
-          (node): node is QuantityNode =>
-            node.kind === "quantity" && node.id === quantityRef.value.ref,
-        )
+  const quantityId =
+    quantityArgument !== undefined && quantityArgument.value.kind === "ref"
+      ? quantityArgument.value.ref
       : undefined;
+  const quantity =
+    quantityId === undefined
+      ? undefined
+      : snapshot.nodes.find(
+          (node): node is QuantityNode =>
+            node.kind === "quantity" && node.id === quantityId,
+        );
 
   if (
     actor === undefined ||
