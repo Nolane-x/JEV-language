@@ -3,8 +3,8 @@
 ```yaml
 spec_version: 0.4-master-implementation-research-expanded
 spec_digest_sha256: 9b8bc907fa0da89d4b7ea2e0be886919deffdb35e398ea7897ea77d305380f5b
-last_completed_gate: M16-universal-expression-api
-active_milestone: M17-verification-hardening
+last_completed_gate: M17-verification-hardening
+active_milestone: M18-open-world-language-expansion
 stable_packages: []
 candidate_packages:
   - core-types
@@ -45,15 +45,14 @@ known_failures: []
 blocked_items: []
 next_tasks:
   - complete remaining M1 staged semantic validators and graph operations
-  - verify M17 integrated verifier orchestration/provenance/replay gate on CI before M18
   - expand M16 multi-target adapters beyond the controlled delete-limit semantic subset
 last_verified_main_commit: df4f806a2abf8635c7b423d3cddaebf6eaf4dfe4
-last_verified_pr_head: 2ddfb7de428e71a33633d5db0408f5d9b4ed7227
+last_verified_pr_head: 8e41eb9577d7ef63d67dd283a5e65a6f7bd36f89
 ```
 
 ## Current state
 
-M0–M9 are verified at their milestone gates. M3 includes the required one-request live Jev acceptance run; M4–M9 use deterministic/recorded language-engine evidence. M9 passed CI #136 with 36/36 test files and 280/280 tests. M10 Program IR and M11 Synthesis Core are verified. M12 TypeScript Backend passed CI #155 with 39/39 test files and 312/312 tests. M13 Python Backend passed CI #167 with 40/40 test files and 319/319 tests. M14 Compiler/Test Repair Loop passed CI #182 with 41/41 test files and 325/325 tests. M15 Formal/Data/Action IR passed CI #191 with 42/42 test files and 334/334 tests. M16 Universal Expression API passed CI #196 and is verified; M17 Verification Hardening is now the active milestone.
+M0–M9 are verified at their milestone gates. M3 includes the required one-request live Jev acceptance run; M4–M9 use deterministic/recorded language-engine evidence. M9 passed CI #136 with 36/36 test files and 280/280 tests. M10 Program IR and M11 Synthesis Core are verified. M12 TypeScript Backend passed CI #155 with 39/39 test files and 312/312 tests. M13 Python Backend passed CI #167 with 40/40 test files and 319/319 tests. M14 Compiler/Test Repair Loop passed CI #182 with 41/41 test files and 325/325 tests. M15 Formal/Data/Action IR passed CI #191 with 42/42 test files and 334/334 tests. M16 Universal Expression API is verified. M17 Verification Hardening passed CI #202 and is verified; M18 Open-world Language Expansion is now the active milestone.
 
 ## Implemented foundation
 
@@ -85,7 +84,7 @@ M0–M9 are verified at their milestone gates. M3 includes the required one-requ
 - Formal IR family foundation (Data/Schema/Query/Math/Logic/Command), capability-validated Action IR, and harness-neutral Universal Expression contract.
 - Registry-driven Universal Expression runtime plus trace DAG/config-digest/replay-manifest foundation.
 - M16 verified Universal Expression API: harness-neutral parse/realize/express/transform/verify runtime, capability discovery, same-JSG natural-language/structured-data/PIR-program/declared-Action realization, and trace/replay evidence.
-- M17 verifier foundation: semantic round-trip with parser-limit unknowns, conservative trust/provenance checks, requirement reports, grammar evidence normalization, and compile/test evidence normalization.\n- M17 integrated verification candidate: registry orchestration, provenance ancestry integrity, deterministic conflict handling, evidence-floor grading, and replay bundles bound to raw/authoritative result digests.
+- M17 verifier foundation: semantic round-trip with parser-limit unknowns, conservative trust/provenance checks, requirement reports, grammar evidence normalization, and compile/test evidence normalization.\n- M17 verified verification hardening: registry orchestration, provenance ancestry integrity, deterministic conflict handling, evidence-floor grading, and replay bundles bound to raw/authoritative result digests.
 
 ## Still partial by design
 
