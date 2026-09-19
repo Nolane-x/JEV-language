@@ -1,6 +1,6 @@
 # M8 — Vietnamese Language Pack Gate Evidence
 
-Status: **candidate — pending predecessor M7 merge and deterministic CI**
+Status: **candidate — predecessor M7 verified; pending deterministic CI**
 
 Specification basis: sections 251–259, 415, and tasks T158–T169 of the v0.4 master specification.
 
@@ -94,10 +94,9 @@ The M8 tests additionally cover:
 
 Do not mark this gate **verified** until:
 
-1. predecessor M7 is merged and remains verified;
-2. the M8 work is rebased/ported onto clean `main`;
-3. package boundaries pass;
-4. strict TypeScript passes;
-5. the complete deterministic test suite passes, including all four section-415 cross-lingual directions.
+1. predecessor M7 remains verified;
+2. package boundaries pass;
+3. strict TypeScript passes;
+4. the complete deterministic test suite passes, including all four section-415 cross-lingual directions.
 
 No live Jev request is required for M8.
