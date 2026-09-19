@@ -585,6 +585,18 @@ export const createCoreOntology = (): OntologyStore => {
     labels: { en: "quantity limit" },
     cardinality: "zero-or-one",
   });
+  store.upsertRole({
+    id: "role:core.condition",
+    namespace: "core",
+    labels: { en: "condition" },
+    cardinality: "zero-or-one",
+  });
+  store.upsertRole({
+    id: "role:core.reason",
+    namespace: "core",
+    labels: { en: "reason" },
+    cardinality: "zero-or-one",
+  });
   return store;
 };
 

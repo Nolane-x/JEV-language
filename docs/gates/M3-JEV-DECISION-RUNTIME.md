@@ -51,6 +51,15 @@ Specification basis: sections 185–191, 407–408, 863–884, and bootstrap tas
 
 Before any Decision Pack is treated as a relied-on candidate/production asset, its lifecycle validator requires the appropriate fixture/schema/constraint/counterexample/failure/trace evidence. Choice packs additionally require candidate-source bindings and candidate-recall reporting. Production maturity additionally requires calibration profile and version-history evidence.
 
+## Deterministic CI evidence
+
+- PR #17 implementation head: `1f84bc6dd4711c2939f8f73890e73a3a9aab870b`
+- GitHub Actions CI run `#79` / run id `35420605857`: `success`
+- merged squash commit: `8225706447feef17b3ed2777a8a12413e7ccea51`
+- live Jev requests consumed by that deterministic PR: `0`
+
+This proves the deterministic implementation path only. It does **not** satisfy the live acceptance requirement below.
+
 ## Required live acceptance still open
 
 The M3 Definition of Done requires both:

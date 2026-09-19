@@ -139,7 +139,8 @@
         "semantic-graph",
         "grammar-core",
         "lexicon-core",
-        "grounding"
+        "grounding",
+        "decision-runtime"
       ]
     },
     "realizer-core": {
