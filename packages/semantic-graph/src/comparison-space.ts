@@ -429,12 +429,15 @@ export const compareQuantityMeasurements = (
   }
 
   const delta = Math.abs(left.amount - convertedRight);
+  const rightAbsoluteTolerance =
+    (right.tolerance?.absolute ?? 0) *
+    Math.abs(conversion?.formula.scale ?? 1);
+  const rightRelativeTolerance =
+    (right.tolerance?.relative ?? 0) * Math.abs(convertedRight);
   const allowedDelta = Math.max(
     allowedTolerance(left),
-    allowedTolerance({
-      ...right,
-      amount: convertedRight,
-    }),
+    rightAbsoluteTolerance,
+    rightRelativeTolerance,
   );
 
   return ok({
