@@ -245,7 +245,8 @@
         "action-ir",
         "formal-ir",
         "verifier-core",
-        "trace-replay"
+        "trace-replay",
+        "realizer-core"
       ]
     }
   }
