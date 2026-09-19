@@ -35,12 +35,12 @@ describe("lexicon core", () => {
       partOfSpeech: "noun",
       senses: [
         {
-          id: "sense:test.bank.storage",
+          senseId: "sense:test.bank.storage",
           concept: "concept:core.entity",
           gloss: "a storage-like bank",
         },
         {
-          id: "sense:test.bank.file",
+          senseId: "sense:test.bank.file",
           concept: "concept:core.file",
           gloss: "fixture second sense",
         },
@@ -61,7 +61,7 @@ describe("lexicon core", () => {
         expressionId: "mwe:en.more-than",
         start: 1,
         end: 3,
-        semanticMapping: "comparison.more-than",
+        semanticMapping: {\n          concept: "concept:core.comparison",\n          senseId: "comparison.more-than",\n        },
       }),
     );
   });
@@ -71,7 +71,10 @@ describe("lexicon core", () => {
       kind: "unknown-lexical-item",
       language: "en",
       surface: "QuuxFlux_Node-7",
+      normalized: "QuuxFlux_Node-7",
+      caseFolded: "quuxflux_node-7",
       preservedExact: true,
+      partOfSpeechCandidates: [],
     });
   });
 
@@ -79,13 +82,13 @@ describe("lexicon core", () => {
     const lexicon = createEnglishSeedLexicon();
     const deletion = lexicon.getLexeme("lexeme:en.delete");
     expect(
-      deletion?.senses[0]?.valencyFrames?.[0]?.slots.map((slot) => ({
+      deletion?.valencyFrames?.[0]?.slots.map((slot) => ({
         id: slot.id,
         required: slot.required,
       })),
     ).toEqual([
-      { id: "agent", required: true },
-      { id: "patient", required: true },
+      { id: "agent", required: false },
+      { id: "theme", required: true },
     ]);
     expect(lexicon.collocations()).toContainEqual(
       expect.objectContaining({ id: "collocation:en.delete-file" }),
@@ -103,17 +106,17 @@ describe("controlled English morphology", () => {
     expect(deletion).toBeDefined();
     if (file === undefined || deletion === undefined) return;
 
-    expect(morphology.realize(file, { number: "plural" })).toContain("files");
-    expect(morphology.realize(deletion, { tense: "past" })).toContain("deleted");
+    expect(morphology.realize(file.id, { number: "plural" }).map((x) => x.surface)).toContain("files");
+    expect(morphology.realize(deletion.id, { tense: "past" }).map((x) => x.surface)).toContain("deleted");
     expect(morphology.realize(deletion, { aspect: "progressive" })).toContain(
       "deleting",
     );
     expect(
-      morphology.realize(deletion, {
+      morphology.realize(deletion.id, {
         tense: "present",
         person: "third",
         number: "singular",
-      }),
+      }).map((x) => x.surface),
     ).toContain("deletes");
   });
 
