@@ -439,7 +439,7 @@ export const renderTemporalPreservingPrecision = (
     });
   }
   const monthResult = requirePart(month, "month");
-  if (!monthResult.ok) return monthResult;
+  if (!monthResult.ok) return err(monthResult.error);
   if (value.precision === "month") {
     const surface =
       profile.dateOrder === "ymd"
@@ -452,7 +452,7 @@ export const renderTemporalPreservingPrecision = (
     });
   }
   const dayResult = requirePart(day, "day");
-  if (!dayResult.ok) return dayResult;
+  if (!dayResult.ok) return err(dayResult.error);
   const date = dateSurface(
     year,
     monthResult.value,
@@ -467,9 +467,9 @@ export const renderTemporalPreservingPrecision = (
     });
   }
   const hourResult = requirePart(hour, "hour");
-  if (!hourResult.ok) return hourResult;
+  if (!hourResult.ok) return err(hourResult.error);
   const minuteResult = requirePart(minute, "minute");
-  if (!minuteResult.ok) return minuteResult;
+  if (!minuteResult.ok) return err(minuteResult.error);
   let time = [hourResult.value, minuteResult.value].join(profile.timeSeparator);
 
   if (
@@ -477,12 +477,12 @@ export const renderTemporalPreservingPrecision = (
     value.precision === "millisecond"
   ) {
     const secondResult = requirePart(second, "second");
-    if (!secondResult.ok) return secondResult;
+    if (!secondResult.ok) return err(secondResult.error);
     time += `${profile.timeSeparator}${secondResult.value}`;
   }
   if (value.precision === "millisecond") {
     const millisResult = requirePart(millisecond, "millisecond");
-    if (!millisResult.ok) return millisResult;
+    if (!millisResult.ok) return err(millisResult.error);
     time += `.${millisResult.value.padEnd(3, "0")}`;
   }
 
