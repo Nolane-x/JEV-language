@@ -2,6 +2,7 @@ import {
   err,
   ok,
   StructuredError,
+  canonicalJson,
   type JsonValue,
   type Result,
   type SemanticId,
@@ -963,15 +964,18 @@ const renderValidated = <T>(
   validation: Result<T>,
 ): Result<string> => {
   if (!validation.ok) return err(validation.error);
-  const rendered = JSON.stringify(validation.value);
-  return rendered === undefined
-    ? err(
-        new StructuredError(
-          "FORMAL_RENDER_UNDEFINED",
-          "Validated formal IR did not produce a serializable rendering.",
-        ),
-      )
-    : ok(rendered);
+  try {
+    return ok(canonicalJson(validation.value as unknown as JsonValue));
+  } catch (error) {
+    return err(
+      new StructuredError(
+        "FORMAL_RENDER_UNSERIALIZABLE",
+        error instanceof Error
+          ? error.message
+          : "Validated formal IR could not be serialized canonically.",
+      ),
+    );
+  }
 };
 
 export const renderDataIr = (value: DataIr): Result<string> =>
