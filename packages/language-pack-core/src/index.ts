@@ -96,24 +96,21 @@ export interface HumanLanguagePack<
   tests: LanguageConformanceManifest;
 }
 
-export const assertLanguagePackIdentity = <
-  TToken,
-  TParseInput,
-  TParseResult,
-  TRealizeInput,
-  TRealizeResult,
-  TDiscourseContext,
-  TDiscourseChoice,
->(
-  pack: HumanLanguagePack<
-    TToken,
-    TParseInput,
-    TParseResult,
-    TRealizeInput,
-    TRealizeResult,
-    TDiscourseContext,
-    TDiscourseChoice
-  >,
+export interface LanguagePackIdentityView {
+  manifest: Pick<LanguagePackManifest, "id" | "languageTag">;
+  tokenizer: Pick<TokenizerProvider<unknown>, "language">;
+  morphology: Pick<MorphologyProvider, "language">;
+  lexicon: Pick<LexiconProvider, "language">;
+  grammar: Pick<GrammarProvider, "language">;
+  parserHooks: { readonly language: string };
+  realizationHooks: { readonly language: string };
+  punctuation: Pick<PunctuationProvider, "language">;
+  discourse: { readonly language: string };
+  tests: Pick<LanguageConformanceManifest, "language">;
+}
+
+export const assertLanguagePackIdentity = (
+  pack: LanguagePackIdentityView,
 ): void => {
   const language = pack.manifest.languageTag;
   const providerLanguages = [
