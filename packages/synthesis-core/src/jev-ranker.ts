@@ -75,13 +75,17 @@ export class JevChoiceCandidateRanker implements CandidateRanker {
       state: {
         problemId: request.problemId,
         holeId: request.holeId,
+        requirements: request.requirements,
         candidateCount: request.candidates.length,
       },
       questions: {
         [questionId]: {
           type: "choice",
-          instruction:
-            "Choose the already-valid PIR expansion candidate that best satisfies the bounded synthesis requirement. Do not invent new candidates.",
+          instruction: {
+            task:
+              "Choose the already-valid PIR expansion candidate that best satisfies the bounded synthesis requirements. Do not invent new candidates.",
+            requirements: request.requirements,
+          },
           options: Object.fromEntries(
             request.candidates.map((candidate) => [
               candidate.id,
