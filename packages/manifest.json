@@ -266,6 +266,17 @@
         "morphology-core",
         "lexicon-core"
       ]
+    },
+    "repair-core": {
+      "maturity": "prototype",
+      "layer": 10,
+      "dependencies": [
+        "core-types",
+        "program-ir",
+        "code-backend-core",
+        "decision-runtime",
+        "decision-packs"
+      ]
     }
   }
 }
