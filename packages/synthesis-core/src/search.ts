@@ -14,6 +14,7 @@ import type {
   CandidateGenerator,
   CandidateRanker,
   ExpansionCandidate,
+  ProgramAcceptanceVerifier,
   SearchBudget,
   SearchFrontier,
   SearchUsage,
@@ -371,6 +372,7 @@ const orderCandidates = async (
     const order = await ranker.rank({
       problemId: problem.id,
       holeId: hole.id,
+      requirements: [...problem.requirements],
       candidates: structuredClone(candidates),
     });
     const byId = new Map(candidates.map((candidate) => [candidate.id, candidate]));
@@ -422,6 +424,7 @@ export interface SynthesisEngineOptions {
   budget: SearchBudget;
   frontier?: SearchFrontier;
   ranker?: CandidateRanker;
+  verifiers?: ProgramAcceptanceVerifier[];
 }
 
 export const createCoreGeneratorRegistry = (
@@ -511,22 +514,67 @@ export const synthesizeProgram = async (
 
     if (state.openHoles.length === 0) {
       const valid = validatePirProgram(state.program);
-      if (valid.ok) {
+      if (!valid.ok) {
         trace.push({
           sequence: trace.length,
-          kind: "solution",
+          kind: "failure",
           stateId: state.id,
-          details: { cost: state.accumulatedCost, depth: state.depth },
+          details: {
+            stage: "complete-program-validation",
+            code: valid.error.code,
+            message: valid.error.message,
+          },
         });
-        return {
-          status: "success",
-          program: structuredClone(state.program),
-          state: structuredClone(state),
-          usage: structuredClone(usage),
-          trace: structuredClone(trace),
-        };
+        continue;
       }
-      continue;
+
+      const verificationEvidence: string[] = ["pir:validated"];
+      let accepted = true;
+      for (const verifier of options.verifiers ?? []) {
+        const result = await verifier.verify({
+          problem,
+          program: state.program,
+        });
+        verificationEvidence.push(
+          ...result.evidence.map(
+            (evidence) => `${verifier.id}:${evidence}`,
+          ),
+        );
+        if (!result.accepted) {
+          accepted = false;
+          trace.push({
+            sequence: trace.length,
+            kind: "failure",
+            stateId: state.id,
+            details: {
+              stage: "acceptance-verifier",
+              verifier: verifier.id,
+              diagnostics: result.diagnostics,
+            },
+          });
+          break;
+        }
+      }
+      if (!accepted) continue;
+
+      trace.push({
+        sequence: trace.length,
+        kind: "solution",
+        stateId: state.id,
+        details: {
+          cost: state.accumulatedCost,
+          depth: state.depth,
+          verificationEvidence,
+        },
+      });
+      return {
+        status: "success",
+        program: structuredClone(state.program),
+        state: structuredClone(state),
+        verificationEvidence,
+        usage: structuredClone(usage),
+        trace: structuredClone(trace),
+      };
     }
 
     if (state.depth >= options.budget.maxDepth) continue;
