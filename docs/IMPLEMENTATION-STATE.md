@@ -43,7 +43,7 @@ partial_vertical_slices:
 known_failures: []
 blocked_items: []
 next_tasks:
-  - audit and complete M15 formal/data/action IR gate against Sections 425 and tasks T239-T247
+  - verify M15 formal/data/action IR gate on CI before advancing to M16 universal expression API hardening
   - complete remaining M1 staged semantic validators and graph operations
   - harden M17 verifier orchestration, provenance edge cases, and cross-adapter conformance
   - expand M16 multi-target adapters beyond the controlled delete-limit semantic subset
@@ -80,6 +80,7 @@ M0–M9 are verified at their milestone gates. M3 includes the required one-requ
 - M11 verified synthesis core: typed expression/statement holes, six generator families, deterministic hard pruning, best-first/beam frontiers, state deduplication, bounded search budgets, bounded recorded-Jev ranking, acceptance verifiers, structured partial failures and traceable multi-step composition.
 - M12 verified TypeScript backend: backend ABI/manifest, compiler-API parser, AST↔PIR subset, source bindings, AST/source printer, minimal patching, normalized diagnostics, strict typecheck adapter and conformance over the M12 source subset plus the verified M10 PIR corpus.\n- M13 verified Python backend: stdlib AST parse/unparse, optional annotations with dynamic unknowns, AST↔PIR subset, mapping-safe record lowering, source bindings/patches, normalized compile diagnostics, all-eight M10 lower/compile proof and TypeScript/Python cross-backend PIR semantic fixtures.
 - M14 verified compiler/test repair loop: stable repair diagnostics, implicated-node location, bounded guard/import/argument/return repair generators, bounded candidate ranking, compile/test/regression verification, rollback, hard budgets and executable broken-code acceptance.
+- M15 formal/data/action IR candidate: stable Data/Schema/Query/Math/Logic/Command/Action schemas, deterministic validators, canonical renderers, read-vs-mutation query safety and declared-capability Action IR validation.
 - Graph-structured Discourse IR foundation with deterministic prerequisite-aware ordering.
 - Formal IR family foundation (Data/Schema/Query/Math/Logic/Command), capability-validated Action IR, and harness-neutral Universal Expression contract.
 - Registry-driven Universal Expression runtime plus trace DAG/config-digest/replay-manifest foundation.
