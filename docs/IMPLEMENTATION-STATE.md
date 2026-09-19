@@ -16,6 +16,7 @@ experimental_packages:
   - semantic-validator
   - decision-runtime
   - decision-packs
+  - verifier-core
 partial_vertical_slices:
   - controlled-English-requirement-roundtrip
   - recorded-Jev-reference-choice
@@ -25,13 +26,14 @@ known_failures: []
 blocked_items:
   - live-Jev-smoke-not-yet-executed
 next_tasks:
-  - pass deterministic PR CI with import-boundary enforcement
-  - merge verified foundation wave to main
   - complete remaining M1 staged semantic validators and graph operations
-  - expand M2 ontology/open-world conformance
+  - expand M2 ontology/open-world conformance beyond transactional evolution
   - build M3 calibration fixtures/report before candidate quality claim
+  - complete remaining verifier adapters T262-T266
+  - continue formal IR/universal expression T239-T258
   - run exactly one manual live-Jev smoke only when explicitly desired
 last_verified_main_commit: 7dac106cdf08bc89be50833ed7dc4e7e6f5cd20e
+last_verified_pr_head: 2a57258c552e370944a3a7483e9a9b6901b1c5c4
 ```
 
 ## Current state
@@ -48,7 +50,11 @@ A runnable foundation now exists, but this ledger deliberately does **not** mark
 - Ontology namespace/store/core seed/provisional concepts.
 - JSG typed node/value algebra, atomic transactions, revisions, canonical serialization/deserialization, restore, semantic diff/query and staged foundation validation.
 - Recorded and TypeSafe JDR adapters, normalized typed answers, request budgets, cache, calibration hook, structured errors and token usage accounting.
-- Decision-pack registry and lifecycle contract.
+- Decision-pack registry and lifecycle contract, with evidence-based candidate/production maturity gates.
+- JDR request/token budgets, deterministic trace events, cache accounting, and calibration hooks.
+- Ontology transactional batch merge, parent-cycle rejection, ancestry queries, deprecation/replacement resolution, and replacement-cycle rejection.
+- Generic VerificationObligation/Verifier ABI, evidence grading, deterministic-verifier precedence, and critical semantic-preservation checks including role bindings and temporal values.
+- TypeScript 7 CLI compatibility with the official TypeScript 6 programmatic compiler API bridge for embedded compile checks.
 - First four narrow vertical slices required by the bootstrap sequence: controlled English, recorded reference choice, controlled Vietnamese, and PIR typed-hole → TypeScript.
 
 ## Still partial by design
