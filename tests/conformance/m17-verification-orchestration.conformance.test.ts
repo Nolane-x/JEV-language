@@ -53,13 +53,13 @@ const obligation = (
 });
 
 const grammarChecks = (): GrammarEvidenceCheck[] =>
-  [
+  ([
     "internal-feature-consistency",
     "morphological-agreement",
     "language-pack-constraints",
     "parse-back",
     "forbidden-form",
-  ].map((kind) => ({
+  ] as const).map((kind) => ({
     kind,
     status: "pass",
     evidence: [`grammar:${kind}`],
