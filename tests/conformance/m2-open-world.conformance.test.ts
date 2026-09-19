@@ -142,4 +142,38 @@ describe("M2 open-world foundations", () => {
       "concept:test.new",
     );
   });
+
+  it("prevents deprecated replacement cycles", () => {
+    const store = new OntologyStore();
+    expect(
+      store.mergeConcepts([
+        {
+          id: "concept:test.first",
+          namespace: "test",
+          labels: { en: "first" },
+          parents: [],
+          status: "domain",
+        },
+        {
+          id: "concept:test.second",
+          namespace: "test",
+          labels: { en: "second" },
+          parents: [],
+          status: "domain",
+        },
+      ]).ok,
+    ).toBe(true);
+
+    expect(
+      store.deprecateConcept("concept:test.first", "concept:test.second").ok,
+    ).toBe(true);
+    const cycle = store.deprecateConcept(
+      "concept:test.second",
+      "concept:test.first",
+    );
+    expect(cycle.ok).toBe(false);
+    if (!cycle.ok) {
+      expect(cycle.error.code).toBe("ONTO_REPLACEMENT_CYCLE");
+    }
+  });
 });
