@@ -19,6 +19,7 @@ import type {
 export type PreservationInvariant =
   | "semantic-presence"
   | "negation"
+  | "role-bindings"
   | "quantity-unit"
   | "identity-reference"
   | "scope"
@@ -29,16 +30,19 @@ export type PreservationInvariant =
   | "unknown-preservation"
   | "causal-direction"
   | "temporal-order"
+  | "temporal-value"
   | "opaque-exactness";
 
 export interface PreservationProfile {
   id: string;
   version: string;
   preserveNegation: boolean;
+  preserveRoleBindings: boolean;
   preserveQuantities: "exact" | "meaning" | "relaxed";
   preserveModality: boolean;
   preserveAttribution: boolean;
   preserveTemporalRelations: boolean;
+  preserveTemporalValues: boolean;
   preserveConditions: boolean;
   preserveIdentityReference: boolean;
   preserveScope: boolean;
@@ -54,10 +58,12 @@ export const criticalSemanticPreservationProfile: PreservationProfile = {
   id: "semantic-preservation.critical-v1",
   version: "1.0.0",
   preserveNegation: true,
+  preserveRoleBindings: true,
   preserveQuantities: "exact",
   preserveModality: true,
   preserveAttribution: true,
   preserveTemporalRelations: true,
+  preserveTemporalValues: true,
   preserveConditions: true,
   preserveIdentityReference: true,
   preserveScope: true,
@@ -125,12 +131,28 @@ const temporalRelation = (relation: string): boolean =>
     relation,
   );
 
+const semanticRolePayload = (node: JsgNode): unknown | undefined => {
+  switch (node.kind) {
+    case "event":
+      return node.roles;
+    case "state":
+    case "proposition":
+      return node.arguments;
+    case "action":
+    case "constraint":
+      return node.parameters;
+    default:
+      return undefined;
+  }
+};
+
 const requestedInvariants = (
   profile: PreservationProfile,
 ): PreservationInvariant[] => {
   const invariants: PreservationInvariant[] = [];
   if (!profile.allowCompression) invariants.push("semantic-presence");
   if (profile.preserveNegation) invariants.push("negation");
+  if (profile.preserveRoleBindings) invariants.push("role-bindings");
   if (profile.preserveQuantities !== "relaxed") invariants.push("quantity-unit");
   if (profile.preserveIdentityReference) invariants.push("identity-reference");
   if (profile.preserveScope) invariants.push("scope");
@@ -141,6 +163,7 @@ const requestedInvariants = (
   if (profile.preserveUnknowns) invariants.push("unknown-preservation");
   if (profile.preserveCausalRelations) invariants.push("causal-direction");
   if (profile.preserveTemporalRelations) invariants.push("temporal-order");
+  if (profile.preserveTemporalValues) invariants.push("temporal-value");
   if (profile.preserveOpaqueExactness) invariants.push("opaque-exactness");
   return invariants;
 };
@@ -262,6 +285,20 @@ const compareMatchedNodes = (
       "negation",
       "SEM_NEGATION_CHANGED",
       "Semantic polarity changed across the transformation.",
+    );
+  }
+
+  const leftRoles = semanticRolePayload(left);
+  const rightRoles = semanticRolePayload(right);
+  if (
+    leftRoles !== undefined &&
+    rightRoles !== undefined &&
+    !semanticEqual(leftRoles, rightRoles)
+  ) {
+    add(
+      "role-bindings",
+      "SEM_ROLE_BINDINGS_CHANGED",
+      "Semantic role or argument bindings changed.",
     );
   }
 
@@ -410,6 +447,19 @@ const compareMatchedNodes = (
       "SEM_TEMPORAL_ORDER_CHANGED",
       "A temporal relation changed identity or direction.",
     );
+  }
+
+  if (left.kind === "temporal" && right.kind === "temporal") {
+    if (
+      left.temporalKind !== right.temporalKind ||
+      !semanticEqual(left.value, right.value)
+    ) {
+      add(
+        "temporal-value",
+        "SEM_TEMPORAL_VALUE_CHANGED",
+        "Temporal kind or value changed.",
+      );
+    }
   }
 
   if (left.kind === "definition" && right.kind === "definition") {

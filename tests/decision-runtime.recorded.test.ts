@@ -70,4 +70,59 @@ describe("recorded JDR", () => {
     });
     await expect(runtime.execute(request)).rejects.toBeInstanceOf(JdrError);
   });
+
+  it("tracks provider token usage and emits deterministic trace events", async () => {
+    const events: string[] = [];
+    const runtime = new DecisionRuntime({
+      adapter: new RecordedDecisionAdapter([response]),
+      budget: { maxRequests: 1, maxTotalTokens: 20 },
+      traceSink: (event) => events.push(event.kind),
+    });
+
+    await runtime.execute(request);
+
+    expect(runtime.budgetUsage).toEqual({
+      requests: 1,
+      inputTokens: 12,
+      outputTokens: 2,
+    });
+    expect(events).toEqual(["request-start", "request-complete"]);
+  });
+
+  it("refuses another provider request once the token budget is exhausted", async () => {
+    const runtime = new DecisionRuntime({
+      adapter: new RecordedDecisionAdapter([response]),
+      budget: { maxRequests: 2, maxTotalTokens: 14 },
+    });
+
+    await runtime.execute(request);
+    await expect(
+      runtime.execute({ ...request, id: "fixture-2" }),
+    ).rejects.toMatchObject({ code: "JDR_BUDGET_EXCEEDED" });
+    expect(runtime.requestsUsed).toBe(1);
+  });
+
+  it("does not charge request or token budget for cache hits", async () => {
+    const events: string[] = [];
+    const runtime = new DecisionRuntime({
+      adapter: new RecordedDecisionAdapter([response]),
+      cache: new InMemoryDecisionCache(),
+      budget: { maxRequests: 1, maxTotalTokens: 14 },
+      traceSink: (event) => events.push(event.kind),
+    });
+
+    await runtime.execute(request);
+    await runtime.execute(request);
+
+    expect(runtime.budgetUsage).toEqual({
+      requests: 1,
+      inputTokens: 12,
+      outputTokens: 2,
+    });
+    expect(events).toEqual([
+      "request-start",
+      "request-complete",
+      "cache-hit",
+    ]);
+  });
 });
