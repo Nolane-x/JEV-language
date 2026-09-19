@@ -155,19 +155,28 @@ export class OntologyStore {
   }
 
   resolveConcept(id: ConceptRef): ConceptDefinition | undefined {
-    const direct = this.#concepts.get(id);
-    if (direct !== undefined) {
-      if (direct.status === "deprecated" && direct.replacedBy !== undefined) {
-        return this.resolveConcept(direct.replacedBy);
+    const seen = new Set<ConceptRef>();
+    let currentId: ConceptRef = id;
+
+    while (true) {
+      if (seen.has(currentId)) return undefined;
+      seen.add(currentId);
+
+      const direct = this.#concepts.get(currentId);
+      if (direct !== undefined) {
+        if (direct.status === "deprecated" && direct.replacedBy !== undefined) {
+          currentId = direct.replacedBy;
+          continue;
+        }
+        return structuredClone(direct);
       }
-      return structuredClone(direct);
+
+      const aliasTarget = [...this.#concepts.values()].find((definition) =>
+        definition.aliases?.includes(currentId),
+      );
+      if (aliasTarget === undefined) return undefined;
+      currentId = aliasTarget.id;
     }
-    for (const definition of this.#concepts.values()) {
-      if (definition.aliases?.includes(id)) {
-        return structuredClone(definition);
-      }
-    }
-    return undefined;
   }
 
   deprecateConcept(
@@ -190,6 +199,34 @@ export class OntologyStore {
           `Replacement concept does not exist: ${replacement}`,
         ),
       );
+    }
+    if (replacement === id) {
+      return err(
+        new StructuredError(
+          "ONTO_REPLACEMENT_CYCLE",
+          "A concept cannot replace itself.",
+        ),
+      );
+    }
+    if (replacement !== undefined) {
+      const seen = new Set<ConceptRef>([id]);
+      let cursor: ConceptRef | undefined = replacement;
+      while (cursor !== undefined) {
+        if (seen.has(cursor)) {
+          return err(
+            new StructuredError(
+              "ONTO_REPLACEMENT_CYCLE",
+              "Concept deprecation would introduce a replacement cycle.",
+            ),
+          );
+        }
+        seen.add(cursor);
+        const definition = this.#concepts.get(cursor);
+        cursor =
+          definition?.status === "deprecated"
+            ? definition.replacedBy
+            : undefined;
+      }
     }
     this.#concepts.set(id, {
       ...structuredClone(current),
