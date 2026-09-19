@@ -19,10 +19,7 @@ import type { PythonAstNode } from "./python-ast.ts";
 import { lowerPirTypeToPythonAnnotation } from "./python-types.ts";
 
 const sanitizeIdentifier = (value: string): string => {
-  const normalized = value
-    .replace(/([a-z0-9])([A-Z])/gu, "$1_$2")
-    .replace(/[^A-Za-z0-9_]/gu, "_")
-    .toLocaleLowerCase();
+  const normalized = value.replace(/[^A-Za-z0-9_]/gu, "_");
   return /^[A-Za-z_]/u.test(normalized)
     ? normalized
     : `_${normalized}`;
