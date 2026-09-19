@@ -30,6 +30,30 @@ import {
 import {
   parseDialogueTurnIntent,
 } from "../../packages/dialogue-state/src/index.ts";
+import {
+  createTypeScriptBackend,
+  type SourceDocument,
+} from "../../packages/code-backend-core/src/index.ts";
+import {
+  BackendRepairCompiler,
+  normalizeRepairTestResult,
+  repairProgram,
+  type RepairTestRunner,
+} from "../../packages/repair-core/src/index.ts";
+import type {
+  PirFunction,
+  PirProgram,
+  PirType,
+  ProgramHole,
+} from "../../packages/program-ir/src/index.ts";
+import {
+  InScopeSymbolGenerator,
+  createCoreGeneratorRegistry,
+  synthesizeProgram,
+  type ProgramAcceptanceVerifier,
+  type SearchBudget,
+  type SynthesisProblem,
+} from "../../packages/synthesis-core/src/index.ts";
 
 const dataset = (
   overrides: Partial<DatasetManifest> = {},
@@ -403,6 +427,183 @@ describe("T276-T288 evaluation core conformance", () => {
     ]);
     expect(report.ok).toBe(true);
     expect(report.ok && report.value.means.semanticPreservation).toBe(1);
+  });
+
+  it("T285 evaluates a real typed-hole synthesis run before reporting synthesis metrics", async () => {
+    const numberType: PirType = { kind: "number" };
+    const parameter = {
+      id: "param:eval-identity:value",
+      name: "value",
+      type: numberType,
+    };
+    const hole: ProgramHole = {
+      id: "hole:eval-identity",
+      expectedType: numberType,
+      expectedEffect: "pure",
+      requiredFacts: [],
+      forbiddenFacts: [],
+      scopeSymbols: [parameter.id],
+      budget: {
+        maxExpansions: 16,
+        maxDepth: 4,
+        maxCost: 16,
+      },
+    };
+    const fn: PirFunction = {
+      kind: "function",
+      id: "function:eval-identity",
+      name: "evalIdentity",
+      parameters: [parameter],
+      returnType: numberType,
+      body: {
+        kind: "hole",
+        id: hole.id,
+        expected: numberType,
+      },
+      effects: [{ kind: "pure" }],
+    };
+    const program: PirProgram = {
+      version: "1.0.0",
+      modules: [
+        {
+          id: "module:eval-identity",
+          kind: "module",
+          nameIntent: { preferredTerms: ["evalIdentity"] },
+          exports: [fn.id],
+          imports: [],
+          declarations: [fn.id],
+        },
+      ],
+      functions: [fn],
+      holes: [hole],
+    };
+    const problem: SynthesisProblem = {
+      id: "problem:eval-identity",
+      program,
+      environment: { literals: [], callables: [], branchSeeds: [] },
+      requirements: ["return the available numeric input"],
+    };
+    const verifier: ProgramAcceptanceVerifier = {
+      id: "verifier:eval-identity",
+      verify({ program: candidate }) {
+        const body = candidate.functions[0]?.body;
+        const accepted =
+          body?.kind === "variable" && body.symbolId === parameter.id;
+        return {
+          accepted,
+          evidence: accepted ? ["eval:identity:accepted"] : [],
+          diagnostics: [],
+        };
+      },
+    };
+    const budget: SearchBudget = {
+      maxStates: 16,
+      maxDepth: 4,
+      maxJevCalls: 0,
+      maxCompilerRuns: 0,
+      maxTestRuns: 0,
+      deadlineMs: 10_000,
+    };
+
+    const synthesis = await synthesizeProgram(problem, {
+      registry: createCoreGeneratorRegistry([new InScopeSymbolGenerator()]),
+      budget,
+      verifiers: [verifier],
+    });
+    expect(synthesis.status).toBe("success");
+    if (synthesis.status !== "success") return;
+
+    const report = reportSynthesisBenchmark([
+      {
+        validPirCompletionRate: 1,
+        backendLoweringRate: 1,
+        compileRate: 1,
+        testPassRate: 1,
+        requirementSatisfaction: 1,
+        candidateOracleUpperBound: 1,
+        jevCalls: synthesis.usage.jevCalls,
+        searchStates: synthesis.usage.statesExpanded,
+      },
+    ]);
+    expect(report.ok).toBe(true);
+    if (!report.ok) return;
+    expect(report.value.means.jevCalls).toBe(0);
+    expect(report.value.means.searchStates).toBeGreaterThan(0);
+  });
+
+  it("T286 evaluates a real compiler repair loop before reporting repair metrics", async () => {
+    const backend = createTypeScriptBackend();
+    expect(backend.ok).toBe(true);
+    if (!backend.ok) return;
+
+    const source: SourceDocument = {
+      sourceId: "eval-repair",
+      language: "typescript",
+      path: "/virtual/eval-repair.ts",
+      text: 'export function answer(): number { return "41"; }\n',
+    };
+
+    const passRunner: RepairTestRunner = {
+      id: "eval.pass-runner",
+      run({ source: current }) {
+        return normalizeRepairTestResult({
+          runner: "eval.pass-runner",
+          source: current,
+          cases: [
+            {
+              id: "compile-repaired",
+              status: current.text.includes("return 41;") ? "pass" : "fail",
+              evidence: current.text.includes("return 41;")
+                ? ["source:return-41"]
+                : [],
+            },
+          ],
+        });
+      },
+    };
+
+    const repaired = await repairProgram({
+      source,
+      options: {
+        compiler: new BackendRepairCompiler(backend.value),
+        tests: passRunner,
+        regression: passRunner,
+        knowledge: {
+          symbolImports: {},
+          argumentDefaults: {},
+          nullGuards: {},
+          returnReplacements: {
+            TS2322: [{ source: "41", cost: 1 }],
+          },
+        },
+        budget: {
+          maxIterations: 3,
+          maxCandidatesPerIteration: 4,
+          maxCompileRuns: 5,
+          maxTestRuns: 5,
+          deadlineMs: 10_000,
+        },
+      },
+    });
+    expect(repaired.status).toBe("success");
+    if (repaired.status !== "success") return;
+
+    const report = reportRepairBenchmark([
+      {
+        repairSuccessRate: 1,
+        regressionFreeRate: repaired.regression.ok ? 1 : 0,
+        requirementSatisfaction: repaired.tests.ok ? 1 : 0,
+        iterations: repaired.usage.iterations,
+        compilerCalls: repaired.usage.compileRuns,
+        testCalls: repaired.usage.testRuns,
+        diffSize: Math.abs(repaired.source.text.length - source.text.length),
+      },
+    ]);
+    expect(report.ok).toBe(true);
+    if (!report.ok) return;
+    expect(report.value.means.repairSuccessRate).toBe(1);
+    expect(report.value.means.regressionFreeRate).toBe(1);
+    expect(report.value.means.compilerCalls).toBeGreaterThanOrEqual(2);
   });
 
   it("T285 reports synthesis quality separately from resource usage", () => {
