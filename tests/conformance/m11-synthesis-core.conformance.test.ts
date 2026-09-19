@@ -199,9 +199,13 @@ describe("M11 synthesis core conformance", () => {
       verifiers: [
         acceptanceVerifier(
           "verifier:identity",
-          (program) =>
-            program.functions.at(-1)?.body?.kind === "variable" &&
-            program.functions.at(-1)?.body?.symbolId === parameter.id,
+          (program) => {
+            const body = program.functions.at(-1)?.body;
+            return (
+              body?.kind === "variable" &&
+              body.symbolId === parameter.id
+            );
+          },
         ),
       ],
     });
@@ -391,12 +395,17 @@ describe("M11 synthesis core conformance", () => {
             const body = program.functions.find(
               (fn) => fn.id === "function:caller",
             )?.body;
+            if (
+              body?.kind !== "call" ||
+              body.callee.kind !== "symbol-ref" ||
+              body.callee.symbolId !== helper.id
+            ) {
+              return false;
+            }
+            const argument = body.arguments[0];
             return (
-              body?.kind === "call" &&
-              body.callee.kind === "symbol-ref" &&
-              body.callee.symbolId === helper.id &&
-              body.arguments[0]?.kind === "variable" &&
-              body.arguments[0].symbolId === input.id
+              argument?.kind === "variable" &&
+              argument.symbolId === input.id
             );
           },
         ),
@@ -767,11 +776,12 @@ describe("M11 synthesis core conformance", () => {
           "verifier:return",
           (program) => {
             const statements = program.functions[0]?.statements;
+            if (statements?.length !== 1) return false;
+            const statement = statements[0];
             return (
-              statements?.length === 1 &&
-              statements[0]?.kind === "return" &&
-              statements[0].value?.kind === "variable" &&
-              statements[0].value.symbolId === parameter.id
+              statement?.kind === "return" &&
+              statement.value?.kind === "variable" &&
+              statement.value.symbolId === parameter.id
             );
           },
         ),
