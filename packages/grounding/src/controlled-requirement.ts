@@ -9,12 +9,8 @@ import {
   makeUtf16Span,
   type GroundingSource,
 } from "../../open-world-values/src/index.ts";
-import {
-  createCoreOntology,
-} from "../../ontology/src/index.ts";
-import {
-  createProvenance,
-} from "../../provenance/src/index.ts";
+import { createCoreOntology } from "../../ontology/src/index.ts";
+import { createProvenance } from "../../provenance/src/index.ts";
 import {
   InMemorySemanticGraph,
   type ActionNode,
@@ -36,76 +32,23 @@ export interface ControlledRequirementParse {
   };
 }
 
-interface Match {
-  actorText: string;
+interface ControlledCapture {
+  text: string;
+  language: "en" | "vi";
   actorStart: number;
   actorEnd: number;
   amount: number;
-  targetText: string;
 }
 
-const grammarRules: RegExp[] = [
-  /^The\s+([A-Za-z][\w-]*)\s+must\s+not\s+delete\s+more\s+than\s+(\d+)\s+([A-Za-z][\w-]*)\.?$/i,
-  /^The\s+([A-Za-z][\w-]*)\s+is\s+not\s+permitted\s+to\s+delete\s+more\s+than\s+(\d+)\s+([A-Za-z][\w-]*)\.?$/i,
-];
-
-const matchControlledGrammar = (text: string): Match | undefined => {
-  for (const rule of grammarRules) {
-    const match = rule.exec(text);
-    if (match === null) continue;
-    const actorText = match[1];
-    const amountText = match[2];
-    const targetText = match[3];
-    if (
-      actorText === undefined ||
-      amountText === undefined ||
-      targetText === undefined
-    ) {
-      continue;
-    }
-    const actorStart = text.indexOf(actorText);
-    return {
-      actorText,
-      actorStart,
-      actorEnd: actorStart + actorText.length,
-      amount: Number(amountText),
-      targetText,
-    };
-  }
-  return undefined;
-};
-
-export const parseControlledRequirement = (
-  text: string,
+const buildControlledDeleteLimit = (
+  capture: ControlledCapture,
 ): Result<ControlledRequirementParse> => {
-  const matched = matchControlledGrammar(text.trim());
-  if (matched === undefined) {
-    return err(
-      new StructuredError(
-        "GROUNDING_UNSUPPORTED_CONSTRUCTION",
-        "Input is outside the first controlled requirement grammar.",
-      ),
-    );
-  }
-
-  if (
-    matched.actorText.toLowerCase() !== "service" ||
-    !/^files?$/i.test(matched.targetText)
-  ) {
-    return err(
-      new StructuredError(
-        "GROUNDING_UNKNOWN_CONTROLLED_CONCEPT",
-        "The first vertical slice currently supports service/file concepts only.",
-      ),
-    );
-  }
-
   const source: GroundingSource = {
-    id: "source:controlled-input",
+    id: `source:controlled-${capture.language}`,
     version: "1",
     mediaType: "text/plain",
-    languageHint: "en",
-    content: text.trim(),
+    languageHint: capture.language,
+    content: capture.text,
     trust: "user-content",
   };
   const provenance = createProvenance({
@@ -132,7 +75,7 @@ export const parseControlledRequirement = (
     names: [
       {
         kind: "span-ref",
-        span: makeUtf16Span(source, matched.actorStart, matched.actorEnd),
+        span: makeUtf16Span(source, capture.actorStart, capture.actorEnd),
       },
     ],
     attributes: [],
@@ -146,7 +89,7 @@ export const parseControlledRequirement = (
     ontologyVersion: "0.1.0",
     provenance: [provenance.id],
     trust: "user-content",
-    amount: matched.amount,
+    amount: capture.amount,
     unit: "concept:core.file",
     comparator: "at-most",
   };
@@ -197,7 +140,6 @@ export const parseControlledRequirement = (
     ]),
     (snapshot) => validateSnapshot(snapshot, { ontology }),
   );
-
   if (!result.ok) return err(result.error);
 
   return ok({
@@ -210,4 +152,68 @@ export const parseControlledRequirement = (
       constraint: constraintId,
     },
   });
+};
+
+const englishRules: RegExp[] = [
+  /^The\s+(service)\s+must\s+not\s+delete\s+more\s+than\s+(\d+)\s+(files?)\.?$/i,
+  /^The\s+(service)\s+is\s+not\s+permitted\s+to\s+delete\s+more\s+than\s+(\d+)\s+(files?)\.?$/i,
+];
+
+export const parseControlledRequirement = (
+  input: string,
+): Result<ControlledRequirementParse> => {
+  const text = input.trim();
+  for (const rule of englishRules) {
+    const match = rule.exec(text);
+    if (match === null) continue;
+    const actorText = match[1];
+    const amountText = match[2];
+    if (actorText === undefined || amountText === undefined) continue;
+    const actorStart = text.indexOf(actorText);
+    return buildControlledDeleteLimit({
+      text,
+      language: "en",
+      actorStart,
+      actorEnd: actorStart + actorText.length,
+      amount: Number(amountText),
+    });
+  }
+  return err(
+    new StructuredError(
+      "GROUNDING_UNSUPPORTED_CONSTRUCTION",
+      "Input is outside the first controlled English requirement grammar.",
+    ),
+  );
+};
+
+const vietnameseRules: RegExp[] = [
+  /^(Dịch vụ)\s+không\s+được\s+xóa\s+quá\s+(\d+)\s+(?:tệp|tệp tin|file)\.?$/iu,
+  /^(Dịch vụ)\s+không\s+được\s+phép\s+xóa\s+quá\s+(\d+)\s+(?:tệp|tệp tin|file)\.?$/iu,
+];
+
+export const parseControlledVietnameseRequirement = (
+  input: string,
+): Result<ControlledRequirementParse> => {
+  const text = input.trim();
+  for (const rule of vietnameseRules) {
+    const match = rule.exec(text);
+    if (match === null) continue;
+    const actorText = match[1];
+    const amountText = match[2];
+    if (actorText === undefined || amountText === undefined) continue;
+    const actorStart = text.indexOf(actorText);
+    return buildControlledDeleteLimit({
+      text,
+      language: "vi",
+      actorStart,
+      actorEnd: actorStart + actorText.length,
+      amount: Number(amountText),
+    });
+  }
+  return err(
+    new StructuredError(
+      "GROUNDING_UNSUPPORTED_VI_CONSTRUCTION",
+      "Input is outside the first controlled Vietnamese requirement grammar.",
+    ),
+  );
 };

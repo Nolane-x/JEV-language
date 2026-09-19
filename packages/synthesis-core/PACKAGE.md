@@ -1,3 +1,3 @@
 # synthesis-core
 
-Status: **prototype / NOT_IMPLEMENTED** before M11 foundation lands. Tracked under T200+.
+Status: **prototype / PARTIAL**. Legal typed-hole candidate generation and deterministic frontier selection exist for a narrow filter synthesis subset. General search/CEGIS remain open.
