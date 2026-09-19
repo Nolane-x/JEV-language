@@ -25,7 +25,7 @@ Specification basis: Sections 261–271, 417–418 and tasks T181–T193 of the 
 | canonical persistence | `serializePirProgram()` / `deserializePirProgram()` |
 | backward compatibility | existing VS4 synthesis path retained; narrow TypeScript backend explicitly rejects unsupported statement/expression lowering rather than pretending support |
 
-No source generation is claimed by this milestone. Section 417 explicitly leaves source generation to the backend milestone. fileciteturn578file0
+No source generation is claimed by this milestone. Section 417 explicitly leaves source generation to the backend milestone.
 
 ## Required M10 program corpus
 
@@ -63,10 +63,12 @@ No source generation is claimed by this milestone. Section 417 explicitly leaves
 
 Verified evidence:
 
-- implementation head: `11d350679b2afd3df4491da207a5a6f946b8b109`
-- GitHub Actions CI: run `#142` / run id `35428254025`
+- implementation head: `11d350679b2afd3df4491da207a5a6f946b8b109` (CI #142 passed)
+- final documentation head: `e91e4faff813dc99514bdca67159c9e28a91906d`
+- GitHub Actions final CI: run `#143` / run id `35428335065`
+- merged squash commit: `ac7d59bf15e4db9f854fa430ef3d5b50f1378c71`
 - result: `success`
 - deterministic gate: package boundaries → strict TypeScript → full test suite
 - live Jev requests: `0`
 
-The implementation-state ledger may therefore advance to M11 synthesis core. The final documentation commit must itself pass CI before merge.
+The final documentation head also passed CI, so M10 is fully verified and the implementation-state ledger has advanced to M11 synthesis core.
