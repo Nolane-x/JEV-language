@@ -31,15 +31,18 @@ const signature = (snapshot: GraphSnapshot): ControlledSignature | undefined => 
       node.kind === "entity" && node.id === action.actor,
   );
   if (actor === undefined) return undefined;
-  const quantityRef = action.parameters.find(
+  const quantityArgument = action.parameters.find(
     (argument) =>
       argument.role === "role:core.quantity-limit" &&
       argument.value.kind === "ref",
   );
-  if (quantityRef?.value.kind !== "ref") return undefined;
+  if (quantityArgument === undefined || quantityArgument.value.kind !== "ref") {
+    return undefined;
+  }
+  const quantityId = quantityArgument.value.ref;
   const quantity = snapshot.nodes.find(
     (node): node is QuantityNode =>
-      node.kind === "quantity" && node.id === quantityRef.value.ref,
+      node.kind === "quantity" && node.id === quantityId,
   );
   if (quantity === undefined) return undefined;
 
