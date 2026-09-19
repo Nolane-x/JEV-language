@@ -102,6 +102,15 @@ const directRefs = (node: JsgNode): RefUse[] => {
         ...(node.temporal === undefined
           ? []
           : [{ target: node.temporal, label: "event.temporal" }]),
+        ...(node.modality?.source === undefined
+          ? []
+          : [{ target: node.modality.source, label: "event.modality-source" }]),
+        ...(node.modality?.scope === undefined
+          ? []
+          : [{ target: node.modality.scope, label: "event.modality-scope" }]),
+        ...(node.modality?.contextAnchor === undefined
+          ? []
+          : [{ target: node.modality.contextAnchor, label: "event.modality-context" }]),
         ...node.roles.flatMap((binding) =>
           refsFromValue(
             binding.value,
@@ -177,6 +186,18 @@ const directRefs = (node: JsgNode): RefUse[] => {
         ...(node.temporal === undefined
           ? []
           : [{ target: node.temporal, label: "proposition.temporal" }]),
+        ...(node.context === undefined
+          ? []
+          : [{ target: node.context, label: "proposition.context" }]),
+        ...(node.modality?.source === undefined
+          ? []
+          : [{ target: node.modality.source, label: "proposition.modality-source" }]),
+        ...(node.modality?.scope === undefined
+          ? []
+          : [{ target: node.modality.scope, label: "proposition.modality-scope" }]),
+        ...(node.modality?.contextAnchor === undefined
+          ? []
+          : [{ target: node.modality.contextAnchor, label: "proposition.modality-context" }]),
         ...(node.attribution === undefined
           ? []
           : [{ target: node.attribution, label: "proposition.attribution" }]),
@@ -190,6 +211,59 @@ const directRefs = (node: JsgNode): RefUse[] => {
             binding.role,
           ),
         ),
+      ];
+    case "context":
+      return [
+        ...(node.parentContext === undefined
+          ? []
+          : [{ target: node.parentContext, label: "context.parent" }]),
+        ...(node.deictic?.speaker === undefined
+          ? []
+          : [{ target: node.deictic.speaker, label: "context.deictic-speaker" }]),
+        ...(node.deictic?.addressee === undefined
+          ? []
+          : [{ target: node.deictic.addressee, label: "context.deictic-addressee" }]),
+        ...(node.deictic?.speakerTime === undefined
+          ? []
+          : [{ target: node.deictic.speakerTime, label: "context.deictic-speaker-time" }]),
+        ...(node.deictic?.speakerLocation === undefined
+          ? []
+          : [{ target: node.deictic.speakerLocation, label: "context.deictic-speaker-location" }]),
+        ...(node.deictic?.discourseTime === undefined
+          ? []
+          : [{ target: node.deictic.discourseTime, label: "context.deictic-discourse-time" }]),
+        ...(node.deictic?.discourseFocus === undefined
+          ? []
+          : [{ target: node.deictic.discourseFocus, label: "context.deictic-discourse-focus" }]),
+        ...(node.deictic?.participantPerspective === undefined
+          ? []
+          : [{ target: node.deictic.participantPerspective, label: "context.deictic-perspective" }]),
+        ...(node.deictic?.socialAnchors ?? []).map((anchor, index) => ({
+          target: anchor.participant,
+          label: `context.social-anchor[${index}]:${anchor.relation}`,
+        })),
+        ...(node.quotation?.quotedSpeaker === undefined
+          ? []
+          : [{ target: node.quotation.quotedSpeaker, label: "context.quoted-speaker" }]),
+        ...(node.quotation?.quotedAddressee === undefined
+          ? []
+          : [{ target: node.quotation.quotedAddressee, label: "context.quoted-addressee" }]),
+        ...(node.quotation?.quotedTimeAnchor === undefined
+          ? []
+          : [{ target: node.quotation.quotedTimeAnchor, label: "context.quoted-time" }]),
+        ...(node.quotation?.quotedLocationAnchor === undefined
+          ? []
+          : [{ target: node.quotation.quotedLocationAnchor, label: "context.quoted-location" }]),
+        ...(node.quotation?.reporter === undefined
+          ? []
+          : [{ target: node.quotation.reporter, label: "context.reporter" }]),
+        ...(node.attitude?.holder === undefined
+          ? []
+          : [{ target: node.attitude.holder, label: "context.attitude-holder" }]),
+        ...(node.attitude?.contentRefs ?? []).map((target, index) => ({
+          target,
+          label: `context.attitude-content[${index}]`,
+        })),
       ];
     case "scope":
       return [
@@ -215,8 +289,11 @@ const directRefs = (node: JsgNode): RefUse[] => {
         { target: node.scope, label: "negation.scope" },
       ];
     case "quantity":
-    case "temporal":
       return [];
+    case "temporal":
+      return node.anchor === undefined
+        ? []
+        : [{ target: node.anchor, label: "temporal.anchor" }];
     case "location":
       return refsFromValue(node.value, "location.value");
     case "intent":
@@ -228,6 +305,27 @@ const directRefs = (node: JsgNode): RefUse[] => {
     case "constraint":
       return [
         { target: node.subject, label: "constraint.subject" },
+        ...(node.conditional === undefined
+          ? []
+          : [
+              { target: node.conditional.antecedent, label: "constraint.conditional-antecedent" },
+              { target: node.conditional.consequent, label: "constraint.conditional-consequent" },
+              ...(node.conditional.contextAnchor === undefined
+                ? []
+                : [{ target: node.conditional.contextAnchor, label: "constraint.conditional-context" }]),
+              ...(node.conditional.counterfactual?.referenceWorld === undefined
+                ? []
+                : [{ target: node.conditional.counterfactual.referenceWorld, label: "constraint.counterfactual-world" }]),
+              ...(node.conditional.modality?.source === undefined
+                ? []
+                : [{ target: node.conditional.modality.source, label: "constraint.modality-source" }]),
+              ...(node.conditional.modality?.scope === undefined
+                ? []
+                : [{ target: node.conditional.modality.scope, label: "constraint.modality-scope" }]),
+              ...(node.conditional.modality?.contextAnchor === undefined
+                ? []
+                : [{ target: node.conditional.modality.contextAnchor, label: "constraint.modality-context" }]),
+            ]),
         ...node.parameters.flatMap((binding) =>
           refsFromValue(
             binding.value,
@@ -248,6 +346,9 @@ const directRefs = (node: JsgNode): RefUse[] => {
       ];
     case "reference":
       return [
+        ...(node.deictic === undefined
+          ? []
+          : [{ target: node.deictic.context, label: "reference.deictic-context" }]),
         ...node.candidates.map((target, index) => ({
           target,
           label: `reference.candidate[${index}]`,
@@ -274,6 +375,9 @@ const directRefs = (node: JsgNode): RefUse[] => {
         : refsFromValue(node.description, "capability.description");
     case "evidence":
       return [
+        ...(node.evidentiality?.source === undefined
+          ? []
+          : [{ target: node.evidentiality.source, label: "evidence.evidential-source" }]),
         ...node.supports.map((target) => ({
           target,
           label: "evidence.supports",
