@@ -94,6 +94,9 @@ export const assessDecisionPackQuality = (
   if (input.inputSchema === undefined) {
     missingCandidateEvidence.push("inputSchema");
   }
+  if (!hasItems(input.candidateSemantics)) {
+    missingCandidateEvidence.push("candidateSemantics");
+  }
   if (!hasItems(input.hardConstraints)) {
     missingCandidateEvidence.push("hardConstraints");
   }
@@ -225,6 +228,35 @@ export const loadDecisionPack = (
       new StructuredError(
         "DPACK_SCHEMA",
         "Decision pack is missing required runtime manifest fields.",
+      ),
+    );
+  }
+  const arrayFields = [
+    "candidateSemantics",
+    "hardConstraints",
+    "counterexamples",
+    "knownFailureModes",
+    "versionHistory",
+  ] as const;
+  for (const field of arrayFields) {
+    const value = input[field];
+    if (
+      value !== undefined &&
+      (!Array.isArray(value) || value.some((entry) => typeof entry !== "string"))
+    ) {
+      return err(
+        new StructuredError(
+          "DPACK_SCHEMA",
+          `Decision pack field ${field} must be an array of strings when present.`,
+        ),
+      );
+    }
+  }
+  if (input.traceOutput !== undefined && typeof input.traceOutput !== "boolean") {
+    return err(
+      new StructuredError(
+        "DPACK_SCHEMA",
+        "Decision pack traceOutput must be boolean when present.",
       ),
     );
   }
