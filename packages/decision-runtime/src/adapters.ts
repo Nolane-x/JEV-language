@@ -10,6 +10,7 @@ import {
   TypeSafeClient,
   type EntryType,
   type Question,
+  type RequestOptions,
 } from "@typesafe-ai/sdk";
 import {
   createTraceId,
@@ -117,19 +118,20 @@ export class TypeSafeDecisionAdapter implements DecisionProviderAdapter {
 
     const started = Date.now();
     try {
+      const requestOptions: RequestOptions = {
+        retry: { maxRetries: 0 },
+        ...(signal === undefined ? {} : { signal }),
+        ...(request.deadlineMs === undefined
+          ? {}
+          : { timeout: request.deadlineMs }),
+      };
       const response = await this.#client.systemOne(
         {
           state: request.state as EntryType,
           questions: providerQuestions,
           model: request.modelProfile,
         },
-        {
-          signal,
-          ...(request.deadlineMs === undefined
-            ? {}
-            : { timeout: request.deadlineMs }),
-          retry: { maxRetries: 0 },
-        },
+        requestOptions,
       );
       const latencyMs = Date.now() - started;
       const answers: DecisionAnswer[] = [];
