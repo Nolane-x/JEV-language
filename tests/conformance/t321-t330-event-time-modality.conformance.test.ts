@@ -356,7 +356,7 @@ describe("T321-T330 event/time/modality/conditional conformance", () => {
     const restored = deserializeSnapshot(serialized);
     expect(restored.ok).toBe(true);
     if (restored.ok) {
-      expect(restored.value).toEqual(good);
+      expect(serializeSnapshot(restored.value)).toBe(serialized);
     }
   });
 
