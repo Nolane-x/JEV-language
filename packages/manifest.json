@@ -152,7 +152,8 @@
         "discourse-ir",
         "grammar-core",
         "morphology-core",
-        "lexicon-core"
+        "lexicon-core",
+        "ontology"
       ]
     },
     "language-en": {

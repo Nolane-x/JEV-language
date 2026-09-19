@@ -39,7 +39,8 @@ export type ControlledCorpusPhenomenon =
   | "permission"
   | "prohibition"
   | "comparison"
-  | "question";
+  | "question"
+  | "attribution";
 
 export interface ControlledCorpusParse {
   snapshot: GraphSnapshot;
@@ -83,6 +84,11 @@ type ControlledFrame =
     }
   | {
       kind: "question";
+      amount: number;
+      phenomena: ControlledCorpusPhenomenon[];
+    }
+  | {
+      kind: "attributed-proposition";
       amount: number;
       phenomena: ControlledCorpusPhenomenon[];
     };
@@ -209,6 +215,20 @@ const parseFrame = (text: string): ControlledFrame | undefined => {
     };
   }
 
+  match =
+    /^According to the service, the service deletes exactly (\d+) files?\.$/i.exec(
+      text,
+    );
+  if (match !== null) {
+    const amount = parsePositiveInteger(match[1]);
+    if (amount === undefined) return undefined;
+    return {
+      kind: "attributed-proposition",
+      amount,
+      phenomena: ["simple-event", "exact-quantity", "attribution"],
+    };
+  }
+
   match = /^May the service delete exactly (\d+) files?\?$/i.exec(text);
   if (match !== null) {
     const amount = parsePositiveInteger(match[1]);
@@ -278,7 +298,7 @@ const buildFrame = (
       ? frame.comparator
       : frame.kind === "constraint"
         ? frame.comparator
-        : frame.kind === "question"
+        : frame.kind === "question" || frame.kind === "attributed-proposition"
           ? "exact"
           : "at-most";
   const amount =
@@ -384,6 +404,29 @@ const buildFrame = (
       { kind: "add-node", node: constraint },
     );
     roots.push(constraintId);
+  } else if (frame.kind === "attributed-proposition") {
+    const propositionId = createSemanticId("proposition");
+    const proposition: PropositionNode = {
+      id: propositionId,
+      kind: "proposition",
+      schemaVersion: "0.1.0",
+      ontologyVersion: "0.1.0",
+      provenance: [provenance.id],
+      trust: "user-content",
+      predicate: "concept:core.delete",
+      arguments: [
+        { role: "role:core.agent", value: { kind: "ref", ref: actorId } },
+        {
+          role: "role:core.quantity-limit",
+          value: { kind: "ref", ref: quantityId },
+        },
+      ],
+      polarity: "positive",
+      epistemic: { status: "reported", source: actorId },
+      attribution: actorId,
+    };
+    operations.push({ kind: "add-node", node: proposition });
+    roots.push(propositionId);
   } else if (frame.kind === "question") {
     const propositionId = createSemanticId("proposition");
     const proposition: PropositionNode = {

@@ -1,6 +1,6 @@
 # M3 — Jev Decision Runtime Gate Evidence
 
-Status: **deterministic candidate — live smoke not yet executed**
+Status: **verified**
 
 Specification basis: sections 185–191, 407–408, 863–884, and bootstrap tasks T060–T084 of the v0.4 master specification.
 
@@ -60,23 +60,27 @@ Before any Decision Pack is treated as a relied-on candidate/production asset, i
 
 This proves the deterministic implementation path only. It does **not** satisfy the live acceptance requirement below.
 
-## Required live acceptance still open
+## Live acceptance evidence
 
-The M3 Definition of Done requires both:
+The required live track was executed once through an isolated temporary branch workflow with all quota protections enabled.
 
-- recorded deterministic response mode;
-- live Jev smoke mode.
+Verified run:
 
-The repository contains `.github/workflows/jev-live-smoke.yml`, which:
+- workflow: `JEV Live Smoke Once 20260919`
+- run id: `35421718883`
+- run number: `1`
+- temporary head: `e6999bd0c64bb7d9d543732efa816af2683c1170`
+- conclusion: `success`
+- provider source reported by the runtime: `live`
+- model: `jev-1.13.0`
+- provider requests used: `1`
+- input tokens: `356`
+- output tokens: `26`
+- SDK retries: `0`
+- runtime request budget: `1`
 
-- is manual `workflow_dispatch` only;
-- runs only when input `confirm` equals `YES`;
-- exposes the stored API secret only to that job;
-- sets `JEV_ALLOW_LIVE=1`;
-- hard-limits `JEV_LIVE_MAX_REQUESTS=1`.
-
-The current GitHub connector can inspect CI jobs but does not expose a workflow-dispatch action. Therefore this gate MUST remain incomplete until that single-request workflow is explicitly dispatched and its run evidence is recorded here.
+The temporary workflow branch was force-reset to `main` immediately after evidence collection. A post-cleanup Actions check found exactly one run of that workflow, so no second live request was triggered.
 
 ## Gate rule
 
-Deterministic CI success is required before merging the implementation. **Do not set `last_completed_gate` to M3** until a successful one-request live smoke is also recorded. Until then, M2 remains the last completed gate and M3 remains the active milestone.
+Both required M3 tracks now have evidence: deterministic recorded mode and the one-request live Jev smoke. M3 is therefore verified. Normal push/PR CI remains network-free and must not run live Jev calls.

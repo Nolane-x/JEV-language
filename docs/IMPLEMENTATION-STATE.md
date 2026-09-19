@@ -3,8 +3,8 @@
 ```yaml
 spec_version: 0.4-master-implementation-research-expanded
 spec_digest_sha256: 9b8bc907fa0da89d4b7ea2e0be886919deffdb35e398ea7897ea77d305380f5b
-last_completed_gate: M2-ontology-open-world
-active_milestone: M3-jev-decision-runtime-verification
+last_completed_gate: M5-constrained-realizer-roundtrip
+active_milestone: M6-bidirectional-English-expansion
 stable_packages: []
 candidate_packages:
   - core-types
@@ -31,22 +31,21 @@ partial_vertical_slices:
   - m16-controlled-multitarget
   - m17-verification-hardening
   - m4-controlled-parser-foundation
+  - m5-controlled-realizer-roundtrip
 known_failures: []
-blocked_items:
-  - live-Jev-smoke-not-yet-executed
+blocked_items: []
 next_tasks:
+  - implement and verify M6 T170-T180 discourse/naturalness expansion and template-leakage evaluation
   - complete remaining M1 staged semantic validators and graph operations
-  - run the single explicitly authorized live-Jev smoke required to close M3; keep M3 and successor milestone gates incomplete until then
   - harden M17 verifier orchestration, provenance edge cases, and cross-adapter conformance
   - expand M16 multi-target adapters beyond the controlled delete-limit semantic subset
-  - run exactly one manual live-Jev smoke only when explicitly desired
-last_verified_main_commit: 7dac106cdf08bc89be50833ed7dc4e7e6f5cd20e
-last_verified_pr_head: b6d1f913107b72d76269fbcbab36ce8a447002d3
+last_verified_main_commit: 5451dd15e20cf83e6c97848b4be1936e0997c758
+last_verified_pr_head: 76634222a6654a3f39fa89ea26a4ac6d4cecf3ad
 ```
 
 ## Current state
 
-A runnable foundation now exists, but this ledger deliberately does **not** mark a milestone complete before the current hardening PR passes its deterministic gate. The last verified `main` commit above passed install, package-boundary checks, strict TypeScript, and tests on GitHub Actions.
+M0–M5 now have gate evidence. M3 includes the required live Jev acceptance run; M4 and M5 remain deterministic language-engine gates. The state above is committed on the M5 PR branch and becomes canonical only after this final documentation head passes CI and PR #19 merges.
 
 ## Implemented foundation
 
@@ -65,6 +64,7 @@ A runnable foundation now exists, but this ledger deliberately does **not** mark
 - TypeScript 7 CLI compatibility with the official TypeScript 6 programmatic compiler API bridge for embedded compile checks.
 - First four narrow bootstrap vertical slices: controlled English, recorded reference choice, controlled Vietnamese, and PIR typed-hole → TypeScript.
 - M4 controlled grounding/parser foundation with reversible normalization, packed syntax forests, bounded recorded-JDR ambiguity choice, JSG commit, and corpus coverage for event/negation/quantity/time/condition/cause/requirement/permission/prohibition/comparison/question.
+- M5 constrained English realization with discourse/clause plans, lexical/morphology planning primitives, semantic source maps, attribution-safe realization, fallback policy, and a 100% semantic round-trip target on the current 11-fixture controlled corpus.
 - Graph-structured Discourse IR foundation with deterministic prerequisite-aware ordering.
 - Formal IR family foundation (Data/Schema/Query/Math/Logic/Command), capability-validated Action IR, and harness-neutral Universal Expression contract.
 - Registry-driven Universal Expression runtime plus trace DAG/config-digest/replay-manifest foundation.
@@ -77,7 +77,7 @@ The master specification is much broader than the bootstrap wave. Broad NLU/NLG,
 
 ## Quota policy
 
-Live Jev calls are not part of push/PR CI. The manual live smoke is hard-limited to one request containing one narrow question, uses SDK retry `0`, and reports SDK token usage. The current implementation wave has consumed **zero live Jev requests**.
+Live Jev calls are not part of push/PR CI. M3 used exactly one explicitly isolated live smoke request: model `jev-1.13.0`, 356 input tokens, 26 output tokens, SDK retry `0`. The temporary trigger was removed after the successful run, and ordinary deterministic development remains at zero live requests.
 
 ## Completion semantics
 
