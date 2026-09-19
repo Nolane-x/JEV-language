@@ -3,6 +3,7 @@ import {
   createRegistryUniversalExpressionApi,
   type ParserAdapter,
   type RealizerAdapter,
+  type TransformerAdapter,
   type ExpressionVerifierAdapter,
 } from "../../packages/universal-expression/src/index.ts";
 
@@ -38,6 +39,43 @@ const realizer: RealizerAdapter = {
   },
 };
 
+const transformer: TransformerAdapter = {
+  id: "transformer.text.en-to-en",
+  sourceArtifactTypes: ["text"],
+  targets: ["natural-language"],
+  async transform(request) {
+    if (request.input.artifactType !== "text") {
+      return {
+        status: "unsupported",
+        diagnostics: [
+          {
+            code: "TEST_TRANSFORM_UNSUPPORTED",
+            message: "Only text is supported by this test transformer.",
+            severity: "error",
+          },
+        ],
+        evidence: [],
+        provenance: [],
+      };
+    }
+    return {
+      status: "ok",
+      value: [
+        {
+          artifactType: "text",
+          text: request.input.text.toUpperCase(),
+          ...((request.language ?? request.input.language) === undefined
+            ? {}
+            : { language: request.language ?? request.input.language }),
+        },
+      ],
+      diagnostics: [],
+      evidence: [],
+      provenance: [],
+    };
+  },
+};
+
 const verifier: ExpressionVerifierAdapter = {
   id: "verifier.always-pass",
   profiles: ["test"],
@@ -55,7 +93,12 @@ const verifier: ExpressionVerifierAdapter = {
 describe("universal expression runtime conformance", () => {
   it("discovers and routes registered adapters while emitting replayable traces", async () => {
     const api = createRegistryUniversalExpressionApi(
-      { parsers: [parser], realizers: [realizer], verifiers: [verifier] },
+      {
+        parsers: [parser],
+        realizers: [realizer],
+        transformers: [transformer],
+        verifiers: [verifier],
+      },
       {
         apiVersion: "0.1.0",
         configuration: { deterministic: true },
@@ -85,6 +128,32 @@ describe("universal expression runtime conformance", () => {
     expect(realized.status).toBe("ok");
     expect(realized.trace).toBeDefined();
 
+    const expressed = await api.express({
+      goal: { kind: "express" },
+      target: "natural-language",
+      language: "en",
+    });
+    expect(expressed.status).toBe("ok");
+    expect(expressed.trace).toBeDefined();
+
+    const transformed = await api.transform({
+      input: {
+        artifactType: "text",
+        text: "hello",
+        language: "en",
+      },
+      target: "natural-language",
+      semanticPreservationProfile: "technical-equivalence",
+      language: "en",
+    });
+    expect(transformed.status).toBe("ok");
+    expect(transformed.trace).toBeDefined();
+    expect(transformed.value?.[0]).toMatchObject({
+      artifactType: "text",
+      text: "HELLO",
+      language: "en",
+    });
+
     const verified = await api.verify({
       artifacts: [{ artifactType: "text", text: "hello", language: "en" }],
       profile: "test",
@@ -93,8 +162,18 @@ describe("universal expression runtime conformance", () => {
     expect(verified.value).toBe(true);
 
     const events = api.traceEvents();
-    expect(events.length).toBeGreaterThanOrEqual(6);
+    expect(events.length).toBeGreaterThanOrEqual(10);
     expect(events.every((event) => event.configDigest.startsWith("sha256:"))).toBe(true);
+    const stages = new Set(events.map((event) => event.stage));
+    for (const stage of [
+      "source-ingest",
+      "realize",
+      "express",
+      "transform",
+      "verify",
+    ]) {
+      expect(stages.has(stage), stage).toBe(true);
+    }
     expect(api.replayManifest().traceId).toBe(parsed.trace);
   });
 

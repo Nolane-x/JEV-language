@@ -1,0 +1,33 @@
+{
+  "id": "m16-universal-expression-api",
+  "version": "1.0.0",
+  "milestone": "M16",
+  "taskRange": "T248-T258",
+  "liveJevRequests": 0,
+  "sameRootTargets": [
+    "natural-language",
+    "structured-data",
+    "program",
+    "action"
+  ],
+  "operations": [
+    "parse",
+    "realize",
+    "express",
+    "transform",
+    "verify"
+  ],
+  "assertions": [
+    "harness-neutral-api",
+    "capability-discovery",
+    "explicit-non-ok-statuses",
+    "same-jsg-root-multitarget",
+    "backend-neutral-program-artifact",
+    "consumer-declared-action-capability",
+    "action-no-execution",
+    "trace-config-digest",
+    "replay-manifest",
+    "duplicate-adapter-rejection",
+    "unsupported-capability-explicit"
+  ]
+}
