@@ -5,7 +5,7 @@ import {
   type JsonValue,
   type Result,
 } from "../../core-types/src/index.ts";
-import type { LexicalMatch } from "../../lexicon-core/src/index.ts";
+import type { LexicalMatch, PartOfSpeech } from "../../lexicon-core/src/index.ts";
 import type { GraphOperation } from "../../semantic-graph/src/index.ts";
 
 export type GrammarCategory = string;
@@ -26,7 +26,7 @@ export type GrammarPattern =
     }
   | {
       kind: "lexical";
-      partOfSpeech?: string;
+      partOfSpeech?: PartOfSpeech;
       semanticTag?: string;
       capture?: string;
     };
