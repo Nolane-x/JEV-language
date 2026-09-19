@@ -303,6 +303,13 @@ const normalizeSurface = (value: string): string =>
     .replace(/[\p{P}\p{S}]+/gu, "")
     .trim();
 
+const structuralTemplateKey = (value: string): string =>
+  normalizeSurface(
+    value
+      .replace(/\b\d{4}-\d{2}-\d{2}\b/g, "<date>")
+      .replace(/\b\d+(?:\.\d+)?\b/g, "<number>"),
+  );
+
 const openingKey = (value: string, words = 4): string =>
   normalizeSurface(value).split(" ").slice(0, words).join(" ");
 
@@ -314,17 +321,23 @@ export interface TemplateLeakageSample {
 
 export interface TemplateLeakageThresholds {
   maxKnownTemplateRate: number;
+  maxKnownStructuralTemplateRate: number;
   maxDuplicateSurfaceRate: number;
+  maxStructuralTemplateReuseRate: number;
   maxRepeatedOpeningRate: number;
 }
 
 export interface TemplateLeakageReport {
   sampleCount: number;
   knownTemplateMatches: number;
+  knownStructuralTemplateMatches: number;
   duplicateSurfaces: number;
+  structuralTemplateRepeats: number;
   repeatedOpenings: number;
   knownTemplateRate: number;
+  knownStructuralTemplateRate: number;
   duplicateSurfaceRate: number;
+  structuralTemplateReuseRate: number;
   repeatedOpeningRate: number;
   passed: boolean;
   thresholds: TemplateLeakageThresholds;
@@ -338,13 +351,17 @@ export const evaluateTemplateLeakage = (
   knownTemplates: readonly string[] = [],
   thresholds: TemplateLeakageThresholds = {
     maxKnownTemplateRate: 0.1,
+    maxKnownStructuralTemplateRate: 0.25,
     maxDuplicateSurfaceRate: 0.25,
+    maxStructuralTemplateReuseRate: 0.4,
     maxRepeatedOpeningRate: 0.5,
   },
 ): Result<TemplateLeakageReport> => {
   if (
     !validateRate(thresholds.maxKnownTemplateRate) ||
+    !validateRate(thresholds.maxKnownStructuralTemplateRate) ||
     !validateRate(thresholds.maxDuplicateSurfaceRate) ||
+    !validateRate(thresholds.maxStructuralTemplateReuseRate) ||
     !validateRate(thresholds.maxRepeatedOpeningRate)
   ) {
     return err(
@@ -364,19 +381,40 @@ export const evaluateTemplateLeakage = (
   }
 
   const known = new Set(knownTemplates.map(normalizeSurface));
+  const knownStructural = new Set(
+    knownTemplates.map(structuralTemplateKey),
+  );
   const normalized = samples.map((sample) => normalizeSurface(sample.text));
+  const structural = samples.map((sample) =>
+    structuralTemplateKey(sample.text),
+  );
   const counts = new Map<string, number>();
+  const structuralCounts = new Map<string, number>();
   const openings = new Map<string, number>();
   let knownTemplateMatches = 0;
+  let knownStructuralTemplateMatches = 0;
 
-  for (const surface of normalized) {
+  for (let index = 0; index < normalized.length; index += 1) {
+    const surface = normalized[index] ?? "";
+    const structure = structural[index] ?? "";
     if (known.has(surface)) knownTemplateMatches += 1;
+    if (knownStructural.has(structure)) {
+      knownStructuralTemplateMatches += 1;
+    }
     counts.set(surface, (counts.get(surface) ?? 0) + 1);
+    structuralCounts.set(
+      structure,
+      (structuralCounts.get(structure) ?? 0) + 1,
+    );
     const opening = openingKey(surface);
     if (opening !== "") openings.set(opening, (openings.get(opening) ?? 0) + 1);
   }
 
   const duplicateSurfaces = [...counts.values()].reduce(
+    (sum, count) => sum + Math.max(0, count - 1),
+    0,
+  );
+  const structuralTemplateRepeats = [...structuralCounts.values()].reduce(
     (sum, count) => sum + Math.max(0, count - 1),
     0,
   );
@@ -388,14 +426,24 @@ export const evaluateTemplateLeakage = (
   const report: TemplateLeakageReport = {
     sampleCount: samples.length,
     knownTemplateMatches,
+    knownStructuralTemplateMatches,
     duplicateSurfaces,
+    structuralTemplateRepeats,
     repeatedOpenings,
     knownTemplateRate: knownTemplateMatches / divisor,
+    knownStructuralTemplateRate:
+      knownStructuralTemplateMatches / divisor,
     duplicateSurfaceRate: duplicateSurfaces / divisor,
+    structuralTemplateReuseRate:
+      structuralTemplateRepeats / divisor,
     repeatedOpeningRate: repeatedOpenings / divisor,
     passed:
       knownTemplateMatches / divisor <= thresholds.maxKnownTemplateRate &&
+      knownStructuralTemplateMatches / divisor <=
+        thresholds.maxKnownStructuralTemplateRate &&
       duplicateSurfaces / divisor <= thresholds.maxDuplicateSurfaceRate &&
+      structuralTemplateRepeats / divisor <=
+        thresholds.maxStructuralTemplateReuseRate &&
       repeatedOpenings / divisor <= thresholds.maxRepeatedOpeningRate,
     thresholds: structuredClone(thresholds),
   };
