@@ -1,6 +1,6 @@
 # M8 — Vietnamese Language Pack Gate Evidence
 
-Status: **candidate — predecessor M7 verified; pending deterministic CI**
+Status: **candidate — M8 core CI passed; pending common language-pack ABI CI**
 
 Specification basis: sections 251–259, 415, and tasks T158–T169 of the v0.4 master specification.
 
@@ -109,13 +109,26 @@ The M8 tests additionally cover:
 - address/politeness strategy abstraction;
 - unsupported free-form Vietnamese returning a structured unsupported result instead of silently translating through English.
 
+## M8 core implementation CI evidence
+
+- PR #23 implementation head: `96c8df08c1e2f116b16ed2878dc3ecac34209fde`;
+- GitHub Actions CI run `#116` / run id `35425396241`: `success`;
+- package boundaries: pass;
+- strict TypeScript: pass;
+- full deterministic tests including M8 bilingual corpus: pass;
+- merged squash commit: `c436321e1d7dc04bd46d78d1468d45d8f4279396`;
+- live Jev requests consumed: `0`.
+
+This proves T158–T169's M8 core implementation. Final M8 verification also requires the Section-251 common language-pack ABI evidence in this follow-up branch.
+
 ## Gate rule
 
 Do not mark this gate **verified** until:
 
 1. predecessor M7 remains verified;
-2. package boundaries pass;
-3. strict TypeScript passes;
-4. the complete deterministic test suite passes, including all four section-415 cross-lingual directions.
+2. the common Section-251 HumanLanguagePack ABI is implemented by both English and Vietnamese;
+3. package boundaries pass with the ABI package/dependencies;
+4. strict TypeScript passes;
+5. the complete deterministic test suite passes, including ABI conformance and all four section-415 cross-lingual directions.
 
 No live Jev request is required for M8.
