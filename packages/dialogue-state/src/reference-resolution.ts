@@ -6,6 +6,7 @@ import {
   type SemanticId,
 } from "../../core-types/src/index.ts";
 import type { DecisionRuntime } from "../../decision-runtime/src/index.ts";
+import { referenceResolutionDecisionPack } from "../../decision-packs/src/index.ts";
 
 export interface ReferenceCandidate {
   id: SemanticId;
@@ -27,6 +28,7 @@ export const resolveReference = async (input: {
   candidates: ReferenceCandidate[];
   runtime: DecisionRuntime;
   minimumConfidence?: number;
+  modelProfile?: string;
 }): Promise<Result<ReferenceResolution>> => {
   const candidates = [...input.candidates].sort(
     (a, b) =>
@@ -64,9 +66,19 @@ export const resolveReference = async (input: {
     };
   });
 
+  const packQuestion = referenceResolutionDecisionPack.questions.referent;
+  if (packQuestion === undefined || packQuestion.type !== "choice") {
+    return err(
+      new StructuredError(
+        "GROUNDING_REFERENCE_PACK_INVALID",
+        "Reference-resolution Decision Pack does not expose the expected Choice question.",
+      ),
+    );
+  }
+
   const response = await input.runtime.execute({
     id: input.requestId,
-    modelProfile: "jev-latest",
+    modelProfile: input.modelProfile ?? "jev-latest",
     state: {
       mention: input.mention,
       candidates: candidates.map((candidate, index) => ({
@@ -78,9 +90,7 @@ export const resolveReference = async (input: {
     },
     questions: {
       referent: {
-        type: "choice",
-        instruction:
-          "Which candidate is the intended referent of the mention, given semantic compatibility and discourse recency?",
+        ...packQuestion,
         options,
       },
     },
