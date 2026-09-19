@@ -1,7 +1,15 @@
 # language-en
 
-Status: **prototype / verified controlled English foundation**.
+Status: **prototype / M18.2 candidate English grammar expansion**.
 
-English now implements the same shared `HumanLanguagePack` ABI used by Vietnamese. Its tokenizer, morphology, lexicon, grammar, parser hooks, realization hooks, punctuation, discourse strategy and conformance manifest remain language-specific providers behind the common interface.
+English implements the shared HumanLanguagePack ABI and retains the verified M5–M6 controlled/bidirectional semantic path.
 
-The English pack retains its existing controlled/bidirectional M5–M6 capabilities; the ABI layer does not move English syntax such as subject/object order, articles or tense morphology into JSG.
+M18.2 candidate additions:
+
+- expanded seed lexicon for determiners, copula forms, do-support, modal auxiliaries, adjective/intransitive examples, exact quantity and deictic time;
+- grammar-token evidence from tokenizer + lexicon + morphology;
+- controlled grammar coverage for noun phrases, copular clauses, intransitive/transitive clauses, negation, modality, yes/no and wh questions, coordination, conditionals, causality, quantity and time adjuncts;
+- packed syntax-forest parsing through parser-core;
+- conservative syntax→JSG bridge that only commits constructions supported by the existing semantic parser.
+
+Grammar recognition never fabricates JSG semantics for unsupported constructions.
