@@ -1,6 +1,6 @@
 # M2 — Ontology and Open-World Gate Evidence
 
-Status: **candidate — pending CI on this branch**
+Status: **verified**
 
 Specification basis: sections 405–406, 173–179, and bootstrap tasks T036–T059 of the v0.4 master specification.
 
@@ -56,4 +56,11 @@ Additional ontology integrity cases cover parent cycles, replacement cycles, unk
 
 ## Verification rule
 
-Do not mark this gate **verified** until the complete branch head passes package boundaries, strict TypeScript, and the full test suite on GitHub Actions. Record the exact head SHA and CI run before advancing the active milestone to M3.
+Verified evidence:
+
+- branch head: `9eadcdc0bb2e581c09748df2eb71de965a6022a1`
+- GitHub Actions CI: run `#76` / run id `35420197439`
+- result: `success`
+- deterministic gate: package boundaries → strict typecheck → full test suite
+
+The implementation-state ledger may therefore advance to M3 Jev Decision Runtime verification. The final documentation commit must itself pass CI before merge.
