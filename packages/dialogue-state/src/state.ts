@@ -169,6 +169,7 @@ export interface DialogueState {
   commitments: CommitmentState[];
   commitmentHistory: CommitmentState[];
   disputedClaims: SemanticId[];
+  retractedClaims: SemanticId[];
   corrections: CorrectionRecord[];
   unresolvedReferences: UnresolvedReferenceState[];
   turns: DialogueTurn[];
@@ -238,6 +239,7 @@ const emptyState = (
   commitments: [],
   commitmentHistory: [],
   disputedClaims: [],
+  retractedClaims: [],
   corrections: [],
   unresolvedReferences: [],
   turns: [],
@@ -495,7 +497,12 @@ const applyTopicChanges = (
       );
     }
     state.topicStack.pop();
-    state.activeTopic = state.topicStack.at(-1);
+    const nextActive = state.topicStack.at(-1);
+    if (nextActive === undefined) {
+      delete state.activeTopic;
+    } else {
+      state.activeTopic = nextActive;
+    }
   }
   return ok(undefined);
 };
@@ -787,8 +794,8 @@ const applyCorrections = (
     state.corrections.push(record);
     if (record.kind === "retract-claim") {
       for (const ref of record.targetRefs) {
-        if (!state.disputedClaims.includes(ref)) {
-          state.disputedClaims.push(ref);
+        if (!state.retractedClaims.includes(ref)) {
+          state.retractedClaims.push(ref);
         }
       }
     }
@@ -930,13 +937,6 @@ export class InMemoryDialogueState {
       );
     }
 
-    const entityResult = applyEntityMentions(
-      candidate,
-      update.entityMentions ?? [],
-      turn,
-    );
-    if (!entityResult.ok) return entityResult;
-
     const correctionResult = applyCorrections(
       candidate,
       update.corrections ?? [],
@@ -971,6 +971,15 @@ export class InMemoryDialogueState {
       turn.turnNumber,
     );
     if (!commitmentResult.ok) return commitmentResult;
+
+    // Salience is updated after topic/question/request/commitment state so
+    // mentions in this turn attach to the newly active discourse context.
+    const entityResult = applyEntityMentions(
+      candidate,
+      update.entityMentions ?? [],
+      turn,
+    );
+    if (!entityResult.ok) return entityResult;
 
     const referenceResult = applyUnresolvedReferences(
       candidate,
