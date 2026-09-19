@@ -315,7 +315,24 @@ const validateBudget = (budget: SearchBudget): void => {
       "deadlineMs must be non-negative and finite.",
     );
   }
+  if (
+    budget.maxMemoryBytes !== undefined &&
+    (!Number.isInteger(budget.maxMemoryBytes) || budget.maxMemoryBytes < 0)
+  ) {
+    throw new StructuredError(
+      "SYNTH_BUDGET_INVALID",
+      "maxMemoryBytes must be a non-negative integer when provided.",
+    );
+  }
 };
+
+const approximateStateBytes = (state: SynthesisState): number =>
+  new TextEncoder().encode(JSON.stringify(state)).byteLength;
+
+const approximateFrontierBytes = (frontier: SearchFrontier): number =>
+  frontier
+    .snapshot()
+    .reduce((total, state) => total + approximateStateBytes(state), 0);
 
 const failure = (
   kind: SynthesisFailure["kind"],
@@ -463,6 +480,32 @@ export const synthesizeProgram = async (
   const trace: SynthesisTraceEvent[] = [];
   const frontier = options.frontier ?? new BestFirstFrontier();
   const initial = makeInitialState(problem);
+  if (
+    options.budget.maxMemoryBytes !== undefined &&
+    approximateStateBytes(initial) > options.budget.maxMemoryBytes
+  ) {
+    trace.push({
+      sequence: trace.length,
+      kind: "budget-exhausted",
+      stateId: initial.id,
+      details: {
+        budgetKind: "memory",
+        maxMemoryBytes: options.budget.maxMemoryBytes,
+      },
+    });
+    return failure(
+      "budget",
+      initial,
+      usage,
+      trace,
+      [
+        {
+          code: "SYNTH_MEMORY_BUDGET_EXHAUSTED",
+          message: "Initial synthesis state exceeds maxMemoryBytes.",
+        },
+      ],
+    );
+  }
   frontier.push(initial);
   const seen = new Set<string>([initial.id]);
   let best: SynthesisState | undefined = initial;
@@ -531,6 +574,60 @@ export const synthesizeProgram = async (
       const verificationEvidence: string[] = ["pir:validated"];
       let accepted = true;
       for (const verifier of options.verifiers ?? []) {
+        if (verifier.costKind === "compiler") {
+          if (usage.compilerRuns >= options.budget.maxCompilerRuns) {
+            trace.push({
+              sequence: trace.length,
+              kind: "budget-exhausted",
+              stateId: state.id,
+              details: {
+                budgetKind: "compiler",
+                maxCompilerRuns: options.budget.maxCompilerRuns,
+              },
+            });
+            return failure(
+              "budget",
+              state,
+              usage,
+              trace,
+              [
+                {
+                  code: "SYNTH_COMPILER_BUDGET_EXHAUSTED",
+                  message:
+                    "Compiler verification budget was exhausted before acceptance.",
+                },
+              ],
+            );
+          }
+          usage.compilerRuns += 1;
+        } else if (verifier.costKind === "test") {
+          if (usage.testRuns >= options.budget.maxTestRuns) {
+            trace.push({
+              sequence: trace.length,
+              kind: "budget-exhausted",
+              stateId: state.id,
+              details: {
+                budgetKind: "test",
+                maxTestRuns: options.budget.maxTestRuns,
+              },
+            });
+            return failure(
+              "budget",
+              state,
+              usage,
+              trace,
+              [
+                {
+                  code: "SYNTH_TEST_BUDGET_EXHAUSTED",
+                  message:
+                    "Test verification budget was exhausted before acceptance.",
+                },
+              ],
+            );
+          }
+          usage.testRuns += 1;
+        }
+
         const result = await verifier.verify({
           problem,
           program: state.program,
@@ -725,6 +822,38 @@ export const synthesizeProgram = async (
         id: nextId,
         history: [...state.history, step],
       };
+      if (options.budget.maxMemoryBytes !== undefined) {
+        const projectedMemory =
+          approximateFrontierBytes(frontier) + approximateStateBytes(next);
+        if (projectedMemory > options.budget.maxMemoryBytes) {
+          trace.push({
+            sequence: trace.length,
+            kind: "budget-exhausted",
+            stateId: next.id,
+            holeId: hole.id,
+            candidateId: candidate.id,
+            details: {
+              budgetKind: "memory",
+              projectedMemory,
+              maxMemoryBytes: options.budget.maxMemoryBytes,
+            },
+          });
+          return failure(
+            "budget",
+            betterPartial(next, best) ? next : best,
+            usage,
+            trace,
+            [
+              {
+                code: "SYNTH_MEMORY_BUDGET_EXHAUSTED",
+                message:
+                  "Synthesis frontier would exceed maxMemoryBytes.",
+              },
+            ],
+          );
+        }
+      }
+
       seen.add(next.id);
       frontier.push(next);
       if (betterPartial(next, best)) best = next;
