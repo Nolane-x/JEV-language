@@ -12,7 +12,7 @@ tasks:
   - {id: T009, title: implement canonical JSON utility, status: implemented}
   - {id: T010, title: implement hashing/digest abstraction, status: implemented}
   - {id: T011-T025, title: JSG bootstrap/schema/transactions/serialization/query, status: implemented}
-  - {id: T026-T035, title: staged semantic validator and invariants, status: partial}
+  - {id: T026-T035, title: staged semantic validator and invariants, status: verified}
   - {id: T036-T047, title: open-world values/source spans/opaque/literals, status: implemented}
   - {id: T048-T059, title: ontology/namespaces/provisional concepts, status: implemented}
   - {id: T060-T072, title: Jev decision runtime/adapters/recorded mode/budget/cache/calibration, status: implemented}
