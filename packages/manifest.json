@@ -232,7 +232,8 @@
       "dependencies": [
         "core-types",
         "provenance",
-        "semantic-graph"
+        "semantic-graph",
+        "trace-replay"
       ]
     },
     "trace-replay": {
