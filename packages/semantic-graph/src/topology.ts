@@ -189,6 +189,19 @@ const directRefs = (node: JsgNode): RefUse[] => {
         ...(node.context === undefined
           ? []
           : [{ target: node.context, label: "proposition.context" }]),
+        ...(node.presupposition?.host === undefined
+          ? []
+          : [{ target: node.presupposition.host, label: "proposition.presupposition-host" }]),
+        ...(node.presupposition?.context === undefined
+          ? []
+          : [{ target: node.presupposition.context, label: "proposition.presupposition-context" }]),
+        ...(node.presupposition?.linkedRef === undefined
+          ? []
+          : [{ target: node.presupposition.linkedRef, label: "proposition.presupposition-linked" }]),
+        ...(node.pragmaticInference?.premiseRefs ?? []).map((target) => ({
+          target,
+          label: "proposition.pragmatic-premise",
+        })),
         ...(node.modality?.source === undefined
           ? []
           : [{ target: node.modality.source, label: "proposition.modality-source" }]),
