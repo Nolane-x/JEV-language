@@ -109,6 +109,12 @@ export const createVietnameseSeedLexicon =
       lexeme("lexeme:vi.xoa", "xóa", "verb", {
         concept: "concept:core.delete",
       }),
+      lexeme("lexeme:vi.chi-dan", "chỉ dẫn", "noun", {
+        concept: "concept:core.instruction",
+      }),
+      lexeme("lexeme:vi.no", "nó", "pronoun", {
+        semanticTag: "reference.anaphoric",
+      }),
       lexeme("lexeme:vi.khong", "không", "particle", {
         semanticTag: "polarity.negative",
       }),
