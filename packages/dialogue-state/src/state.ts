@@ -822,7 +822,7 @@ const applyCommitmentChanges = (
 
 const applyCorrections = (
   state: DialogueState,
-  corrections: readonly Array<Omit<CorrectionRecord, "previousRevision">>,
+  corrections: ReadonlyArray<Omit<CorrectionRecord, "previousRevision">>,
   previousRevision: string,
 ): Result<void> => {
   for (const input of corrections) {
