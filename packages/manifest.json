@@ -166,7 +166,9 @@
         "morphology-core",
         "lexicon-core",
         "parser-core",
-        "realizer-core"
+        "realizer-core",
+        "language-pack-core",
+        "grounding"
       ]
     },
     "language-vi": {
@@ -178,7 +180,8 @@
         "lexicon-core",
         "parser-core",
         "realizer-core",
-        "grounding"
+        "grounding",
+        "language-pack-core"
       ]
     },
     "program-ir": {
@@ -252,6 +255,15 @@
         "verifier-core",
         "trace-replay",
         "realizer-core"
+      ]
+    },
+    "language-pack-core": {
+      "maturity": "prototype",
+      "layer": 8,
+      "dependencies": [
+        "grammar-core",
+        "morphology-core",
+        "lexicon-core"
       ]
     }
   }
