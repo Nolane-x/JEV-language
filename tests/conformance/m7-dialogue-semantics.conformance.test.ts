@@ -478,6 +478,84 @@ describe("M7 dialogue semantics conformance", () => {
     expect(store.revisionHistory()).toHaveLength(22);
   });
 
+
+  it("compacts old surface turns while retaining dialogue semantics needed for future reference", () => {
+    const store = new InMemoryDialogueState([user, assistant]);
+    const entity = sid("entity:compaction-target");
+
+    for (let n = 1; n <= 12; n += 1) {
+      const turn = baseTurn(n);
+      if (n === 1) {
+        turn.introducedEntities = [entity];
+        turn.topicChanges = [
+          {
+            kind: "push",
+            topic: topic("topic:compaction", [entity]),
+          },
+        ];
+        commit(store, {
+          turn,
+          entityMentions: [
+            {
+              id: entity,
+              semanticType: "software-service",
+              labels: ["CompactionTarget"],
+              introduced: true,
+            },
+          ],
+          questionChanges: [
+            {
+              kind: "open",
+              question: {
+                id: "question:retained",
+                propositionRoots: [sid("proposition:retained")],
+                asker: "user",
+                addressee: "assistant",
+                status: "open",
+                answerRoots: [],
+                introducedTurn: 0,
+              },
+            },
+          ],
+        });
+      } else {
+        commit(store, { turn });
+      }
+    }
+
+    const before = store.snapshot();
+    const compacted = store.compact(4);
+    expect(compacted.ok).toBe(true);
+    if (!compacted.ok) return;
+
+    expect(compacted.value.turnCount).toBe(12);
+    expect(compacted.value.archivedTurnCount).toBe(8);
+    expect(compacted.value.turns).toHaveLength(4);
+    expect(compacted.value.compactions).toHaveLength(1);
+    expect(compacted.value.openQuestions[0]?.id).toBe("question:retained");
+    expect(
+      compacted.value.discourseEntities.some((entry) => entry.id === entity),
+    ).toBe(true);
+    expect(compacted.value.activeTopic).toBe("topic:compaction");
+    expect(compacted.value.revision).not.toBe(before.revision);
+
+    const next = baseTurn(13, "assistant", "It is still available.");
+    next.referencedEntities = [entity];
+    const after = commit(store, {
+      turn: next,
+      entityMentions: [
+        {
+          id: entity,
+          semanticType: "software-service",
+          labels: ["CompactionTarget"],
+        },
+      ],
+    });
+    expect(after.turnCount).toBe(13);
+    expect(after.archivedTurnCount).toBe(8);
+    expect(after.turns).toHaveLength(5);
+  });
+
   it("keeps failed dialogue transactions atomic", () => {
     const store = new InMemoryDialogueState([user, assistant]);
     const before = store.snapshot();
