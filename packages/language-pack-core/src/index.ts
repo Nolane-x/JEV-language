@@ -1,3 +1,4 @@
+import { assertTypologyProviderLanguages, type TypologyProviderBundle } from "./typology.ts";
 import type { SemanticId } from "../../core-types/src/index.ts";
 import type { GrammarCoverageMatrix, GrammarRegistry } from "../../grammar-core/src/index.ts";
 import type { LanguageNeutralLexiconIndex } from "../../lexicon-core/src/index.ts";
@@ -186,6 +187,7 @@ export interface HumanLanguagePack<
   discourse: LanguageDiscourseProvider<TDiscourseContext, TDiscourseChoice>;
   temporalAspect?: TemporalAspectProvider;
   presuppositionTriggers?: PresuppositionTriggerRegistryProvider;
+  typology?: TypologyProviderBundle;
   tests: LanguageConformanceManifest;
 }
 
@@ -228,6 +230,12 @@ export const assertLanguagePackIdentity = (
       `Language pack ${pack.manifest.id} mixes provider languages: ${providerLanguages.join(", ")}`,
     );
   }
+  const typology = (pack as LanguagePackIdentityView & { typology?: TypologyProviderBundle }).typology;
+  if (typology !== undefined) {
+    assertTypologyProviderLanguages(language, typology);
+  }
 };
 
 export * from "./open-world-lexicon.ts";
+
+export * from "./typology.ts";
