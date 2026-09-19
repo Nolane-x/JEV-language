@@ -1,6 +1,6 @@
 # dialogue-state
 
-Status: **candidate / pending M7 gate verification**.
+Status: **candidate / M7 milestone verified**.
 
 Implemented M7 foundation:
 - typed DialogueTurn / DialogueState contracts;
@@ -16,4 +16,4 @@ Implemented M7 foundation:
 - long-dialogue compaction that archives old surface turns while retaining active semantic state;
 - 22-turn acceptance fixture with reference to an entity introduced more than 10 turns earlier after multiple topic changes.
 
-The package MUST remain candidate until the M7 conformance branch passes deterministic CI. Broad unrestricted conversational understanding remains outside this milestone claim.
+M7 conformance passed deterministic CI #107. The package remains candidate rather than stable because broad unrestricted conversational understanding, multilingual dialogue and later open-domain hardening remain outside this milestone claim.
