@@ -3,10 +3,22 @@ import {
   type GrammarRule,
 } from "../../grammar-core/src/index.ts";
 import {
+  parseControlledEnglishCorpus,
+} from "../../grounding/src/index.ts";
+import type {
+  HumanLanguagePack,
+  LanguageConformanceManifest,
+  LanguagePackManifest,
+  PunctuationProvider,
+} from "../../language-pack-core/src/index.ts";
+import {
   LanguageNeutralLexiconIndex,
   type Lexeme,
   type LexicalMatch,
 } from "../../lexicon-core/src/index.ts";
+import {
+  realizeControlledEnglishCorpus,
+} from "../../realizer-core/src/index.ts";
 import {
   type MorphAnalysis,
   type MorphContext,
@@ -473,3 +485,154 @@ export const createEnglishControlledGrammar = (): GrammarRegistry => {
   }
   return registry;
 };
+
+
+export interface EnglishToken {
+  surface: string;
+  normalized: string;
+  start: number;
+  end: number;
+  kind: "word" | "number" | "punctuation" | "symbol";
+}
+
+export const tokenizeEnglish = (source: string): EnglishToken[] => {
+  const normalized = source.normalize("NFC");
+  const output: EnglishToken[] = [];
+  const pattern = /[A-Za-z]+(?:['’-][A-Za-z]+)*|\d+(?:[.,]\d+)?|[^\s]/gu;
+  for (const match of normalized.matchAll(pattern)) {
+    const surface = match[0];
+    const start = match.index;
+    if (start === undefined) continue;
+    output.push({
+      surface,
+      normalized: surface.toLocaleLowerCase("en"),
+      start,
+      end: start + surface.length,
+      kind: /^\d/u.test(surface)
+        ? "number"
+        : /^[A-Za-z]/u.test(surface)
+          ? "word"
+          : /^[.,!?;:()[\]{}"“”'‘’]$/u.test(surface)
+            ? "punctuation"
+            : "symbol",
+    });
+  }
+  return output;
+};
+
+export const englishLanguagePackManifest: LanguagePackManifest = {
+  id: "language.en",
+  languageTag: "en",
+  version: "0.1.0",
+  schemaVersion: "jl-language-pack-1",
+  maturity: "experimental",
+  capabilities: {
+    parsing: true,
+    realization: true,
+    morphology: true,
+    mixedLanguage: true,
+  },
+  coverage: {
+    grammarProfile: "language-en.controlled-m6",
+    lexiconEntries: "dynamic",
+  },
+  requires: {
+    semanticSchema: ">=0.1 <1.0",
+  },
+};
+
+export type EnglishSocialRelation = "formal" | "peer" | "intimate" | "unknown";
+
+export interface EnglishAddressStrategy {
+  speakerForm: "I";
+  addresseeForm: "you";
+  register: "formal" | "neutral" | "intimate";
+}
+
+export const chooseEnglishAddressStrategy = (
+  relation: EnglishSocialRelation,
+): EnglishAddressStrategy => ({
+  speakerForm: "I",
+  addresseeForm: "you",
+  register:
+    relation === "formal"
+      ? "formal"
+      : relation === "intimate"
+        ? "intimate"
+        : "neutral",
+});
+
+export const englishPunctuation: PunctuationProvider = {
+  id: "language-en.punctuation.v1",
+  language: "en",
+  terminal(kind) {
+    return kind === "question" ? "?" : kind === "exclamation" ? "!" : ".";
+  },
+  join(tokens) {
+    return tokens.join(" ").replace(/\s+([.,!?;:])/gu, "$1");
+  },
+};
+
+export const englishConformanceManifest: LanguageConformanceManifest = {
+  id: "language-en.conformance.m6",
+  language: "en",
+  corpusRefs: [
+    "tests/conformance/m5-controlled-roundtrip.conformance.test.ts",
+    "tests/conformance/m6-bidirectional-variants.conformance.test.ts",
+  ],
+  requiredPhenomena: [
+    "negation",
+    "questions",
+    "conditionals",
+    "causality",
+    "modality",
+    "attribution",
+  ],
+  determinism: "D0",
+};
+
+export const englishLanguagePack = {
+  manifest: englishLanguagePackManifest,
+  tokenizer: {
+    id: "language-en.tokenizer.controlled-v1",
+    language: "en",
+    tokenize: tokenizeEnglish,
+  },
+  lexicon: {
+    id: "language-en.lexicon.controlled-v1",
+    language: "en",
+    create: createEnglishSeedLexicon,
+  },
+  morphology: new EnglishMorphologyProvider(),
+  grammar: {
+    id: "language-en.grammar.controlled-v1",
+    language: "en",
+    coverage: englishControlledCoverage,
+    create: createEnglishControlledGrammar,
+  },
+  parserHooks: {
+    id: "language-en.parser-hooks.controlled-v1",
+    language: "en",
+    parse: parseControlledEnglishCorpus,
+  },
+  realizationHooks: {
+    id: "language-en.realization-hooks.controlled-v1",
+    language: "en",
+    realize: realizeControlledEnglishCorpus,
+  },
+  punctuation: englishPunctuation,
+  discourse: {
+    id: "language-en.discourse.address-v1",
+    language: "en",
+    choose: chooseEnglishAddressStrategy,
+  },
+  tests: englishConformanceManifest,
+} satisfies HumanLanguagePack<
+  EnglishToken,
+  string,
+  ReturnType<typeof parseControlledEnglishCorpus>,
+  Parameters<typeof realizeControlledEnglishCorpus>[0],
+  ReturnType<typeof realizeControlledEnglishCorpus>,
+  EnglishSocialRelation,
+  EnglishAddressStrategy
+>;
