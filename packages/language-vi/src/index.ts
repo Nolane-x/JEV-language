@@ -3,6 +3,11 @@ import {
   type GrammarCoverageMatrix,
   type GrammarRule,
 } from "../../grammar-core/src/index.ts";
+import type {
+  HumanLanguagePack,
+  LanguageConformanceManifest,
+  PunctuationProvider,
+} from "../../language-pack-core/src/index.ts";
 import {
   LanguageNeutralLexiconIndex,
   type Lexeme,
@@ -444,15 +449,88 @@ export const chooseVietnameseAddressStrategy = (
   }
 };
 
+export const vietnamesePunctuation: PunctuationProvider = {
+  id: "language-vi.punctuation.v1",
+  language: "vi",
+  terminal(kind) {
+    return kind === "question" ? "?" : kind === "exclamation" ? "!" : ".";
+  },
+  join(tokens) {
+    return tokens
+      .join(" ")
+      .replace(/\s+([.,!?;:])/gu, "$1")
+      .normalize("NFC");
+  },
+};
+
+export const vietnameseConformanceManifest: LanguageConformanceManifest = {
+  id: "language-vi.conformance.m8",
+  language: "vi",
+  corpusRefs: [
+    "tests/conformance/m8-vietnamese-language-pack.conformance.test.ts",
+    "tests/conformance/m8-cross-lingual-equivalence.conformance.test.ts",
+  ],
+  requiredPhenomena: [
+    "negation",
+    "questions",
+    "classifiers",
+    "aspect",
+    "conditionals",
+    "causality",
+    "modality",
+    "attribution",
+  ],
+  determinism: "D0",
+};
+
 export const vietnameseLanguagePack = {
   manifest: vietnameseLanguagePackManifest,
-  tokenizer: tokenizeVietnamese,
-  lexicon: createVietnameseSeedLexicon,
-  morphology: () => new VietnameseMorphologyProvider(),
-  grammar: createVietnameseControlledGrammar,
+  tokenizer: {
+    id: "language-vi.tokenizer.controlled-v1",
+    language: "vi",
+    tokenize: tokenizeVietnamese,
+  },
+  lexicon: {
+    id: "language-vi.lexicon.controlled-v1",
+    language: "vi",
+    create: createVietnameseSeedLexicon,
+  },
+  morphology: new VietnameseMorphologyProvider(),
+  grammar: {
+    id: "language-vi.grammar.controlled-v1",
+    language: "vi",
+    coverage: vietnameseCoverage,
+    create: createVietnameseControlledGrammar,
+  },
+  parserHooks: {
+    id: "language-vi.parser-hooks.controlled-v1",
+    language: "vi",
+    parse: parseControlledVietnameseCorpus,
+  },
+  realizationHooks: {
+    id: "language-vi.realization-hooks.controlled-v1",
+    language: "vi",
+    realize: realizeControlledVietnameseCorpus,
+  },
+  punctuation: vietnamesePunctuation,
+  discourse: {
+    id: "language-vi.discourse.address-v1",
+    language: "vi",
+    choose: chooseVietnameseAddressStrategy,
+  },
+  tests: vietnameseConformanceManifest,
+} satisfies HumanLanguagePack<
+  VietnameseToken,
+  string,
+  ReturnType<typeof parseControlledVietnameseCorpus>,
+  Parameters<typeof realizeControlledVietnameseCorpus>[0],
+  ReturnType<typeof realizeControlledVietnameseCorpus>,
+  VietnameseSocialRelation,
+  VietnameseAddressStrategy
+>;
+
+export const vietnameseLanguageExtensions = {
   classifier: selectVietnameseClassifier,
   aspectMarker: vietnameseAspectMarker,
   address: chooseVietnameseAddressStrategy,
-  parse: parseControlledVietnameseCorpus,
-  realize: realizeControlledVietnameseCorpus,
 } as const;
