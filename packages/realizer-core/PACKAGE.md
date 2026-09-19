@@ -17,3 +17,6 @@ Implemented constrained-realizer foundation:
 - ID-independent semantic projection and round-trip verification.
 
 The controlled M5 path is deliberately narrower than broad English NLG. M6 paraphrase diversity, broader grammar, style and naturalness remain separate work.
+
+
+T424-T430 research-expansion candidate adds realization candidate lattices, hard constraints separated from soft objectives, pre-emission reference-ambiguity simulation, reversible aggregation/deaggregation, and deterministic seed-bound realization replay.
