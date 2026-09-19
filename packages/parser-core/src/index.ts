@@ -359,3 +359,5 @@ export const commitParseCandidate = (
 export * from "./jev-ambiguity.ts";
 
 export * from "./chart-parser.ts";
+
+export * from "./architecture.ts";

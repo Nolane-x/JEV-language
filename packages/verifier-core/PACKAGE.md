@@ -20,3 +20,6 @@ Implemented verification families:
 M17 does not claim that all future extension/domain verifiers exist. It closes the Section-427 hardening gate for the current public verifier families.
 
 Verification evidence: GitHub Actions CI #202 passed on implementation head `8e41eb9577d7ef63d67dd283a5e65a6f7bd36f89`. Live Jev requests consumed by M17: 0.
+
+
+T412 adds deterministic translation-invariant verification by applying the critical semantic-preservation profile to source and target semantic graphs while keeping forced-disambiguation evidence explicit.

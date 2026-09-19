@@ -17,3 +17,6 @@ Implemented parser infrastructure:
 - JSG parse commits through semantic validation.
 
 M18.2 adds rule-driven parsing but does not claim arbitrary open-domain parsing.
+
+
+T413-T420 research-expansion candidate adds forced-disambiguation diagnostics, packed lexical lattices, a packed syntax/semantic forest contract, typed semantic holes/composition, staged deterministic pruning, inspectable ranking breakdowns, and explicit strict/robust parser profiles.
