@@ -1,0 +1,44 @@
+{
+  "id": "m10-program-ir",
+  "version": "1.0.0",
+  "milestone": "M10",
+  "specSections": [
+    261,
+    262,
+    263,
+    264,
+    265,
+    266,
+    267,
+    268,
+    269,
+    270,
+    271,
+    417,
+    418
+  ],
+  "taskRange": "T181-T193",
+  "liveJevRequests": 0,
+  "corpus": [
+    "pure-arithmetic",
+    "conditional-validation",
+    "collection-filter-map",
+    "state-mutation",
+    "error-handling",
+    "async-call",
+    "multi-function-module",
+    "simple-generic-function"
+  ],
+  "assertions": [
+    "runtime-validation",
+    "canonical-serialization",
+    "atomic-transactions",
+    "rollback",
+    "stale-revision-rejection",
+    "cfg-derived-view",
+    "def-use-derived-view",
+    "typed-hole-contract",
+    "source-binding-validation",
+    "effect-distinction"
+  ]
+}
