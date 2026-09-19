@@ -1,6 +1,6 @@
 # M0 — Repository and Contract Gate Evidence
 
-Status: **candidate — pending CI on this branch**
+Status: **verified**
 
 Specification basis: sections 402 and 551 of the v0.4 master specification.
 
@@ -30,4 +30,11 @@ Specification basis: sections 402 and 551 of the v0.4 master specification.
 
 ## Verification rule
 
-This document must not claim **verified** until the branch commit containing all evidence above has a successful GitHub Actions CI run. After that run, record the verified head SHA/run and advance the active milestone to M1 verification.
+Verified evidence:
+
+- branch head: `46018371ce358e04c4dea36461884d62a92a239a`
+- GitHub Actions CI: run `#68` / run id `35419504630`
+- result: `success`
+- deterministic gate: package boundaries → strict typecheck → full test suite
+
+The implementation-state ledger may therefore advance to M1 semantic-graph verification. A later merge/squash SHA does not invalidate this gate as long as the merged content is identical to the verified PR content and main CI remains green.
