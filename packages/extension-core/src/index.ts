@@ -126,7 +126,9 @@ interface SemVer {
 }
 
 const SEMVER =
-  /^(\d+)\.(\d+)\.(\d+)(?:-([0-9A-Za-z.-]+))?$/u;
+  /^(\\d+)\\.(\\d+)\\.(\\d+)(?:-([0-9A-Za-z.-]+))?$/u;
+const PARTIAL_SEMVER =
+  /^(\\d+)(?:\\.(\\d+))?(?:\\.(\\d+))?(?:-([0-9A-Za-z.-]+))?$/u;
 
 const parseSemver = (value: string): SemVer | undefined => {
   const match = SEMVER.exec(value);
@@ -149,6 +151,38 @@ const parseSemver = (value: string): SemVer | undefined => {
   };
 };
 
+interface PartialSemVer {
+  version: SemVer;
+  precision: 1 | 2 | 3;
+}
+
+const parsePartialSemver = (value: string): PartialSemVer | undefined => {
+  const match = PARTIAL_SEMVER.exec(value);
+  if (match === null) return undefined;
+  const major = Number(match[1]);
+  const minor = match[2] === undefined ? 0 : Number(match[2]);
+  const patch = match[3] === undefined ? 0 : Number(match[3]);
+  if (
+    !Number.isSafeInteger(major) ||
+    !Number.isSafeInteger(minor) ||
+    !Number.isSafeInteger(patch)
+  ) {
+    return undefined;
+  }
+  const precision: 1 | 2 | 3 =
+    match[3] !== undefined ? 3 : match[2] !== undefined ? 2 : 1;
+  if (match[4] !== undefined && precision !== 3) return undefined;
+  return {
+    version: {
+      major,
+      minor,
+      patch,
+      ...(match[4] === undefined ? {} : { prerelease: match[4] }),
+    },
+    precision,
+  };
+};
+
 const comparePrerelease = (
   left: string | undefined,
   right: string | undefined,
@@ -167,8 +201,8 @@ const comparePrerelease = (
     if (l === undefined) return -1;
     if (r === undefined) return 1;
 
-    const lNumber = /^\d+$/u.test(l) ? Number(l) : undefined;
-    const rNumber = /^\d+$/u.test(r) ? Number(r) : undefined;
+    const lNumber = /^\\d+$/u.test(l) ? Number(l) : undefined;
+    const rNumber = /^\\d+$/u.test(r) ? Number(r) : undefined;
     if (lNumber !== undefined && rNumber !== undefined) {
       return lNumber < rNumber ? -1 : 1;
     }
@@ -197,11 +231,25 @@ const caretUpperBound = (version: SemVer): SemVer => {
   return { major: 0, minor: 0, patch: version.patch + 1 };
 };
 
-const tildeUpperBound = (version: SemVer): SemVer => ({
-  major: version.major,
-  minor: version.minor + 1,
-  patch: 0,
-});
+const tildeUpperBound = (
+  version: SemVer,
+  precision: 1 | 2 | 3,
+): SemVer =>
+  precision === 1
+    ? { major: version.major + 1, minor: 0, patch: 0 }
+    : { major: version.major, minor: version.minor + 1, patch: 0 };
+
+const prefixMatches = (
+  version: SemVer,
+  target: SemVer,
+  precision: 1 | 2 | 3,
+): boolean => {
+  if (version.major !== target.major) return false;
+  if (precision === 1) return true;
+  if (version.minor !== target.minor) return false;
+  if (precision === 2) return true;
+  return compareSemver(version, target) === 0;
+};
 
 const comparatorMatches = (
   version: SemVer,
@@ -209,13 +257,13 @@ const comparatorMatches = (
 ): boolean | undefined => {
   if (comparator === "*" || comparator.toLowerCase() === "x") return true;
 
-  const prefixed = /^(\^|~|>=|<=|>|<|=)?(.+)$/u.exec(comparator);
+  const prefixed = /^(\\^|~|>=|<=|>|<|=)?(.+)$/u.exec(comparator);
   if (prefixed === null) return undefined;
   const operator = prefixed[1] ?? "=";
   const raw = prefixed[2];
   if (raw === undefined) return undefined;
 
-  const wildcard = /^(\d+)(?:\.(\d+|x|\*))?(?:\.(\d+|x|\*))?$/iu.exec(raw);
+  const wildcard = /^(\\d+)(?:\\.(\\d+|x|\\*))?(?:\\.(\\d+|x|\\*))?$/iu.exec(raw);
   if (wildcard !== null && (raw.includes("x") || raw.includes("*"))) {
     const major = Number(wildcard[1]);
     if (version.major !== major) return false;
@@ -240,13 +288,14 @@ const comparatorMatches = (
     return true;
   }
 
-  const target = parseSemver(raw);
-  if (target === undefined) return undefined;
+  const parsedTarget = parsePartialSemver(raw);
+  if (parsedTarget === undefined) return undefined;
+  const { version: target, precision } = parsedTarget;
   const comparison = compareSemver(version, target);
 
   switch (operator) {
     case "=":
-      return comparison === 0;
+      return prefixMatches(version, target, precision);
     case ">":
       return comparison > 0;
     case ">=":
@@ -256,9 +305,15 @@ const comparatorMatches = (
     case "<=":
       return comparison <= 0;
     case "^":
-      return comparison >= 0 && compareSemver(version, caretUpperBound(target)) < 0;
+      return (
+        comparison >= 0 &&
+        compareSemver(version, caretUpperBound(target)) < 0
+      );
     case "~":
-      return comparison >= 0 && compareSemver(version, tildeUpperBound(target)) < 0;
+      return (
+        comparison >= 0 &&
+        compareSemver(version, tildeUpperBound(target, precision)) < 0
+      );
   }
 };
 
