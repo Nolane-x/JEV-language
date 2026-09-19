@@ -1,6 +1,9 @@
 import type { GrammarCoverageMatrix, GrammarRegistry } from "../../grammar-core/src/index.ts";
 import type { LanguageNeutralLexiconIndex } from "../../lexicon-core/src/index.ts";
 import type { MorphologyProvider } from "../../morphology-core/src/index.ts";
+import type { BorrowingPolicy } from "./mixed-language.ts";
+
+export * from "./mixed-language.ts";
 
 export interface LanguagePackManifest {
   id: string;
@@ -99,11 +102,15 @@ export interface HumanLanguagePack<
   realize?: RealizationHookProvider<TRealizeInput, TRealizeResult>["realize"];
   punctuation: PunctuationProvider;
   discourse: LanguageDiscourseProvider<TDiscourseContext, TDiscourseChoice>;
+  borrowing?: BorrowingPolicy;
   tests: LanguageConformanceManifest;
 }
 
 export interface LanguagePackIdentityView {
-  manifest: Pick<LanguagePackManifest, "id" | "languageTag">;
+  manifest: Pick<
+    LanguagePackManifest,
+    "id" | "languageTag" | "capabilities"
+  >;
   tokenizer: Pick<TokenizerProvider<unknown>, "language">;
   morphology: Pick<MorphologyProvider, "language">;
   lexicon: Pick<LexiconProvider, "language">;
@@ -112,6 +119,7 @@ export interface LanguagePackIdentityView {
   realizationHooks: { readonly language: string };
   punctuation: Pick<PunctuationProvider, "language">;
   discourse: { readonly language: string };
+  borrowing?: Pick<BorrowingPolicy, "targetLanguage">;
   tests: Pick<LanguageConformanceManifest, "language">;
 }
 
@@ -134,5 +142,17 @@ export const assertLanguagePackIdentity = (
     throw new Error(
       `Language pack ${pack.manifest.id} mixes provider languages: ${providerLanguages.join(", ")}`,
     );
+  }
+  if (pack.manifest.capabilities.mixedLanguage) {
+    if (pack.borrowing === undefined) {
+      throw new Error(
+        `Language pack ${pack.manifest.id} declares mixed-language support without a borrowing policy.`,
+      );
+    }
+    if (pack.borrowing.targetLanguage !== language) {
+      throw new Error(
+        `Language pack ${pack.manifest.id} borrowing policy targets ${pack.borrowing.targetLanguage} instead of ${language}.`,
+      );
+    }
   }
 };
