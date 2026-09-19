@@ -21,6 +21,7 @@ experimental_packages:
   - formal-ir
   - action-ir
   - universal-expression
+  - trace-replay
 partial_vertical_slices:
   - controlled-English-requirement-roundtrip
   - recorded-Jev-reference-choice
@@ -35,7 +36,7 @@ next_tasks:
   - expand M2 ontology/open-world conformance beyond transactional evolution
   - build M3 calibration fixtures/report before candidate quality claim
   - complete remaining verifier adapters T262-T266
-  - expand T253-T258 into concrete broad parse/realize/transform/verify handlers and trace/replay
+  - complete M16 same-JSG multi-target acceptance path using registered concrete adapters
   - run exactly one manual live-Jev smoke only when explicitly desired
 last_verified_main_commit: 7dac106cdf08bc89be50833ed7dc4e7e6f5cd20e
 last_verified_pr_head: a094d7d016f25f114b2e9194145b5d6a9c872fa9
@@ -63,10 +64,11 @@ A runnable foundation now exists, but this ledger deliberately does **not** mark
 - First four narrow bootstrap vertical slices: controlled English, recorded reference choice, controlled Vietnamese, and PIR typed-hole → TypeScript.
 - Graph-structured Discourse IR foundation with deterministic prerequisite-aware ordering.
 - Formal IR family foundation (Data/Schema/Query/Math/Logic/Command), capability-validated Action IR, and harness-neutral Universal Expression contract.
+- Registry-driven Universal Expression runtime plus trace DAG/config-digest/replay-manifest foundation.
 
 ## Still partial by design
 
-The master specification is much broader than the bootstrap wave. Broad NLU/NLG, full dialogue/pragmatics, full Vietnamese grammar, full PIR/search/CEGIS, code patching/repair, richer formal backends, concrete universal-expression handlers/replay, remaining verifier adapters, full conformance matrix and research-expansion tasks remain open. Package stubs say `NOT_IMPLEMENTED` or `PARTIAL` rather than pretending they exist.
+The master specification is much broader than the bootstrap wave. Broad NLU/NLG, full dialogue/pragmatics, full Vietnamese grammar, full PIR/search/CEGIS, code patching/repair, richer formal backends, M16 same-JSG multi-target acceptance coverage and broader concrete adapters, remaining verifier adapters, full conformance matrix and research-expansion tasks remain open. Package stubs say `NOT_IMPLEMENTED` or `PARTIAL` rather than pretending they exist.
 
 ## Quota policy
 

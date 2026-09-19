@@ -23,7 +23,8 @@ tasks:
   - {id: T200-T238, title: synthesis/backends/repair/compiler-loop, status: partial}
   - {id: T239-T247, title: formal/data/query/math/logic/command/action IR schemas validators and deterministic renderers, status: implemented}
   - {id: T248-T252, title: universal expression target/request/artifact/result and capability manifest, status: implemented}
-  - {id: T253-T258, title: universal parse/realize/express/transform/verify handlers and trace/replay integration, status: partial}
+  - {id: T253-T257, title: universal parse/realize/express/transform/verify registry handlers, status: implemented}
+  - {id: T258, title: integrate universal operation traces and replay manifests, status: implemented}
   - {id: T259, title: define VerificationObligation, status: implemented}
   - {id: T260, title: define Verifier ABI, status: implemented}
   - {id: T261, title: implement semantic equivalence/preservation verifier, status: implemented}

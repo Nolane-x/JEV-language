@@ -2,4 +2,6 @@
 
 Status: **prototype / PARTIAL**.
 
-Implemented in this wave: ExpressionTarget, ExpressionRequest, ExpressionArtifact, ExpressionResult/ResultEnvelope, capability manifest/discovery, stable diagnostics, explicit partial/ambiguous/unsupported states, and a harness-neutral handler facade for parse/realize/express/transform/verify. Concrete broad parsers/realizers and replay integration remain incomplete, so T253–T258 are still partial.
+Implemented foundation: ExpressionTarget, ExpressionRequest, ExpressionArtifact, ExpressionResult/ResultEnvelope, capability discovery, stable diagnostics, and explicit partial/ambiguous/unsupported states.
+
+Runtime wave: registry-driven parser/realizer/transform/verifier adapters, deterministic routing, duplicate-ID rejection, ambiguity preservation instead of last-loaded-wins, operation tracing with configuration digests, and replay-manifest exposure. M16 remains partial until multi-target same-JSG acceptance coverage and broader concrete language/program adapters pass conformance.
