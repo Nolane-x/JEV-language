@@ -34,8 +34,7 @@ const realizer: RealizerAdapter = {
       diagnostics: [],
       evidence: [],
       provenance: [],
-      traceRef: "test-only",
-    } as never;
+    };
   },
 };
 
