@@ -2,7 +2,6 @@ import {
   err,
   ok,
   StructuredError,
-  type JsonValue,
   type Result,
   type SemanticId,
 } from "../../core-types/src/index.ts";
@@ -15,7 +14,6 @@ import type {
 } from "../../discourse-ir/src/index.ts";
 import type {
   LanguageNeutralLexiconIndex,
-  Lexeme,
   PartOfSpeech,
 } from "../../lexicon-core/src/index.ts";
 import type {
@@ -29,12 +27,9 @@ import type {
 import type {
   ActionNode,
   ConstraintNode,
-  EventNode,
   GraphSnapshot,
   JsgNode,
   ModalitySpec,
-  Polarity,
-  PropositionNode,
   SemanticArgument,
   RoleBinding,
 } from "../../semantic-graph/src/index.ts";
@@ -467,6 +462,7 @@ export const buildControlledRealizationPlan = (
           candidate.kind === "action" && candidate.id === node.subject,
       );
       if (action === undefined) continue;
+      const modality = modalityForConstraint(node);
       clauses.push({
         id: `clause:${index}`,
         sourceUnitId: units[index]!.id,
@@ -488,9 +484,7 @@ export const buildControlledRealizationPlan = (
           node.predicate === "concept:core.maximum-cardinality"
             ? "negative"
             : "positive",
-        ...(modalityForConstraint(node) === undefined
-          ? {}
-          : { modality: modalityForConstraint(node) }),
+        ...(modality === undefined ? {} : { modality }),
       });
     }
   }
