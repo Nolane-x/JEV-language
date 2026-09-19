@@ -1,5 +1,10 @@
 import { describe, expect, it } from "vitest";
 import {
+  err,
+  ok,
+  StructuredError,
+} from "../../packages/core-types/src/index.ts";
+import {
   createEnglishSeedLexicon,
   EnglishMorphologyProvider,
 } from "../../packages/language-en/src/index.ts";
@@ -172,26 +177,17 @@ describe("M5 realizer planning primitives", () => {
     const result = runRealizationFallback([
       {
         id: "strict",
-        run: () => ({
-          ok: false as const,
-          error: {
-            name: "StructuredError",
-            code: "STRICT_UNSUPPORTED",
-            message: "strict stage unsupported",
-            details: undefined,
-            toJSON() {
-              return {
-                name: "StructuredError",
-                code: "STRICT_UNSUPPORTED",
-                message: "strict stage unsupported",
-              };
-            },
-          } as any,
-        }),
+        run: () =>
+          err(
+            new StructuredError(
+              "STRICT_UNSUPPORTED",
+              "strict stage unsupported",
+            ),
+          ),
       },
       {
         id: "controlled",
-        run: () => ({ ok: true as const, value: "controlled output" }),
+        run: () => ok("controlled output"),
       },
     ]);
     expect(result.ok).toBe(true);
