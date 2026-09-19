@@ -4,10 +4,14 @@ import {
   makeUtf16Span,
   opaqueRedaction,
   parseKnownLiteral,
+  parseQuantityLiteral,
+  parseTemporalLiteral,
+  projectOpaqueToState,
   resolveUtf16Span,
   type GroundingSource,
 } from "../../packages/open-world-values/src/index.ts";
 import {
+  createCoreOntology,
   NamespaceRegistry,
   OntologyStore,
   provisionalConcept,
@@ -41,6 +45,179 @@ describe("M2 open-world foundations", () => {
     expect(denied.ok).toBe(false);
     expect(registry.verify(secret)).toBe(true);
     expect(opaqueRedaction(secret)).toMatch(/^<opaque:secret:[a-f0-9]{12}>$/);
+  });
+
+
+  it("validates opaque digests and blocks unauthorized secret state projection", () => {
+    const registry = new InMemoryOpaqueValueRegistry();
+    const secret = registry.put("sk-super-secret", "secret");
+
+    const tampered = {
+      ...secret,
+      digest:
+        "sha256:0000000000000000000000000000000000000000000000000000000000000000" as const,
+    };
+    const mismatch = registry.validate(tampered);
+    expect(mismatch.ok).toBe(false);
+    if (!mismatch.ok) {
+      expect(mismatch.error.code).toBe("OWV_OPAQUE_DIGEST_MISMATCH");
+    }
+
+    const denied = projectOpaqueToState(secret, registry, {
+      allowedContentSensitivities: new Set(["public", "internal"]),
+    });
+    expect(denied.ok).toBe(false);
+    if (!denied.ok) {
+      expect(denied.error.code).toBe("OWV_STATE_PROJECTION_DENIED");
+      expect(JSON.stringify(denied.error.toJSON())).not.toContain(
+        "sk-super-secret",
+      );
+    }
+
+    const allowed = projectOpaqueToState(secret, registry, {
+      allowedContentSensitivities: new Set(["secret"]),
+    });
+    expect(allowed.ok).toBe(true);
+    if (allowed.ok) {
+      expect(allowed.value).toMatchObject({
+        kind: "opaque-content",
+        content: "sk-super-secret",
+      });
+    }
+  });
+
+  it("parses quantity/unit and temporal literals without collapsing units into numbers", () => {
+    expect(parseQuantityLiteral("<= 3 files")).toMatchObject({
+      kind: "quantity",
+      value: {
+        magnitude: 3,
+        unit: "file",
+        exactness: "exact",
+        comparator: "at-most",
+      },
+    });
+    expect(parseKnownLiteral("2.5 kg")).toMatchObject({
+      kind: "quantity",
+      value: {
+        magnitude: 2.5,
+        unit: "kilogram",
+      },
+    });
+    expect(parseTemporalLiteral("2026-09-19T12:30:00+07:00")).toMatchObject({
+      kind: "temporal",
+      value: {
+        precision: "datetime",
+      },
+    });
+    expect(parseTemporalLiteral("P2DT3H")).toMatchObject({
+      kind: "temporal",
+      value: {
+        iso: "P2DT3H",
+        precision: "duration",
+      },
+    });
+  });
+
+  it("preserves unknown filenames and new technical terms instead of inventing known meanings", () => {
+    expect(parseKnownLiteral("mystery-model.weights")).toMatchObject({
+      kind: "filename",
+      value: "mystery-model.weights",
+    });
+
+    const core = createCoreOntology();
+    const provisional = provisionalConcept(
+      "zero-copy-semantic-bridge",
+      "zero-copy semantic bridge",
+      ["concept:core.software-artifact"],
+    );
+    expect(core.addConcept(provisional).ok).toBe(true);
+    expect(core.getConcept(provisional.id)).toMatchObject({
+      status: "provisional",
+      labels: { source: "zero-copy semantic bridge" },
+      parents: ["concept:core.software-artifact"],
+    });
+  });
+
+  it("seeds the required reusable core ontology families", () => {
+    const core = createCoreOntology();
+    for (const concept of [
+      "concept:core.physical-object",
+      "concept:core.abstract-object",
+      "concept:core.person",
+      "concept:core.organization",
+      "concept:core.location",
+      "concept:core.time",
+      "concept:core.quantity",
+      "concept:core.information",
+      "concept:core.artifact",
+      "concept:core.software-artifact",
+      "concept:core.state",
+      "concept:core.event",
+      "concept:core.action",
+      "concept:core.change",
+      "concept:core.cause",
+      "concept:core.condition",
+      "concept:core.permission",
+      "concept:core.requirement",
+      "concept:core.prohibition",
+      "concept:core.truth",
+      "concept:core.falsehood",
+      "concept:core.unknown",
+    ] as const) {
+      expect(core.getConcept(concept)).toBeDefined();
+    }
+  });
+
+  it("builds composite concepts from existing semantic primitives and rejects invented components", () => {
+    const store = createCoreOntology();
+    store.upsertRelation({
+      id: "relation:test.capture-object",
+      namespace: "test",
+      labels: { en: "captures object" },
+      domain: ["concept:core.artifact"],
+      range: ["concept:core.entity"],
+    });
+
+    const composed = store.composeConcept({
+      id: "concept:test.carbon-capture-device",
+      namespace: "test",
+      labels: { en: "carbon capture device" },
+      components: [
+        "concept:core.artifact",
+        "concept:core.action",
+        "concept:core.information",
+      ],
+      definingRelations: [
+        {
+          relation: "relation:test.capture-object",
+          target: "concept:core.information",
+        },
+      ],
+      parents: ["concept:core.artifact"],
+      kind: "entity",
+    });
+    expect(composed.ok).toBe(true);
+    if (composed.ok) {
+      expect(composed.value.composition?.components).toEqual([
+        "concept:core.artifact",
+        "concept:core.action",
+        "concept:core.information",
+      ]);
+      expect(store.getConcept(composed.value.id)?.composition).toEqual(
+        composed.value.composition,
+      );
+    }
+
+    const invalid = store.composeConcept({
+      id: "concept:test.invalid-composite",
+      namespace: "test",
+      labels: { en: "invalid composite" },
+      components: ["concept:test.not-real"],
+    });
+    expect(invalid.ok).toBe(false);
+    if (!invalid.ok) {
+      expect(invalid.error.code).toBe("ONTO_COMPOSITION_UNKNOWN_COMPONENT");
+    }
   });
 
   it("recognizes deterministic literal classes before semantic judgment", () => {
