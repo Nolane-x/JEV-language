@@ -179,4 +179,25 @@ describe("M0/M1 conformance foundation", () => {
     );
     expect(result.ok).toBe(false);
   });
+
+  it("rejects a valid-looking envelope that omits node-specific fields", () => {
+    const result = deserializeSnapshot(
+      canonicalJson({
+        schemaVersion: "0.1.0",
+        ontologyVersion: "0.1.0",
+        revision: "rev:x",
+        nodes: [
+          {
+            id: "entity:x",
+            kind: "entity",
+            schemaVersion: "0.1.0",
+            ontologyVersion: "0.1.0",
+            provenance: [],
+            trust: "user-content",
+          },
+        ],
+      }),
+    );
+    expect(result.ok).toBe(false);
+  });
 });
