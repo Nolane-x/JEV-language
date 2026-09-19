@@ -198,7 +198,8 @@
       "dependencies": [
         "core-types",
         "program-ir",
-        "decision-packs"
+        "decision-packs",
+        "decision-runtime"
       ]
     },
     "code-backend-core": {

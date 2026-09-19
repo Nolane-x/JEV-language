@@ -834,6 +834,39 @@ const containsReturn = (statements: readonly PirStatement[]): boolean =>
     }
   });
 
+const containsStatementHole = (
+  statements: readonly PirStatement[],
+): boolean =>
+  statements.some((statement) => {
+    if (statement.kind === "hole") return true;
+    switch (statement.kind) {
+      case "if":
+        return (
+          containsStatementHole(statement.then) ||
+          containsStatementHole(statement.else ?? [])
+        );
+      case "loop":
+      case "for-each":
+      case "defer":
+        return containsStatementHole(statement.body);
+      case "match":
+        return (
+          statement.cases.some((entry) => containsStatementHole(entry.body)) ||
+          containsStatementHole(statement.default ?? [])
+        );
+      case "try":
+        return (
+          containsStatementHole(statement.body) ||
+          containsStatementHole(statement.catch?.body ?? []) ||
+          containsStatementHole(statement.finally ?? [])
+        );
+      case "block":
+        return containsStatementHole(statement.statements);
+      default:
+        return false;
+    }
+  });
+
 const validateStatementSequence = (
   statements: readonly PirStatement[],
   scope: Scope,
@@ -1347,7 +1380,8 @@ const validateFunction = (
     if (
       fn.returnType.kind !== "void" &&
       fn.returnType.kind !== "never" &&
-      !containsReturn(fn.statements)
+      !containsReturn(fn.statements) &&
+      !containsStatementHole(fn.statements)
     ) {
       return err(
         new StructuredError(
