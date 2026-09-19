@@ -251,3 +251,24 @@ export const createReplayManifest = (
   ...structuredClone(input),
   traceId: input.traceId ?? createTraceId(),
 });
+
+
+export const verifyReplayBundleIntegrity = (
+  bundle: ReplayBundle,
+): Result<ReplayBundle> => {
+  const rebuilt = createReplayBundle(bundle.manifest, bundle.events);
+  if (!rebuilt.ok) return rebuilt;
+  if (rebuilt.value.bundleDigest !== bundle.bundleDigest) {
+    return err(
+      new StructuredError(
+        "REPLAY_BUNDLE_DIGEST_MISMATCH",
+        "Replay bundle digest does not match its canonical manifest/event content.",
+        {
+          expected: rebuilt.value.bundleDigest,
+          actual: bundle.bundleDigest,
+        },
+      ),
+    );
+  }
+  return ok(structuredClone(bundle));
+};
