@@ -233,24 +233,31 @@ describe("M11 synthesis core conformance", () => {
   it("composes a function call and its argument through two typed expansions", async () => {
     const helper: PirFunction = {
       kind: "function",
-      id: "function:double",
-      name: "double",
+      id: "function:boolean-to-number",
+      name: "booleanToNumber",
       parameters: [
-        { id: "param:double:value", name: "value", type: numberType },
+        {
+          id: "param:boolean-to-number:value",
+          name: "value",
+          type: booleanType,
+        },
       ],
       returnType: numberType,
       body: {
-        kind: "binary",
-        operator: "multiply",
-        left: { kind: "variable", symbolId: "param:double:value" },
-        right: { kind: "literal", value: 2, type: numberType },
+        kind: "conditional",
+        condition: {
+          kind: "variable",
+          symbolId: "param:boolean-to-number:value",
+        },
+        whenTrue: { kind: "literal", value: 1, type: numberType },
+        whenFalse: { kind: "literal", value: 0, type: numberType },
       },
       effects: [{ kind: "pure" }],
     };
     const input = {
       id: "param:caller:value",
       name: "value",
-      type: numberType,
+      type: booleanType,
     };
     const goalHole = hole({
       id: "hole:call",
@@ -272,7 +279,7 @@ describe("M11 synthesis core conformance", () => {
         callables: [
           {
             id: helper.id,
-            parameterTypes: [numberType],
+            parameterTypes: [booleanType],
             returnType: numberType,
             effects: [{ kind: "pure" }],
             cost: 1,
@@ -280,7 +287,9 @@ describe("M11 synthesis core conformance", () => {
         ],
         branchSeeds: [],
       },
-      requirements: ["call the available pure number helper with the input"],
+      requirements: [
+        "call the available pure boolean-to-number helper with the boolean input",
+      ],
     };
 
     const result = await synthesizeProgram(problem, {
@@ -353,8 +362,19 @@ describe("M11 synthesis core conformance", () => {
       requirements: ["return one numeric branch result for each condition"],
     };
 
+    const rootBranch: CandidateGenerator = {
+      id: "generator.branch.root-only-test",
+      supports: (context) => context.hole.id === goalHole.id,
+      generate: (context) => new BranchGenerator().generate(context),
+    };
+    const childLiteral: CandidateGenerator = {
+      id: "generator.literal.child-only-test",
+      supports: (context) => context.hole.id !== goalHole.id,
+      generate: (context) => new LiteralGenerator().generate(context),
+    };
+
     const result = await synthesizeProgram(problem, {
-      registry: registry(new BranchGenerator(), new LiteralGenerator()),
+      registry: registry(rootBranch, childLiteral),
       budget: budget(),
     });
 
@@ -371,7 +391,11 @@ describe("M11 synthesis core conformance", () => {
       expect(body.whenFalse.kind).toBe("literal");
     }
     expect(result.state.history.length).toBe(3);
-    expect(result.state.history[0]?.generatorId).toBe("generator.branch.v1");
+    expect(result.state.history.map((step) => step.generatorId)).toEqual([
+      "generator.branch.root-only-test",
+      "generator.literal.child-only-test",
+      "generator.literal.child-only-test",
+    ]);
   });
 
   it("hard-prunes forbidden effects before ranking", () => {
