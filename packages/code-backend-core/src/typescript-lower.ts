@@ -71,12 +71,17 @@ const comparisonToken = (
 
 const logicalToken = (
   operator: Extract<PirExpression, { kind: "logical" }>["operator"],
-): ts.BinaryOperator =>
+): Result<ts.BinaryOperator> =>
   operator === "and"
-    ? ts.SyntaxKind.AmpersandAmpersandToken
+    ? ok(ts.SyntaxKind.AmpersandAmpersandToken)
     : operator === "or"
-      ? ts.SyntaxKind.BarBarToken
-      : ts.SyntaxKind.CaretToken;
+      ? ok(ts.SyntaxKind.BarBarToken)
+      : err(
+          new StructuredError(
+            "TS_LOWER_BOOLEAN_XOR_UNSUPPORTED",
+            "Boolean XOR has no direct semantics-preserving TypeScript logical operator.",
+          ),
+        );
 
 const literalNode = (value: unknown): ts.Expression => {
   if (value === null) return ts.factory.createNull();
@@ -299,11 +304,13 @@ const lowerExpression = (
         if (!item.ok) return item;
         lowered.push(item.value);
       }
+      const token = logicalToken(expression.operator);
+      if (!token.ok) return token;
       let current = lowered[0]!;
       for (const value of lowered.slice(1)) {
         current = ts.factory.createBinaryExpression(
           current,
-          logicalToken(expression.operator),
+          token.value,
           value,
         );
       }
@@ -748,7 +755,7 @@ const lowerStatementList = (
             variable = ts.factory.createVariableDeclaration(
               name,
               undefined,
-              lowerPirType(statement.catch.parameter.type),
+              undefined,
               undefined,
             );
           }
