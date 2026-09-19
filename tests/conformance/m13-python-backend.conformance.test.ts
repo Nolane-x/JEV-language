@@ -124,7 +124,12 @@ def safe_identity(value: str) -> str:
     expect(parsed.value.diagnostics).toEqual([]);
 
     const lifted = backend.value.lift(parsed.value);
-    expect(lifted.ok).toBe(true);
+    expect(
+      lifted.ok,
+      lifted.ok
+        ? undefined
+        : `${lifted.error.code}: ${lifted.error.message}`,
+    ).toBe(true);
     if (!lifted.ok) return;
     expect(validatePirProgram(lifted.value.program).ok).toBe(true);
 
@@ -327,7 +332,12 @@ def safe_identity(value: str) -> str:
       expect(pyParsed.ok, `python parse ${id}`).toBe(true);
       if (!pyParsed.ok) continue;
       const pyLifted = python.value.lift(pyParsed.value);
-      expect(pyLifted.ok, `python lift ${id}`).toBe(true);
+      expect(
+        pyLifted.ok,
+        pyLifted.ok
+          ? `python lift ${id}`
+          : `python lift ${id}: ${pyLifted.error.code}: ${pyLifted.error.message}`,
+      ).toBe(true);
       if (!pyLifted.ok) continue;
 
       const tsLowered = typescript.value.lower(original);
@@ -342,7 +352,12 @@ def safe_identity(value: str) -> str:
       expect(tsParsed.ok, `typescript parse ${id}`).toBe(true);
       if (!tsParsed.ok) continue;
       const tsLifted = typescript.value.lift(tsParsed.value);
-      expect(tsLifted.ok, `typescript lift ${id}`).toBe(true);
+      expect(
+        tsLifted.ok,
+        tsLifted.ok
+          ? `typescript lift ${id}`
+          : `typescript lift ${id}: ${tsLifted.error.code}: ${tsLifted.error.message}`,
+      ).toBe(true);
       if (!tsLifted.ok) continue;
 
       expect(
