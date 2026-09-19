@@ -3,8 +3,8 @@
 ```yaml
 spec_version: 0.4-master-implementation-research-expanded
 spec_digest_sha256: 9b8bc907fa0da89d4b7ea2e0be886919deffdb35e398ea7897ea77d305380f5b
-last_completed_gate: M14-compiler-test-repair-loop
-active_milestone: M15-formal-data-action-ir
+last_completed_gate: M15-formal-data-action-ir
+active_milestone: M16-universal-expression-api
 stable_packages: []
 candidate_packages:
   - core-types
@@ -43,17 +43,17 @@ partial_vertical_slices:
 known_failures: []
 blocked_items: []
 next_tasks:
-  - audit and complete M15 formal/data/action IR gate against Sections 425 and tasks T239-T247
+  - close M16 same-JSG natural-language/structured-data/program/action acceptance and capability-discovery gate
   - complete remaining M1 staged semantic validators and graph operations
   - harden M17 verifier orchestration, provenance edge cases, and cross-adapter conformance
   - expand M16 multi-target adapters beyond the controlled delete-limit semantic subset
 last_verified_main_commit: df4f806a2abf8635c7b423d3cddaebf6eaf4dfe4
-last_verified_pr_head: 84c6fa59b739c237288dbe5cc7299707b506e996
+last_verified_pr_head: 772a9dbfca0dc8c7a7e7910677498c66267be5d6
 ```
 
 ## Current state
 
-M0–M9 are verified at their milestone gates. M3 includes the required one-request live Jev acceptance run; M4–M9 use deterministic/recorded language-engine evidence. M9 passed CI #136 with 36/36 test files and 280/280 tests. M10 Program IR and M11 Synthesis Core are verified. M12 TypeScript Backend passed CI #155 with 39/39 test files and 312/312 tests. M13 Python Backend passed CI #167 with 40/40 test files and 319/319 tests. M14 Compiler/Test Repair Loop passed CI #182 with 41/41 test files and 325/325 tests; M15 Formal/Data/Action IR is now the active milestone.
+M0–M9 are verified at their milestone gates. M3 includes the required one-request live Jev acceptance run; M4–M9 use deterministic/recorded language-engine evidence. M9 passed CI #136 with 36/36 test files and 280/280 tests. M10 Program IR and M11 Synthesis Core are verified. M12 TypeScript Backend passed CI #155 with 39/39 test files and 312/312 tests. M13 Python Backend passed CI #167 with 40/40 test files and 319/319 tests. M14 Compiler/Test Repair Loop passed CI #182 with 41/41 test files and 325/325 tests. M15 Formal/Data/Action IR passed CI #191 with 42/42 test files and 334/334 tests; M16 Universal Expression API is now the active milestone.
 
 ## Implemented foundation
 
@@ -80,6 +80,7 @@ M0–M9 are verified at their milestone gates. M3 includes the required one-requ
 - M11 verified synthesis core: typed expression/statement holes, six generator families, deterministic hard pruning, best-first/beam frontiers, state deduplication, bounded search budgets, bounded recorded-Jev ranking, acceptance verifiers, structured partial failures and traceable multi-step composition.
 - M12 verified TypeScript backend: backend ABI/manifest, compiler-API parser, AST↔PIR subset, source bindings, AST/source printer, minimal patching, normalized diagnostics, strict typecheck adapter and conformance over the M12 source subset plus the verified M10 PIR corpus.\n- M13 verified Python backend: stdlib AST parse/unparse, optional annotations with dynamic unknowns, AST↔PIR subset, mapping-safe record lowering, source bindings/patches, normalized compile diagnostics, all-eight M10 lower/compile proof and TypeScript/Python cross-backend PIR semantic fixtures.
 - M14 verified compiler/test repair loop: stable repair diagnostics, implicated-node location, bounded guard/import/argument/return repair generators, bounded candidate ranking, compile/test/regression verification, rollback, hard budgets and executable broken-code acceptance.
+- M15 verified formal/data/action IR: stable Data/Schema/Query/Math/Logic/Command/Action schemas, deterministic validators, canonical renderers, read-vs-mutation query safety, declared-capability Action IR validation and seven-family conformance.
 - Graph-structured Discourse IR foundation with deterministic prerequisite-aware ordering.
 - Formal IR family foundation (Data/Schema/Query/Math/Logic/Command), capability-validated Action IR, and harness-neutral Universal Expression contract.
 - Registry-driven Universal Expression runtime plus trace DAG/config-digest/replay-manifest foundation.

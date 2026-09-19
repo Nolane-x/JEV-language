@@ -2,6 +2,7 @@ import {
   err,
   ok,
   StructuredError,
+  canonicalJson,
   type JsonValue,
   type Result,
 } from "../../core-types/src/index.ts";
@@ -220,6 +221,55 @@ const semanticValueMatchesSchema = (
   }
 };
 
+const sameActionSchema = (
+  left: ActionSchema,
+  right: ActionSchema,
+): boolean => {
+  if (left.kind !== right.kind) return false;
+  switch (left.kind) {
+    case "any":
+    case "null":
+    case "boolean":
+    case "number":
+    case "string":
+    case "reference":
+      return true;
+    case "collection":
+      return (
+        right.kind === "collection" &&
+        sameActionSchema(left.items, right.items)
+      );
+    case "object":
+      if (right.kind !== "object") return false;
+      if (
+        (left.additionalProperties === true) !==
+        (right.additionalProperties === true)
+      ) {
+        return false;
+      }
+      {
+        const leftFields = [...left.fields].sort((a, b) =>
+          a.name.localeCompare(b.name),
+        );
+        const rightFields = [...right.fields].sort((a, b) =>
+          a.name.localeCompare(b.name),
+        );
+        return (
+          leftFields.length === rightFields.length &&
+          leftFields.every((field, index) => {
+            const peer = rightFields[index];
+            return (
+              peer !== undefined &&
+              field.name === peer.name &&
+              field.required === peer.required &&
+              sameActionSchema(field.schema, peer.schema)
+            );
+          })
+        );
+      }
+  }
+};
+
 export const validateActionIr = (
   action: ActionIR,
   context: ActionValidationContext,
@@ -257,6 +307,18 @@ export const validateActionIr = (
   const validCapability = validateCapabilityDefinition(capability);
   if (!validCapability.ok) return err(validCapability.error);
 
+  if (
+    action.expectedReturn !== undefined &&
+    !sameActionSchema(action.expectedReturn, capability.output)
+  ) {
+    return err(
+      new StructuredError(
+        "ACTION_RETURN_SCHEMA_MISMATCH",
+        "Action expectedReturn conflicts with the declared capability output schema.",
+      ),
+    );
+  }
+
   if (action.provenance.length === 0) {
     return err(
       new StructuredError(
@@ -274,6 +336,20 @@ export const validateActionIr = (
   );
   if (parameterError) return err(parameterError);
 
+  for (const hint of action.riskHints ?? []) {
+    if (hint.trim() === "") {
+      return err(
+        new StructuredError(
+          "ACTION_RISK_HINT",
+          "Action risk hints must be non-empty when supplied.",
+        ),
+      );
+    }
+  }
+
+  // Provenance references belong to the provenance store, not the JSG
+  // node registry represented by knownReferences. Only semantic references
+  // are checked against the supplied semantic-node set here.
   for (const ref of [
     ...(action.preconditions ?? []),
     ...(action.expectedEffects ?? []),
@@ -310,13 +386,16 @@ export const renderActionIr = (
 ): Result<string> => {
   const valid = validateActionIr(action, context);
   if (!valid.ok) return err(valid.error);
-  const rendered = JSON.stringify(valid.value);
-  return rendered === undefined
-    ? err(
-        new StructuredError(
-          "ACTION_RENDER_UNDEFINED",
-          "Validated Action IR did not produce a serializable rendering.",
-        ),
-      )
-    : ok(rendered);
+  try {
+    return ok(canonicalJson(valid.value as unknown as JsonValue));
+  } catch (error) {
+    return err(
+      new StructuredError(
+        "ACTION_RENDER_UNSERIALIZABLE",
+        error instanceof Error
+          ? error.message
+          : "Validated Action IR could not be serialized canonically.",
+      ),
+    );
+  }
 };

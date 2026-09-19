@@ -1,5 +1,16 @@
 # action-ir
 
-Status: **prototype / PARTIAL**.
+Status: **verified at M15 gate**.
 
-Implemented in this wave: capability definitions, bounded ActionSchema, Action IR, required provenance, declared-capability enforcement, required/type/reference checks, ambiguity/clarification contracts, and deterministic rendering. The package describes actions only; it has no execution authority. This advances T245–T247 and M15.
+Implemented for T245–T247:
+
+- consumer-supplied capability definitions and bounded ActionSchema;
+- Action IR carrying parameters, preconditions, expected effects, risk hints, semantic purpose and provenance;
+- required capability-registry membership;
+- required/type/reference checks for action parameters;
+- capability-output compatibility validation;
+- explicit ClarificationNeed contract for unresolved choices;
+- canonical deterministic Action IR rendering;
+- conformance fixtures proving unknown capabilities, missing required parameters, unknown references and missing provenance are rejected.
+
+The package describes intended actions only. It exposes no execution authority, network/file side effects, permission approval or autonomous loop.

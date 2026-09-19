@@ -1,0 +1,41 @@
+{
+  "id": "m15-formal-data-action-ir",
+  "version": "1.0.0",
+  "milestone": "M15",
+  "taskRange": "T239-T247",
+  "liveJevRequests": 0,
+  "families": [
+    "data",
+    "schema",
+    "query",
+    "math",
+    "logic",
+    "command",
+    "action"
+  ],
+  "deterministicRenderers": [
+    "renderDataIr",
+    "renderSchemaIr",
+    "renderQueryIr",
+    "renderMathIr",
+    "renderLogicIr",
+    "renderCommandIr",
+    "renderActionIr"
+  ],
+  "assertions": [
+    "canonical-rendering",
+    "invalid-ir-not-rendered",
+    "data-object-key-uniqueness",
+    "schema-bounds-and-field-uniqueness",
+    "query-read-mutation-separation",
+    "query-parameter-structure",
+    "logic-arity",
+    "math-matrix-shape",
+    "command-executable-shape",
+    "action-declared-capability-only",
+    "action-required-parameters",
+    "action-known-reference-validation",
+    "action-provenance-required",
+    "action-no-execution-authority"
+  ]
+}

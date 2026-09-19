@@ -2,6 +2,7 @@ import {
   err,
   ok,
   StructuredError,
+  canonicalJson,
   type JsonValue,
   type Result,
   type SemanticId,
@@ -152,6 +153,22 @@ export interface QueryIr {
   annotations?: Record<string, JsonValue>;
 }
 
+export type LogicTerm =
+  | {
+      kind: "variable";
+      name: string;
+      semanticRef?: SemanticRef;
+    }
+  | {
+      kind: "constant";
+      value: SemanticValue;
+    }
+  | {
+      kind: "function";
+      function: SemanticId;
+      args: LogicTerm[];
+    };
+
 export type LogicIr =
   | { kind: "proposition-ref"; ref: SemanticRef }
   | { kind: "boolean"; value: boolean }
@@ -163,7 +180,16 @@ export type LogicIr =
   | {
       kind: "predicate";
       predicate: SemanticId;
-      args: Array<{ role?: SemanticId; value: SemanticValue }>;
+      args: Array<{
+        role?: SemanticId;
+        value: SemanticValue | LogicTerm;
+      }>;
+    }
+  | {
+      kind: "comparison";
+      operator: "eq" | "neq" | "lt" | "lte" | "gt" | "gte";
+      left: LogicTerm;
+      right: LogicTerm;
     }
   | {
       kind: "quantifier";
@@ -424,9 +450,114 @@ const validateQueryExpr = (
   }
 };
 
+const validateQuerySource = (
+  source: QuerySource,
+  path: string,
+): StructuredError | undefined => {
+  if (source.id.trim() === "") {
+    return new StructuredError(
+      "FORMAL_QUERY_SOURCE_ID",
+      `Query source id is empty at ${path}.`,
+    );
+  }
+  if (source.alias !== undefined && source.alias.trim() === "") {
+    return new StructuredError(
+      "FORMAL_QUERY_SOURCE_ALIAS",
+      `Query source alias is empty at ${path}.`,
+    );
+  }
+
+  switch (source.kind) {
+    case "named":
+      return source.name === undefined || source.name.trim() === ""
+        ? new StructuredError(
+            "FORMAL_QUERY_SOURCE_NAMED",
+            `Named query source is missing its name at ${path}.`,
+          )
+        : undefined;
+    case "semantic":
+      return source.semanticRef === undefined
+        ? new StructuredError(
+            "FORMAL_QUERY_SOURCE_SEMANTIC",
+            `Semantic query source is missing its semantic reference at ${path}.`,
+          )
+        : undefined;
+    case "subquery":
+      if (source.subquery === undefined) {
+        return new StructuredError(
+          "FORMAL_QUERY_SOURCE_SUBQUERY",
+          `Subquery source is missing its query at ${path}.`,
+        );
+      }
+      {
+        const nested = validateQueryIr(source.subquery);
+        return nested.ok ? undefined : nested.error;
+      }
+  }
+};
+
 export const validateQueryIr = (query: QueryIr): Result<QueryIr> => {
   if (query.id.trim() === "") {
     return err(new StructuredError("FORMAL_QUERY_ID", "Query id is required."));
+  }
+  if (query.source !== undefined) {
+    const sourceError = validateQuerySource(query.source, "$.source");
+    if (sourceError) return err(sourceError);
+  }
+  for (let index = 0; index < (query.joins ?? []).length; index += 1) {
+    const join = query.joins![index]!;
+    const sourceError = validateQuerySource(
+      join.source,
+      `$.joins[${index}].source`,
+    );
+    if (sourceError) return err(sourceError);
+  }
+  if (query.mutation !== undefined) {
+    const targetError = validateQuerySource(
+      query.mutation.target,
+      "$.mutation.target",
+    );
+    if (targetError) return err(targetError);
+
+    const values = query.mutation.values ?? [];
+    if (
+      (query.mutation.kind === "insert" ||
+        query.mutation.kind === "update") &&
+      values.length === 0
+    ) {
+      return err(
+        new StructuredError(
+          "FORMAL_QUERY_MUTATION_VALUES",
+          `${query.mutation.kind} mutation requires at least one field value.`,
+        ),
+      );
+    }
+    if (
+      query.mutation.kind === "delete" &&
+      query.mutation.values !== undefined
+    ) {
+      return err(
+        new StructuredError(
+          "FORMAL_QUERY_DELETE_VALUES",
+          "Delete mutation cannot carry assignment values.",
+        ),
+      );
+    }
+    const fieldNames = new Set<string>();
+    for (const value of values) {
+      if (
+        value.field.trim() === "" ||
+        fieldNames.has(value.field)
+      ) {
+        return err(
+          new StructuredError(
+            "FORMAL_QUERY_MUTATION_FIELD",
+            "Mutation fields must be unique and non-empty.",
+          ),
+        );
+      }
+      fieldNames.add(value.field);
+    }
   }
   if (query.mode === "read" && query.mutation !== undefined) {
     return err(
@@ -488,6 +619,44 @@ export const validateQueryIr = (query: QueryIr): Result<QueryIr> => {
   return ok(structuredClone(query));
 };
 
+const logicTermKinds = new Set(["variable", "constant", "function"]);
+
+const isLogicTerm = (
+  value: SemanticValue | LogicTerm,
+): value is LogicTerm => logicTermKinds.has(value.kind);
+
+const validateLogicTerm = (
+  term: LogicTerm,
+  path: string,
+): StructuredError | undefined => {
+  switch (term.kind) {
+    case "variable":
+      return term.name.trim() === ""
+        ? new StructuredError(
+            "FORMAL_LOGIC_TERM_VARIABLE",
+            `Logic variable name is empty at ${path}.`,
+          )
+        : undefined;
+    case "constant":
+      return undefined;
+    case "function":
+      if (term.function.trim() === "") {
+        return new StructuredError(
+          "FORMAL_LOGIC_TERM_FUNCTION",
+          `Logic function identifier is empty at ${path}.`,
+        );
+      }
+      for (let index = 0; index < term.args.length; index += 1) {
+        const error = validateLogicTerm(
+          term.args[index]!,
+          `${path}.args[${index}]`,
+        );
+        if (error) return error;
+      }
+      return undefined;
+  }
+};
+
 export const validateLogicIr = (logic: LogicIr): Result<LogicIr> => {
   const visit = (node: LogicIr, path: string): StructuredError | undefined => {
     switch (node.kind) {
@@ -518,12 +687,27 @@ export const validateLogicIr = (logic: LogicIr): Result<LogicIr> => {
         return left ?? visit(node.right, `${path}.right`);
       }
       case "predicate":
-        return node.args.length === 0
-          ? new StructuredError(
-              "FORMAL_LOGIC_PREDICATE_ARITY",
-              `Predicate requires at least one argument at ${path}.`,
-            )
-          : undefined;
+        if (node.args.length === 0) {
+          return new StructuredError(
+            "FORMAL_LOGIC_PREDICATE_ARITY",
+            `Predicate requires at least one argument at ${path}.`,
+          );
+        }
+        for (let index = 0; index < node.args.length; index += 1) {
+          const value = node.args[index]!.value;
+          if (isLogicTerm(value)) {
+            const error = validateLogicTerm(
+              value,
+              `${path}.args[${index}].value`,
+            );
+            if (error) return error;
+          }
+        }
+        return undefined;
+      case "comparison": {
+        const left = validateLogicTerm(node.left, `${path}.left`);
+        return left ?? validateLogicTerm(node.right, `${path}.right`);
+      }
       case "quantifier":
         if (node.variable.trim() === "") {
           return new StructuredError(
@@ -780,15 +964,18 @@ const renderValidated = <T>(
   validation: Result<T>,
 ): Result<string> => {
   if (!validation.ok) return err(validation.error);
-  const rendered = JSON.stringify(validation.value);
-  return rendered === undefined
-    ? err(
-        new StructuredError(
-          "FORMAL_RENDER_UNDEFINED",
-          "Validated formal IR did not produce a serializable rendering.",
-        ),
-      )
-    : ok(rendered);
+  try {
+    return ok(canonicalJson(validation.value as unknown as JsonValue));
+  } catch (error) {
+    return err(
+      new StructuredError(
+        "FORMAL_RENDER_UNSERIALIZABLE",
+        error instanceof Error
+          ? error.message
+          : "Validated formal IR could not be serialized canonically.",
+      ),
+    );
+  }
 };
 
 export const renderDataIr = (value: DataIr): Result<string> =>
