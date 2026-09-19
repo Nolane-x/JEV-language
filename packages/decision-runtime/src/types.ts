@@ -2,6 +2,7 @@ import type {
   JsonValue,
   TraceId,
 } from "../../core-types/src/index.ts";
+import type { JdrErrorCode } from "./errors.ts";
 
 export type DecisionEntry =
   | string
@@ -47,12 +48,19 @@ export interface ScoreQuestion {
 
 export type DecisionQuestion = NoulQuestion | ChoiceQuestion | ScoreQuestion;
 
+export interface DecisionRetryPolicy {
+  maxAttempts: number;
+  retryableCodes: JdrErrorCode[];
+  backoffMs?: number;
+}
+
 export interface DecisionBatchRequest {
   id: string;
   modelProfile: string;
   state: DecisionState;
   questions: Record<string, DecisionQuestion>;
   deadlineMs?: number;
+  retryPolicy?: DecisionRetryPolicy;
   traceContext?: {
     traceId: TraceId;
     parentSpan?: string;
