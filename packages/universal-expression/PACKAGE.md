@@ -22,3 +22,6 @@ Section-426 same-root acceptance is covered by one controlled delete-limit JSG r
 Broader target adapters remain future coverage work; M16 verifies the stable API/gate contract, not universal domain coverage.
 
 Verification evidence: GitHub Actions CI #196 passed on implementation head `2ddfb7de428e71a33633d5db0408f5d9b4ed7227`. Live Jev requests consumed by M16: 0.
+
+
+T411 adds a harness-neutral semantic-transfer translation API: source surfaces are parsed into shared JSG and realized into the target language, with optional deterministic target reparse evidence. Translation does not bypass the semantic substrate.
