@@ -34,15 +34,15 @@ tasks:
   - {id: T248-T252, title: universal expression target/request/artifact/result and capability manifest, status: verified}
   - {id: T253-T257, title: universal parse/realize/express/transform/verify registry handlers, status: verified}
   - {id: T258, title: integrate universal operation traces and replay manifests, status: verified}
-  - {id: T259, title: define VerificationObligation, status: implemented}
-  - {id: T260, title: define Verifier ABI, status: implemented}
-  - {id: T261, title: implement semantic equivalence/preservation verifier, status: implemented}
-  - {id: T262, title: implement round-trip verifier, status: implemented}
-  - {id: T263, title: implement trust verifier, status: implemented}
-  - {id: T264, title: implement grammar verifier adapter, status: implemented}
-  - {id: T265, title: implement requirement satisfaction report, status: implemented}
-  - {id: T266, title: implement program compile/test evidence adapter, status: implemented}
-  - {id: T267, title: implement evidence grading, status: implemented}
+  - {id: T259, title: define VerificationObligation, status: verified}
+  - {id: T260, title: define Verifier ABI, status: verified}
+  - {id: T261, title: implement semantic equivalence/preservation verifier, status: verified}
+  - {id: T262, title: implement round-trip verifier, status: verified}
+  - {id: T263, title: implement trust verifier, status: verified}
+  - {id: T264, title: implement grammar verifier adapter, status: verified}
+  - {id: T265, title: implement requirement satisfaction report, status: verified}
+  - {id: T266, title: implement program compile/test evidence adapter, status: verified}
+  - {id: T267, title: implement evidence grading, status: verified}
   - {id: T268-T300, title: extensions/evaluation/hardening, status: todo}
   - {id: T301+, title: v0.4 research-expansion semantics/synthesis/conformance tasks, status: todo}
 vertical_slices:
