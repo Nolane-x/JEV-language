@@ -1,6 +1,6 @@
 # M13 — Python Backend Gate Evidence
 
-Status: **candidate — pending CI**
+Status: **verified**
 
 Specification basis: Section 423 and tasks T220–T226 of the v0.4 master specification.
 
@@ -86,8 +86,17 @@ M13 does not claim:
 - compiler/test CEGIS;
 - generative source production.
 
-## Gate rule
+## Gate evidence
 
-Do not mark M13 verified or advance `last_completed_gate` until the complete branch head passes package-boundary validation, strict TypeScript, Python backend conformance and the full deterministic test suite.
+- implementation head: `d32667ef0a23c4f42a51962b48b73ebcc65eb07b`
+- GitHub Actions CI: run `#167` / run id `35432279280`
+- deterministic job: `105868893026`
+- package boundaries: `success`
+- strict TypeScript: `success`
+- M13 conformance: `7/7` tests
+- full suite: `40/40` test files, `319/319` tests
+- all eight verified M10 PIR fixtures lower to Python accepted by the compile adapter
+- portable cross-backend fixtures pass TypeScript/Python semantic round-trip projection
+- live Jev requests consumed by M13: `0`
 
-No live Jev request is required or allowed for M13.
+The final documentation head must itself pass CI before merge.
