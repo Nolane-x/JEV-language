@@ -191,6 +191,29 @@ const directRefs = (node: JsgNode): RefUse[] => {
           ),
         ),
       ];
+    case "scope":
+      return [
+        { target: node.operatorRef, label: "scope.operator" },
+        ...(node.bodyRef === undefined
+          ? []
+          : [{ target: node.bodyRef, label: "scope.body" }]),
+      ];
+    case "scope-constraint":
+      return [
+        { target: node.left, label: "scope-constraint.left" },
+        { target: node.right, label: "scope-constraint.right" },
+      ];
+    case "quantifier":
+      return [
+        { target: node.restrictor, label: "quantifier.restrictor" },
+        { target: node.body, label: "quantifier.body" },
+        { target: node.scope, label: "quantifier.scope" },
+      ];
+    case "negation":
+      return [
+        { target: node.body, label: "negation.body" },
+        { target: node.scope, label: "negation.scope" },
+      ];
     case "quantity":
     case "temporal":
       return [];
@@ -682,6 +705,41 @@ export class CyclePermissionRegistry {
   }
 }
 
+export const createCoreCyclePermissionRegistry = (): CyclePermissionRegistry => {
+  const registry = new CyclePermissionRegistry();
+  const rules: CyclePermissionRule[] = [
+    {
+      id: "core.scope-quantifier-operator",
+      sourceKind: "scope",
+      targetKind: "quantifier",
+      label: "scope.operator",
+    },
+    {
+      id: "core.quantifier-scope",
+      sourceKind: "quantifier",
+      targetKind: "scope",
+      label: "quantifier.scope",
+    },
+    {
+      id: "core.scope-negation-operator",
+      sourceKind: "scope",
+      targetKind: "negation",
+      label: "scope.operator",
+    },
+    {
+      id: "core.negation-scope",
+      sourceKind: "negation",
+      targetKind: "scope",
+      label: "negation.scope",
+    },
+  ];
+  for (const rule of rules) {
+    const registered = registry.register(rule);
+    if (!registered.ok) throw registered.error;
+  }
+  return registry;
+};
+
 const stronglyConnectedComponents = (
   snapshot: GraphSnapshot,
   edges: readonly GraphViewEdge[],
@@ -743,7 +801,7 @@ const stronglyConnectedComponents = (
 
 export const validateGraphTopology = (
   snapshot: GraphSnapshot,
-  registry: CyclePermissionRegistry = new CyclePermissionRegistry(),
+  registry: CyclePermissionRegistry = createCoreCyclePermissionRegistry(),
 ): Diagnostic[] => {
   const nodes = new Map(snapshot.nodes.map((node) => [node.id, node] as const));
   const edges = graphEdges(snapshot);
