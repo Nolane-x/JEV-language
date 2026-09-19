@@ -7,3 +7,5 @@ export * from "./expanded-en.ts";
 export * from "./expanded-document-en.ts";
 export * from "./controlled-corpus-vi.ts";
 export * from "./scope-ambiguity.ts";
+
+export * from "./architecture.ts";

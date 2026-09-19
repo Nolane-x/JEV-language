@@ -20,3 +20,6 @@ M18.2 adds rule-driven parsing but does not claim arbitrary open-domain parsing.
 
 
 T413-T420 research-expansion candidate adds forced-disambiguation diagnostics, packed lexical lattices, a packed syntax/semantic forest contract, typed semantic holes/composition, staged deterministic pruning, inspectable ranking breakdowns, and explicit strict/robust parser profiles.
+
+
+T421-T423 research-expansion candidate adds a revisioned incremental utterance state, a monotonic committed-semantic prefix separated from replaceable provisional semantics, and inspectable parser-recovery diagnostics.
