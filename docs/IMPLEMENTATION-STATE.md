@@ -17,11 +17,16 @@ experimental_packages:
   - decision-runtime
   - decision-packs
   - verifier-core
+  - discourse-ir
+  - formal-ir
+  - action-ir
+  - universal-expression
 partial_vertical_slices:
   - controlled-English-requirement-roundtrip
   - recorded-Jev-reference-choice
   - controlled-Vietnamese-shared-JSG
   - PIR-typed-hole-to-TypeScript
+  - formal-action-universal-contract
 known_failures: []
 blocked_items:
   - live-Jev-smoke-not-yet-executed
@@ -33,7 +38,7 @@ next_tasks:
   - expand T253-T258 into concrete broad parse/realize/transform/verify handlers and trace/replay
   - run exactly one manual live-Jev smoke only when explicitly desired
 last_verified_main_commit: 7dac106cdf08bc89be50833ed7dc4e7e6f5cd20e
-last_verified_pr_head: 2a57258c552e370944a3a7483e9a9b6901b1c5c4
+last_verified_pr_head: a094d7d016f25f114b2e9194145b5d6a9c872fa9
 ```
 
 ## Current state
@@ -55,7 +60,9 @@ A runnable foundation now exists, but this ledger deliberately does **not** mark
 - Ontology transactional batch merge, parent-cycle rejection, ancestry queries, deprecation/replacement resolution, and replacement-cycle rejection.
 - Generic VerificationObligation/Verifier ABI, evidence grading, deterministic-verifier precedence, and critical semantic-preservation checks including role bindings and temporal values.
 - TypeScript 7 CLI compatibility with the official TypeScript 6 programmatic compiler API bridge for embedded compile checks.
-- First four narrow bootstrap vertical slices: controlled English, recorded reference choice, controlled Vietnamese, and PIR typed-hole → TypeScript.\n- Graph-structured Discourse IR foundation with deterministic prerequisite-aware ordering.\n- Formal IR family foundation (Data/Schema/Query/Math/Logic/Command), capability-validated Action IR, and harness-neutral Universal Expression contract.
+- First four narrow bootstrap vertical slices: controlled English, recorded reference choice, controlled Vietnamese, and PIR typed-hole → TypeScript.
+- Graph-structured Discourse IR foundation with deterministic prerequisite-aware ordering.
+- Formal IR family foundation (Data/Schema/Query/Math/Logic/Command), capability-validated Action IR, and harness-neutral Universal Expression contract.
 
 ## Still partial by design
 
