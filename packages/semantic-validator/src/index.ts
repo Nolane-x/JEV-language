@@ -98,6 +98,12 @@ export const DIAGNOSTIC_REGISTRY = {
     defaultSeverity: "error",
     description: "A numeric semantic value is non-finite or otherwise invalid.",
   },
+  JSG007_INVALID_TRUST_LABEL: {
+    code: "JSG007_INVALID_TRUST_LABEL",
+    stage: "V0",
+    defaultSeverity: "error",
+    description: "A semantic node uses a trust label outside the declared trust lattice.",
+  },
   JSG010_UNKNOWN_ONTOLOGY_REF: {
     code: "JSG010_UNKNOWN_ONTOLOGY_REF",
     stage: "V2",
@@ -287,6 +293,8 @@ const conceptRefsFromValue = (value: SemanticValue): ConceptRef[] => {
   switch (value.kind) {
     case "concept":
       return [value.concept];
+    case "quantity":
+      return value.unit === undefined ? [] : [value.unit];
     case "collection":
       return value.values.flatMap(conceptRefsFromValue);
     case "structured":
@@ -443,6 +451,7 @@ const ontologyRefs = (node: JsgNode): OntologyRefUse[] => {
     case "entity":
       return [
         { kind: "concept", ref: node.concept },
+        ...concepts(node.attributes.map((attribute) => attribute.relation)),
         ...concepts(valueConcepts),
       ];
     case "event":
@@ -816,7 +825,7 @@ const validateV0 = (snapshot: GraphSnapshot): Diagnostic[] => {
     if (!knownTrust.has(node.trust)) {
       diagnostics.push(
         makeDiagnostic(
-          "JSG900_UNSUPPORTED_NODE_KIND",
+          "JSG007_INVALID_TRUST_LABEL",
           `Unsupported trust label on ${node.id}: ${String(node.trust)}.`,
           { nodeRefs: [node.id] },
         ),
@@ -1082,11 +1091,11 @@ const roleAppliesToNode = (
   if (definition.domain === undefined || definition.domain.length === 0) {
     return false;
   }
-  return matchesAnyConcept(
-    directNodeConcepts(node),
-    definition.domain,
-    ontology,
+  const actual = directNodeConcepts(node).filter(
+    (concept) => ontology.getConcept(concept) !== undefined,
   );
+  if (actual.length === 0) return false;
+  return matchesAnyConcept(actual, definition.domain, ontology);
 };
 
 const validateV4 = (
