@@ -83,4 +83,10 @@ Verified evidence:
 - full deterministic test suite: `success`
 - live Jev requests consumed by M11: `0`
 
-The implementation-state ledger may advance to M12 TypeScript backend. The final documentation head must itself pass CI before merge.
+Final evidence:
+
+- implementation head `589c559563c02cd80d9b55430ff732d773f90210` passed CI #149;
+- final documentation head `c218297456573abb3979d985e4b0035e30ef965b` passed CI #150 (run `35429851430`);
+- squash-merged to `main` as `aca7e39cec5519d6ba20a747e83d30c36d98cf28`.
+
+M11 is therefore fully verified and the implementation-state ledger has advanced to M12 TypeScript backend.
