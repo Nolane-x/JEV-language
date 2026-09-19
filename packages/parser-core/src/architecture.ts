@@ -147,6 +147,44 @@ export const validatePartialSemanticCandidate = (
   return ok(undefined);
 };
 
+export const validatePackedSyntaxSemanticForest = (
+  forest: PackedSyntaxSemanticForest,
+): Result<void> => {
+  const syntaxIds=new Set(forest.syntax.nodes.map(node=>node.id));
+  if(
+    forest.syntax.version.trim()==="" ||
+    forest.syntax.roots.some(root=>!syntaxIds.has(root))
+  ){
+    return err(new StructuredError(
+      "PARSER_PACKED_FOREST_SYNTAX_INVALID",
+      "Packed syntax/semantic forests require a valid syntax version and existing roots.",
+    ));
+  }
+  if(forest.lexical !== undefined){
+    const lexical=validatePackedLexicalLattice(forest.lexical);
+    if(!lexical.ok) return lexical;
+  }
+  const ids=new Set<string>();
+  for(const alternative of forest.semanticAlternatives){
+    if(
+      alternative.id.trim()==="" ||
+      ids.has(alternative.id) ||
+      !syntaxIds.has(alternative.syntaxRoot)
+    ){
+      return err(new StructuredError(
+        "PARSER_PACKED_FOREST_SEMANTIC_INVALID",
+        "Semantic alternatives require unique ids and existing syntax roots.",
+      ));
+    }
+    ids.add(alternative.id);
+    if("holes" in alternative.candidate){
+      const partial=validatePartialSemanticCandidate(alternative.candidate);
+      if(!partial.ok) return partial;
+    }
+  }
+  return ok(undefined);
+};
+
 export interface SemanticCompositionInput<TBinding> {
   binding: TBinding;
   syntaxNodeId: SyntaxNodeId;
