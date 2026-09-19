@@ -61,6 +61,8 @@ export interface GrammarFeatureConstraint {
 
 interface GrammarPatternFeatures {
   featureConstraints?: GrammarFeatureConstraint[];
+  optional?: boolean;
+  repeat?: "zero-or-more" | "one-or-more";
 }
 
 export type GrammarPattern = (
