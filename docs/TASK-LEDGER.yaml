@@ -21,7 +21,7 @@ tasks:
   - {id: T145-T180, title: dialogue/Vietnamese/discourse/pragmatics, status: partial}
   - {id: T181-T199, title: PIR typed foundation and typed-hole contracts, status: partial}
   - {id: T200-T238, title: synthesis/backends/repair/compiler-loop, status: partial}
-  - {id: T239-T300, title: formal IR/universal expression/verification hardening, status: todo}
+  - {id: T239-T258, title: formal IR and universal expression foundation, status: todo}\n  - {id: T259, title: define VerificationObligation, status: implemented}\n  - {id: T260, title: define Verifier ABI, status: implemented}\n  - {id: T261, title: implement semantic equivalence/preservation verifier, status: implemented}\n  - {id: T262, title: implement round-trip verifier, status: partial}\n  - {id: T263, title: implement trust verifier, status: partial}\n  - {id: T264, title: implement grammar verifier adapter, status: todo}\n  - {id: T265, title: implement requirement satisfaction report, status: todo}\n  - {id: T266, title: implement program compile/test evidence adapter, status: partial}\n  - {id: T267, title: implement evidence grading, status: implemented}\n  - {id: T268-T300, title: extensions/evaluation/hardening, status: todo}
   - {id: T301+, title: v0.4 research-expansion semantics/synthesis/conformance tasks, status: todo}
 vertical_slices:
   - {id: VS1, title: controlled English requirement parse-realize-roundtrip, status: implemented}

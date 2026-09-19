@@ -222,6 +222,7 @@
       "layer": 9,
       "dependencies": [
         "core-types",
+        "provenance",
         "semantic-graph"
       ]
     },
