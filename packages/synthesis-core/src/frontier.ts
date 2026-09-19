@@ -3,7 +3,11 @@ import type {
   SynthesisState,
 } from "./model.ts";
 
+const frontierScore = (state: SynthesisState): number =>
+  state.accumulatedCost + (state.priorityBias ?? 0);
+
 const compareStates = (a: SynthesisState, b: SynthesisState): number =>
+  frontierScore(a) - frontierScore(b) ||
   a.accumulatedCost - b.accumulatedCost ||
   a.openHoles.length - b.openHoles.length ||
   a.depth - b.depth ||
