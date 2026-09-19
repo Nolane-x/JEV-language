@@ -1,32 +1,248 @@
 {
   "schemaVersion": "1",
   "packages": {
-    "core-types": {"maturity":"candidate","layer":0,"dependencies":[]},
-    "provenance": {"maturity":"candidate","layer":1,"dependencies":["core-types"]},
-    "open-world-values": {"maturity":"experimental","layer":1,"dependencies":["core-types","provenance"]},
-    "ontology": {"maturity":"experimental","layer":1,"dependencies":["core-types","provenance"]},
-    "semantic-graph": {"maturity":"experimental","layer":2,"dependencies":["core-types","provenance","open-world-values","ontology"]},
-    "semantic-validator": {"maturity":"experimental","layer":3,"dependencies":["core-types","provenance","ontology","semantic-graph"]},
-    "grounding": {"maturity":"prototype","layer":3,"dependencies":["core-types","open-world-values","ontology","semantic-graph"]},
-    "decision-runtime": {"maturity":"experimental","layer":4,"dependencies":["core-types","provenance"]},
-    "decision-packs": {"maturity":"prototype","layer":5,"dependencies":["core-types","decision-runtime"]},
-    "discourse-ir": {"maturity":"prototype","layer":6,"dependencies":["core-types","semantic-graph"]},
-    "dialogue-state": {"maturity":"prototype","layer":7,"dependencies":["core-types","semantic-graph","discourse-ir","decision-packs"]},
-    "pragmatics": {"maturity":"prototype","layer":7,"dependencies":["core-types","semantic-graph","discourse-ir","decision-packs"]},
-    "lexicon-core": {"maturity":"prototype","layer":6,"dependencies":["core-types","ontology"]},
-    "grammar-core": {"maturity":"prototype","layer":7,"dependencies":["core-types","semantic-graph","lexicon-core"]},
-    "morphology-core": {"maturity":"prototype","layer":7,"dependencies":["core-types","lexicon-core"]},
-    "parser-core": {"maturity":"prototype","layer":8,"dependencies":["core-types","semantic-graph","grammar-core","lexicon-core","grounding"]},
-    "realizer-core": {"maturity":"prototype","layer":8,"dependencies":["core-types","semantic-graph","discourse-ir","grammar-core","morphology-core","lexicon-core"]},
-    "language-en": {"maturity":"prototype","layer":9,"dependencies":["grammar-core","morphology-core","lexicon-core","parser-core","realizer-core"]},
-    "language-vi": {"maturity":"prototype","layer":9,"dependencies":["grammar-core","morphology-core","lexicon-core","parser-core","realizer-core"]},
-    "program-ir": {"maturity":"prototype","layer":6,"dependencies":["core-types","semantic-graph"]},
-    "synthesis-core": {"maturity":"prototype","layer":7,"dependencies":["core-types","program-ir","decision-packs"]},
-    "code-backend-core": {"maturity":"prototype","layer":8,"dependencies":["core-types","program-ir"]},
-    "action-ir": {"maturity":"prototype","layer":6,"dependencies":["core-types","semantic-graph"]},
-    "formal-ir": {"maturity":"prototype","layer":6,"dependencies":["core-types","semantic-graph"]},
-    "verifier-core": {"maturity":"prototype","layer":9,"dependencies":["core-types","semantic-graph"]},
-    "trace-replay": {"maturity":"prototype","layer":5,"dependencies":["core-types","provenance"]},
-    "universal-expression": {"maturity":"prototype","layer":10,"dependencies":["core-types","semantic-graph","discourse-ir","program-ir","action-ir","formal-ir","verifier-core"]}
+    "core-types": {
+      "maturity": "candidate",
+      "layer": 0,
+      "dependencies": []
+    },
+    "provenance": {
+      "maturity": "candidate",
+      "layer": 1,
+      "dependencies": [
+        "core-types"
+      ]
+    },
+    "open-world-values": {
+      "maturity": "experimental",
+      "layer": 1,
+      "dependencies": [
+        "core-types",
+        "provenance"
+      ]
+    },
+    "ontology": {
+      "maturity": "experimental",
+      "layer": 1,
+      "dependencies": [
+        "core-types",
+        "provenance"
+      ]
+    },
+    "semantic-graph": {
+      "maturity": "experimental",
+      "layer": 2,
+      "dependencies": [
+        "core-types",
+        "provenance",
+        "open-world-values",
+        "ontology"
+      ]
+    },
+    "semantic-validator": {
+      "maturity": "experimental",
+      "layer": 3,
+      "dependencies": [
+        "core-types",
+        "provenance",
+        "ontology",
+        "semantic-graph"
+      ]
+    },
+    "grounding": {
+      "maturity": "prototype",
+      "layer": 3,
+      "dependencies": [
+        "core-types",
+        "open-world-values",
+        "ontology",
+        "semantic-graph"
+      ]
+    },
+    "decision-runtime": {
+      "maturity": "experimental",
+      "layer": 4,
+      "dependencies": [
+        "core-types",
+        "provenance"
+      ]
+    },
+    "decision-packs": {
+      "maturity": "prototype",
+      "layer": 5,
+      "dependencies": [
+        "core-types",
+        "decision-runtime"
+      ]
+    },
+    "discourse-ir": {
+      "maturity": "prototype",
+      "layer": 6,
+      "dependencies": [
+        "core-types",
+        "semantic-graph"
+      ]
+    },
+    "dialogue-state": {
+      "maturity": "prototype",
+      "layer": 7,
+      "dependencies": [
+        "core-types",
+        "semantic-graph",
+        "discourse-ir",
+        "decision-packs",
+        "decision-runtime"
+      ]
+    },
+    "pragmatics": {
+      "maturity": "prototype",
+      "layer": 7,
+      "dependencies": [
+        "core-types",
+        "semantic-graph",
+        "discourse-ir",
+        "decision-packs"
+      ]
+    },
+    "lexicon-core": {
+      "maturity": "prototype",
+      "layer": 6,
+      "dependencies": [
+        "core-types",
+        "ontology"
+      ]
+    },
+    "grammar-core": {
+      "maturity": "prototype",
+      "layer": 7,
+      "dependencies": [
+        "core-types",
+        "semantic-graph",
+        "lexicon-core"
+      ]
+    },
+    "morphology-core": {
+      "maturity": "prototype",
+      "layer": 7,
+      "dependencies": [
+        "core-types",
+        "lexicon-core"
+      ]
+    },
+    "parser-core": {
+      "maturity": "prototype",
+      "layer": 8,
+      "dependencies": [
+        "core-types",
+        "semantic-graph",
+        "grammar-core",
+        "lexicon-core",
+        "grounding"
+      ]
+    },
+    "realizer-core": {
+      "maturity": "prototype",
+      "layer": 8,
+      "dependencies": [
+        "core-types",
+        "semantic-graph",
+        "discourse-ir",
+        "grammar-core",
+        "morphology-core",
+        "lexicon-core"
+      ]
+    },
+    "language-en": {
+      "maturity": "prototype",
+      "layer": 9,
+      "dependencies": [
+        "grammar-core",
+        "morphology-core",
+        "lexicon-core",
+        "parser-core",
+        "realizer-core"
+      ]
+    },
+    "language-vi": {
+      "maturity": "prototype",
+      "layer": 9,
+      "dependencies": [
+        "grammar-core",
+        "morphology-core",
+        "lexicon-core",
+        "parser-core",
+        "realizer-core"
+      ]
+    },
+    "program-ir": {
+      "maturity": "prototype",
+      "layer": 6,
+      "dependencies": [
+        "core-types",
+        "semantic-graph"
+      ]
+    },
+    "synthesis-core": {
+      "maturity": "prototype",
+      "layer": 7,
+      "dependencies": [
+        "core-types",
+        "program-ir",
+        "decision-packs"
+      ]
+    },
+    "code-backend-core": {
+      "maturity": "prototype",
+      "layer": 8,
+      "dependencies": [
+        "core-types",
+        "program-ir"
+      ]
+    },
+    "action-ir": {
+      "maturity": "prototype",
+      "layer": 6,
+      "dependencies": [
+        "core-types",
+        "semantic-graph"
+      ]
+    },
+    "formal-ir": {
+      "maturity": "prototype",
+      "layer": 6,
+      "dependencies": [
+        "core-types",
+        "semantic-graph"
+      ]
+    },
+    "verifier-core": {
+      "maturity": "prototype",
+      "layer": 9,
+      "dependencies": [
+        "core-types",
+        "semantic-graph"
+      ]
+    },
+    "trace-replay": {
+      "maturity": "prototype",
+      "layer": 5,
+      "dependencies": [
+        "core-types",
+        "provenance"
+      ]
+    },
+    "universal-expression": {
+      "maturity": "prototype",
+      "layer": 10,
+      "dependencies": [
+        "core-types",
+        "semantic-graph",
+        "discourse-ir",
+        "program-ir",
+        "action-ir",
+        "formal-ir",
+        "verifier-core"
+      ]
+    }
   }
 }

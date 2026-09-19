@@ -5,7 +5,7 @@ import {
   RecordedDecisionAdapter,
   type DecisionBatchResponse,
 } from "../packages/decision-runtime/src/index.ts";
-import { resolveReference } from "../packages/grounding/src/index.ts";
+import { resolveReference } from "../packages/dialogue-state/src/index.ts";
 
 describe("second vertical slice: recorded Jev reference choice", () => {
   it("selects a compatible discourse referent without a live call", async () => {
