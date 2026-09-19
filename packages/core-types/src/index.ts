@@ -159,11 +159,26 @@ export const canonicalizeJson = (value: JsonValue): JsonValue => {
 export const canonicalJson = (value: JsonValue): string =>
   JSON.stringify(canonicalizeJson(value));
 
-export const sha256 = (data: string | Uint8Array): Digest => {
-  const hash = createHash("sha256");
-  hash.update(data);
-  return `sha256:${hash.digest("hex")}` as Digest;
-};
+export interface DigestProvider {
+  readonly algorithm: "sha256";
+  digest(data: string | Uint8Array): Digest;
+}
+
+export class NodeSha256DigestProvider implements DigestProvider {
+  readonly algorithm = "sha256" as const;
+
+  digest(data: string | Uint8Array): Digest {
+    const hash = createHash(this.algorithm);
+    hash.update(data);
+    return `sha256:${hash.digest("hex")}` as Digest;
+  }
+}
+
+export const defaultDigestProvider: DigestProvider =
+  new NodeSha256DigestProvider();
+
+export const sha256 = (data: string | Uint8Array): Digest =>
+  defaultDigestProvider.digest(data);
 
 export const assertNever = (value: never, context = "exhaustive switch"): never => {
   throw new StructuredError(
