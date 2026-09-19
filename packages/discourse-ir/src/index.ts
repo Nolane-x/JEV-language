@@ -454,7 +454,7 @@ export const orderDiscourse = (
     }
   }
 
-  const indegree = new Map(unitIds.map((id) => [id, 0] as const));
+  const indegree = new Map<string, number>(unitIds.map((id) => [id, 0]));
   const edges = new Map(unitIds.map((id) => [id, new Set<string>()] as const));
   for (const constraint of hard) {
     const targets = edges.get(constraint.before);
