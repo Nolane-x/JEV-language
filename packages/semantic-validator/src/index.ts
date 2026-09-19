@@ -20,6 +20,7 @@ import type {
 } from "../../provenance/src/index.ts";
 import {
   validateGraphTopology,
+  validateScopeGraph,
   type CyclePermissionRegistry,
   type Diagnostic,
   type GraphSnapshot,
@@ -184,6 +185,60 @@ export const DIAGNOSTIC_REGISTRY = {
     defaultSeverity: "error",
     description: "A semantic cycle is present without an explicit cycle-permission rule.",
   },
+  JSG060_SCOPE_OPERATOR_INVALID: {
+    code: "JSG060_SCOPE_OPERATOR_INVALID",
+    stage: "V5",
+    defaultSeverity: "error",
+    description: "A scope object references an invalid operator or body.",
+  },
+  JSG061_SCOPE_CONSTRAINT_TARGET_INVALID: {
+    code: "JSG061_SCOPE_CONSTRAINT_TARGET_INVALID",
+    stage: "V5",
+    defaultSeverity: "error",
+    description: "A scope constraint does not reference two scope objects.",
+  },
+  JSG062_SCOPE_OUTSCOPES_CYCLE: {
+    code: "JSG062_SCOPE_OUTSCOPES_CYCLE",
+    stage: "V5",
+    defaultSeverity: "error",
+    description: "Hard outscopes relations contain a semantic contradiction cycle.",
+  },
+  JSG063_QUANTIFIER_SCOPE_INVALID: {
+    code: "JSG063_QUANTIFIER_SCOPE_INVALID",
+    stage: "V5",
+    defaultSeverity: "error",
+    description: "A quantifier does not match its explicit scope object.",
+  },
+  JSG064_SCOPE_RELATION_SELF_CONTRADICTION: {
+    code: "JSG064_SCOPE_RELATION_SELF_CONTRADICTION",
+    stage: "V5",
+    defaultSeverity: "error",
+    description: "A scope relation is impossible when applied to one scope.",
+  },
+  JSG065_QUANTIFIER_CARDINALITY_REQUIRED: {
+    code: "JSG065_QUANTIFIER_CARDINALITY_REQUIRED",
+    stage: "V5",
+    defaultSeverity: "error",
+    description: "A quantifier class requires matching explicit cardinality semantics.",
+  },
+  JSG066_QUANTIFIER_CARDINALITY_INVALID: {
+    code: "JSG066_QUANTIFIER_CARDINALITY_INVALID",
+    stage: "V5",
+    defaultSeverity: "error",
+    description: "Quantifier cardinality metadata is outside its semantic domain.",
+  },
+  JSG067_SCOPE_CONSTRAINT_CONFLICT: {
+    code: "JSG067_SCOPE_CONSTRAINT_CONFLICT",
+    stage: "V5",
+    defaultSeverity: "error",
+    description: "Hard scope constraints conflict.",
+  },
+  JSG068_NEGATION_SCOPE_INVALID: {
+    code: "JSG068_NEGATION_SCOPE_INVALID",
+    stage: "V5",
+    defaultSeverity: "error",
+    description: "A negation operator does not match its explicit scope object.",
+  },
   JSG900_UNSUPPORTED_NODE_KIND: {
     code: "JSG900_UNSUPPORTED_NODE_KIND",
     stage: "V0",
@@ -247,6 +302,10 @@ const knownKinds = new Set<string>([
   "property",
   "relation",
   "proposition",
+  "scope",
+  "scope-constraint",
+  "quantifier",
+  "negation",
   "quantity",
   "temporal",
   "location",
@@ -400,6 +459,17 @@ export const internalRefs = (node: JsgNode): SemanticId[] => {
         ...(node.epistemic?.source === undefined ? [] : [node.epistemic.source]),
         ...node.arguments.flatMap((argument) => refsFromValue(argument.value)),
       ];
+    case "scope":
+      return [
+        node.operatorRef,
+        ...(node.bodyRef === undefined ? [] : [node.bodyRef]),
+      ];
+    case "scope-constraint":
+      return [node.left, node.right];
+    case "quantifier":
+      return [node.restrictor, node.body, node.scope];
+    case "negation":
+      return [node.body, node.scope];
     case "quantity":
     case "temporal":
       return [];
@@ -1238,6 +1308,8 @@ const validateV5 = (snapshot: GraphSnapshot): Diagnostic[] => {
       );
     }
   }
+
+  diagnostics.push(...validateScopeGraph(snapshot));
 
   return diagnostics;
 };
