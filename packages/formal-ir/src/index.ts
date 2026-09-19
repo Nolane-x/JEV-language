@@ -774,3 +774,29 @@ export const validateCommandIr = (
 
   return ok(structuredClone(command));
 };
+
+
+const renderValidated = <T>(
+  validation: Result<T>,
+): Result<string> =>
+  validation.ok
+    ? ok(JSON.stringify(validation.value))
+    : err(validation.error);
+
+export const renderDataIr = (value: DataIr): Result<string> =>
+  renderValidated(validateDataIr(value));
+
+export const renderSchemaIr = (schema: SchemaIr): Result<string> =>
+  renderValidated(validateSchemaIr(schema));
+
+export const renderQueryIr = (query: QueryIr): Result<string> =>
+  renderValidated(validateQueryIr(query));
+
+export const renderLogicIr = (logic: LogicIr): Result<string> =>
+  renderValidated(validateLogicIr(logic));
+
+export const renderMathIr = (math: MathIr): Result<string> =>
+  renderValidated(validateMathIr(math));
+
+export const renderCommandIr = (command: CommandIr): Result<string> =>
+  renderValidated(validateCommandIr(command));
