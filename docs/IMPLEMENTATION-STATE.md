@@ -3,8 +3,8 @@
 ```yaml
 spec_version: 0.4-master-implementation-research-expanded
 spec_digest_sha256: 9b8bc907fa0da89d4b7ea2e0be886919deffdb35e398ea7897ea77d305380f5b
-last_completed_gate: none
-active_milestone: M0-verification
+last_completed_gate: M0-repository-contract
+active_milestone: M1-semantic-graph-verification
 stable_packages: []
 candidate_packages:
   - core-types
@@ -41,7 +41,7 @@ next_tasks:
   - expand M16 multi-target adapters beyond the controlled delete-limit semantic subset
   - run exactly one manual live-Jev smoke only when explicitly desired
 last_verified_main_commit: 7dac106cdf08bc89be50833ed7dc4e7e6f5cd20e
-last_verified_pr_head: a094d7d016f25f114b2e9194145b5d6a9c872fa9
+last_verified_pr_head: 46018371ce358e04c4dea36461884d62a92a239a
 ```
 
 ## Current state

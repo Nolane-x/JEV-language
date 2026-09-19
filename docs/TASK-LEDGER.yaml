@@ -10,7 +10,7 @@ tasks:
   - {id: T007, title: implement TrustLabel/Sensitivity types, status: implemented}
   - {id: T008, title: implement Provenance IDs and records, status: implemented}
   - {id: T009, title: implement canonical JSON utility, status: implemented}
-  - {id: T010, title: implement hashing/digest abstraction, status: partial}
+  - {id: T010, title: implement hashing/digest abstraction, status: implemented}
   - {id: T011-T025, title: JSG bootstrap/schema/transactions/serialization/query, status: partial}
   - {id: T026-T035, title: staged semantic validator and invariants, status: partial}
   - {id: T036-T047, title: open-world values/source spans/opaque/literals, status: partial}
