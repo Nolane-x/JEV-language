@@ -1,13 +1,19 @@
 # parser-core
 
-Status: **prototype / PARTIAL**.
+Status: **prototype / M18.2 candidate**.
 
-Implemented M4 foundation:
-- packed syntax-forest structures and runtime validation;
+Implemented parser infrastructure:
+
+- packed syntax-forest model and runtime validation;
+- deterministic GrammarRule-driven packed chart parser;
+- literal, lexical and category pattern matching;
+- optional and repeated grammar patterns with non-consuming-recursion budget protection;
+- feature-aware token/category matching;
+- ambiguity packing as multiple alternatives on one span/category node;
 - semantic construction rule ABI and parse candidates;
-- ambiguity classification with deterministic resolver registry;
+- ambiguity classification/resolution registry;
 - bounded JDR-backed Choice ambiguity resolver with stable candidate IDs;
 - confidence-threshold ambiguity preservation;
 - JSG parse commits through semantic validation.
 
-The controlled M4 corpus covers the required bootstrap phenomena, but broad grammar/parser coverage remains intentionally outside this package's current maturity claim. Live provider quality is tracked by the separate M3 live-smoke gate.
+M18.2 adds rule-driven parsing but does not claim arbitrary open-domain parsing.
