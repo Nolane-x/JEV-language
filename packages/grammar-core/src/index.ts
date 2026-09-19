@@ -125,6 +125,21 @@ export const grammarRuleSignature = (rule: GrammarRule): string =>
     rhs: rule.rhs.map(patternSignature),
   });
 
+const cloneGrammarRule = (rule: GrammarRule): GrammarRule => ({
+  ...rule,
+  rhs: rule.rhs.map((pattern) => structuredClone(pattern)),
+  constraints: [...rule.constraints],
+  ...(rule.semanticConstruction === undefined
+    ? {}
+    : { semanticConstruction: rule.semanticConstruction }),
+  ...(rule.realizationPlan === undefined
+    ? {}
+    : { realizationPlan: structuredClone(rule.realizationPlan) }),
+  ...(rule.annotations === undefined
+    ? {}
+    : { annotations: structuredClone(rule.annotations) }),
+});
+
 export const validateGrammarRule = (
   rule: GrammarRule,
 ): Result<GrammarRule> => {
@@ -162,7 +177,7 @@ export const validateGrammarRule = (
     }
     captures.add(capture);
   }
-  return ok(structuredClone(rule));
+  return ok(cloneGrammarRule(rule));
 };
 
 export class GrammarRegistry {
@@ -190,14 +205,14 @@ export class GrammarRegistry {
         ),
       );
     }
-    this.#rules.set(rule.id, structuredClone(rule));
+    this.#rules.set(rule.id, cloneGrammarRule(rule));
     this.#signatures.set(signature, rule.id);
     return ok(undefined);
   }
 
   get(id: string): GrammarRule | undefined {
     const value = this.#rules.get(id);
-    return value === undefined ? undefined : structuredClone(value);
+    return value === undefined ? undefined : cloneGrammarRule(value);
   }
 
   rulesFor(
@@ -210,7 +225,7 @@ export class GrammarRegistry {
           rule.language === language &&
           (lhs === undefined || rule.lhs === lhs),
       )
-      .map((rule) => structuredClone(rule))
+      .map((rule) => cloneGrammarRule(rule))
       .sort(
         (left, right) =>
           (right.priority ?? 0) - (left.priority ?? 0) ||
