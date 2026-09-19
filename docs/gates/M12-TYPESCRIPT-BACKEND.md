@@ -1,6 +1,6 @@
 # M12 — TypeScript Backend Gate Evidence
 
-Status: **candidate — pending CI**
+Status: **verified**
 
 Specification basis: Sections 421–422 and tasks T209–T219 of the v0.4 master specification.
 
@@ -45,11 +45,16 @@ Source patching currently uses a deterministic minimal contiguous replacement de
 
 ## Gate rule
 
-Do not mark M12 verified or advance `last_completed_gate` until the complete branch head passes:
+Verified evidence:
 
-1. package-boundary validation;
-2. strict TypeScript;
-3. full deterministic tests;
-4. the M12 conformance suite, including strict compiler acceptance of every M10 PIR fixture.
+- implementation head: `9fc388abc194c2ac737e45da30ca3f24b8e4676a`
+- GitHub Actions CI: run `#155` / run id `35430332203`
+- deterministic job: `105863624639`
+- package boundaries: `success`
+- strict TypeScript: `success`
+- M12 conformance: `7/7` tests
+- full suite: `39/39` test files, `312/312` tests
+- all eight verified M10 PIR fixtures lowered to TypeScript and strict-typechecked successfully
+- live Jev requests consumed by M12: `0`
 
-Live Jev requests required by M12: **0**.
+The implementation-state ledger may advance to M13 Python backend. The final documentation head must itself pass CI before merge.
