@@ -80,4 +80,76 @@ describe("ontology safety", () => {
     );
     expect(result.ok).toBe(false);
   });
+
+  it("merges ontology concepts transactionally and prevents parent cycles", () => {
+    const store = new OntologyStore();
+    expect(
+      store.mergeConcepts([
+        {
+          id: "concept:test.root",
+          namespace: "test",
+          labels: { en: "root" },
+          parents: [],
+          status: "domain",
+        },
+        {
+          id: "concept:test.child",
+          namespace: "test",
+          labels: { en: "child" },
+          parents: ["concept:test.root"],
+          status: "domain",
+        },
+      ]).ok,
+    ).toBe(true);
+    expect(store.isA("concept:test.child", "concept:test.root")).toBe(true);
+    expect(store.ancestorsOf("concept:test.child")).toEqual([
+      "concept:test.root",
+    ]);
+
+    const cycle = store.mergeConcepts([
+      {
+        id: "concept:test.a",
+        namespace: "test",
+        labels: { en: "a" },
+        parents: ["concept:test.b"],
+        status: "domain",
+      },
+      {
+        id: "concept:test.b",
+        namespace: "test",
+        labels: { en: "b" },
+        parents: ["concept:test.a"],
+        status: "domain",
+      },
+    ]);
+    expect(cycle.ok).toBe(false);
+  });
+
+  it("resolves deprecated concepts to explicit replacements", () => {
+    const store = new OntologyStore();
+    expect(
+      store.mergeConcepts([
+        {
+          id: "concept:test.old",
+          namespace: "test",
+          labels: { en: "old" },
+          parents: [],
+          status: "domain",
+        },
+        {
+          id: "concept:test.new",
+          namespace: "test",
+          labels: { en: "new" },
+          parents: [],
+          status: "domain",
+        },
+      ]).ok,
+    ).toBe(true);
+    expect(
+      store.deprecateConcept("concept:test.old", "concept:test.new").ok,
+    ).toBe(true);
+    expect(store.resolveConcept("concept:test.old")?.id).toBe(
+      "concept:test.new",
+    );
+  });
 });
