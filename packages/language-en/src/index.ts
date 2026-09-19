@@ -1,4 +1,7 @@
-import type { ConceptRef } from "../../ontology/src/index.ts";
+import {
+  GrammarRegistry,
+  type GrammarRule,
+} from "../../grammar-core/src/index.ts";
 import {
   LanguageNeutralLexiconIndex,
   type Lexeme,
@@ -15,10 +18,12 @@ const require = (ok: { ok: boolean; error?: Error }): void => {
   if (!ok.ok) throw ok.error ?? new Error("English language-pack registration failed.");
 };
 
+type LexicalConcept = NonNullable<Lexeme["senses"][number]["concept"]>;
+
 const noun = (
   id: string,
   lemma: string,
-  concept: ConceptRef,
+  concept: LexicalConcept,
   forms: string[] = [],
 ): Lexeme => ({
   id,
@@ -343,3 +348,128 @@ export const englishControlledCoverage = {
     "causal-adjuncts": "partial",
   },
 } as const;
+
+
+const grammarRule = (
+  id: string,
+  lhs: string,
+  rhs: GrammarRule["rhs"],
+  priority = 0,
+): GrammarRule => ({
+  id,
+  language: "en",
+  lhs,
+  rhs,
+  constraints: [],
+  priority,
+});
+
+export const createEnglishControlledGrammar = (): GrammarRegistry => {
+  const registry = new GrammarRegistry();
+  const rules: GrammarRule[] = [
+    grammarRule(
+      "grammar:en.np.noun",
+      "NP",
+      [{ kind: "lexical", partOfSpeech: "noun", capture: "head" }],
+      20,
+    ),
+    grammarRule(
+      "grammar:en.vp.transitive",
+      "VP",
+      [
+        { kind: "lexical", partOfSpeech: "verb", capture: "predicate" },
+        { kind: "category", category: "NP", capture: "object" },
+      ],
+      20,
+    ),
+    grammarRule(
+      "grammar:en.s.declarative",
+      "S",
+      [
+        { kind: "category", category: "NP", capture: "subject" },
+        { kind: "category", category: "VP", capture: "predicate" },
+      ],
+      20,
+    ),
+    grammarRule(
+      "grammar:en.modal.required-negative",
+      "VP",
+      [
+        {
+          kind: "lexical",
+          partOfSpeech: "auxiliary",
+          semanticTag: "modality.required",
+          capture: "modal",
+        },
+        {
+          kind: "lexical",
+          partOfSpeech: "particle",
+          semanticTag: "polarity.negative",
+          capture: "negation",
+        },
+        { kind: "category", category: "VP", capture: "content" },
+      ],
+      30,
+    ),
+    grammarRule(
+      "grammar:en.coordination.and",
+      "COORD",
+      [
+        { kind: "category", category: "S", capture: "left" },
+        { kind: "literal", surface: "and" },
+        { kind: "category", category: "S", capture: "right" },
+      ],
+      10,
+    ),
+    grammarRule(
+      "grammar:en.conditional.if",
+      "S",
+      [
+        { kind: "literal", surface: "if" },
+        { kind: "category", category: "S", capture: "condition" },
+        { kind: "category", category: "S", capture: "consequence" },
+      ],
+      10,
+    ),
+    grammarRule(
+      "grammar:en.causal.because",
+      "S",
+      [
+        { kind: "category", category: "S", capture: "result" },
+        { kind: "literal", surface: "because" },
+        { kind: "category", category: "S", capture: "cause" },
+      ],
+      10,
+    ),
+    grammarRule(
+      "grammar:en.quantity.more-than",
+      "QUANTITY",
+      [
+        { kind: "literal", surface: "more" },
+        { kind: "literal", surface: "than" },
+        { kind: "lexical", partOfSpeech: "numeral", capture: "amount" },
+        { kind: "category", category: "NP", capture: "unit" },
+      ],
+      20,
+    ),
+    grammarRule(
+      "grammar:en.question.wh",
+      "QUESTION",
+      [
+        {
+          kind: "lexical",
+          semanticTag: "question.wh",
+          capture: "question-word",
+        },
+        { kind: "category", category: "S", capture: "body" },
+      ],
+      10,
+    ),
+  ];
+
+  for (const rule of rules) {
+    const result = registry.register(rule);
+    if (!result.ok) throw result.error;
+  }
+  return registry;
+};
