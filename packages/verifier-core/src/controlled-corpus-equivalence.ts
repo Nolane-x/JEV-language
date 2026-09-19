@@ -12,7 +12,9 @@ import type {
   ConstraintNode,
   EventNode,
   GraphSnapshot,
+  IntentNode,
   PropositionNode,
+  ReferenceNode,
   QuantityNode,
   RelationNode,
   SemanticArgument,
@@ -72,6 +74,16 @@ export type ControlledCorpusProjection =
       epistemic: "reported";
       attributionConcept: string;
       quantity: ControlledQuantityProjection;
+    }
+  | {
+      kind: "reference";
+      resolvedConcept: string;
+      candidateConcepts: string[];
+    }
+  | {
+      kind: "instruction-content";
+      intent: string;
+      content: Extract<ControlledCorpusProjection, { kind: "constraint" }>;
     };
 
 const refForRole = (
@@ -137,6 +149,49 @@ const reasonState = (
 export const projectControlledCorpusSemantics = (
   snapshot: GraphSnapshot,
 ): Result<ControlledCorpusProjection> => {
+  const instruction = snapshot.nodes.find(
+    (node): node is IntentNode =>
+      node.kind === "intent" &&
+      node.intent === "concept:core.instruction" &&
+      node.content !== undefined,
+  );
+  if (instruction?.content !== undefined) {
+    const constraint = nodeById(snapshot, instruction.content, "constraint");
+    const content =
+      constraint === undefined
+        ? undefined
+        : constraintProjection(snapshot, constraint);
+    if (content !== undefined) {
+      return ok({
+        kind: "instruction-content",
+        intent: instruction.intent,
+        content,
+      });
+    }
+  }
+
+  const reference = snapshot.nodes.find(
+    (node): node is ReferenceNode =>
+      node.kind === "reference" && node.resolved !== undefined,
+  );
+  if (reference?.resolved !== undefined) {
+    const resolved = nodeById(snapshot, reference.resolved, "entity");
+    const candidates = reference.candidates
+      .map((id) => nodeById(snapshot, id, "entity"))
+      .filter((node): node is NonNullable<typeof node> => node !== undefined);
+    if (
+      resolved !== undefined &&
+      candidates.length === reference.candidates.length
+    ) {
+      return ok({
+        kind: "reference",
+        resolvedConcept: resolved.concept,
+        candidateConcepts: candidates
+          .map((candidate) => candidate.concept)
+          .sort(),
+      });
+    }
+  }
   const condition = snapshot.nodes.find(
     (node): node is ConstraintNode =>
       node.kind === "constraint" &&

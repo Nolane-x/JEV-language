@@ -193,6 +193,27 @@ const parseVietnameseFrame = (text: string): ControlledFrame | undefined => {
     };
   }
 
+  if (/^Ở\s+đây,\s*["“]nó["”]\s+chỉ\s+dịch\s+vụ\.?$/iu.test(text)) {
+    return {
+      kind: "resolved-reference",
+      mention: "nó",
+      phenomena: ["dialogue-reference"],
+    };
+  }
+
+  match = /^Chỉ\s+dẫn\s+yêu\s+cầu\s+dịch\s+vụ\s+(?:phải\s+)?xóa\s+đúng\s+(\d+)\s+(?:cái\s+)?(?:tệp(?:\s+tin)?|file)\.?$/iu.exec(
+    text,
+  );
+  if (match !== null) {
+    const amount = integer(match[1]);
+    if (amount === undefined) return undefined;
+    return {
+      kind: "instruction-content",
+      amount,
+      phenomena: ["instruction-as-content", "requirement", "exact-quantity"],
+    };
+  }
+
   return undefined;
 };
 

@@ -11,7 +11,9 @@ import type {
   EntityNode,
   EventNode,
   GraphSnapshot,
+  IntentNode,
   PropositionNode,
+  ReferenceNode,
   QuantityNode,
   RelationNode,
   RoleBinding,
@@ -274,9 +276,58 @@ const realizeProposition = (
   return undefined;
 };
 
+const realizeReference = (
+  snapshot: GraphSnapshot,
+  reference: ReferenceNode,
+): string | undefined => {
+  if (
+    reference.resolved === undefined ||
+    !reference.candidates.includes(reference.resolved)
+  ) {
+    return undefined;
+  }
+  const entity = nodeById(snapshot, reference.resolved, "entity");
+  return entity?.concept === "concept:core.software-service"
+    ? 'Ở đây, "nó" chỉ dịch vụ.'
+    : undefined;
+};
+
+const realizeInstruction = (
+  snapshot: GraphSnapshot,
+  intent: IntentNode,
+): string | undefined => {
+  if (
+    intent.intent !== "concept:core.instruction" ||
+    intent.content === undefined
+  ) {
+    return undefined;
+  }
+  const constraint = nodeById(snapshot, intent.content, "constraint");
+  if (constraint === undefined) return undefined;
+  const content = realizeConstraint(snapshot, constraint);
+  if (content === undefined) return undefined;
+  const lower =
+    content.charAt(0).toLocaleLowerCase("vi") + content.slice(1);
+  return `Chỉ dẫn yêu cầu ${lower}`;
+};
+
 export const realizeControlledVietnameseCorpus = (
   snapshot: GraphSnapshot,
 ): Result<string> => {
+  for (const node of snapshot.nodes) {
+    if (node.kind === "intent") {
+      const value = realizeInstruction(snapshot, node);
+      if (value !== undefined) return ok(value);
+    }
+  }
+
+  for (const node of snapshot.nodes) {
+    if (node.kind === "reference") {
+      const value = realizeReference(snapshot, node);
+      if (value !== undefined) return ok(value);
+    }
+  }
+
   for (const node of snapshot.nodes) {
     if (node.kind === "constraint" && node.constraintKind === "condition") {
       const value = realizeCondition(snapshot, node);

@@ -109,6 +109,12 @@ export const createVietnameseSeedLexicon =
       lexeme("lexeme:vi.xoa", "xóa", "verb", {
         concept: "concept:core.delete",
       }),
+      lexeme("lexeme:vi.chi-dan", "chỉ dẫn", "noun", {
+        concept: "concept:core.instruction",
+      }),
+      lexeme("lexeme:vi.no", "nó", "pronoun", {
+        semanticTag: "reference.anaphoric",
+      }),
       lexeme("lexeme:vi.khong", "không", "particle", {
         semanticTag: "polarity.negative",
       }),
@@ -364,6 +370,8 @@ export const vietnameseCoverage: GrammarCoverageMatrix = {
     "serial-verb-constructions": "unsupported",
     "topic-prominent-structures": "partial",
     reduplication: "unsupported",
+    "dialogue-reference": "controlled",
+    "instruction-as-content": "controlled",
   },
   notes: {
     morphology:
@@ -469,6 +477,7 @@ export const vietnameseConformanceManifest: LanguageConformanceManifest = {
   corpusRefs: [
     "tests/conformance/m8-vietnamese-language-pack.conformance.test.ts",
     "tests/conformance/m8-cross-lingual-equivalence.conformance.test.ts",
+    "tests/conformance/m9-multilingual-semantic-equivalence.conformance.test.ts",
   ],
   requiredPhenomena: [
     "negation",
@@ -479,6 +488,8 @@ export const vietnameseConformanceManifest: LanguageConformanceManifest = {
     "causality",
     "modality",
     "attribution",
+    "dialogue-reference",
+    "instruction-as-content",
   ],
   determinism: "D0",
 };

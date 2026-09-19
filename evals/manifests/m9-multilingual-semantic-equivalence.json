@@ -1,0 +1,54 @@
+{
+  "schemaVersion": "jl-eval-manifest-1",
+  "id": "m9.multilingual-semantic-equivalence",
+  "milestone": "M9",
+  "languages": [
+    "en",
+    "vi"
+  ],
+  "datasetRef": "tests/conformance/m9-multilingual-semantic-equivalence.conformance.test.ts",
+  "directions": [
+    "surface-en -> JSG",
+    "surface-vi -> JSG",
+    "JSG -> en -> JSG",
+    "JSG -> vi -> JSG",
+    "en-roundtrip-JSG <-> vi-roundtrip-JSG"
+  ],
+  "semanticFamilies": [
+    "simple-facts",
+    "conditions",
+    "causality",
+    "negation",
+    "quantities",
+    "modality",
+    "time",
+    "reported-claims",
+    "dialogue-references",
+    "instructions-as-content"
+  ],
+  "dimensions": [
+    "semantic-kind",
+    "predicate",
+    "roles",
+    "polarity",
+    "modality",
+    "quantity",
+    "time",
+    "condition",
+    "causality",
+    "attribution",
+    "reference",
+    "instruction-content"
+  ],
+  "evaluation": {
+    "surfaceGold": false,
+    "compareCanonicalSemanticProjections": true,
+    "requireNoFailedDimensions": true,
+    "requireNegativeControlDetection": true
+  },
+  "runtime": {
+    "generativeLlmCalls": 0,
+    "liveJevRequests": 0,
+    "determinism": "D0"
+  }
+}

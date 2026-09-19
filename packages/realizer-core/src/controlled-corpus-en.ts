@@ -15,7 +15,9 @@ import type {
   EntityNode,
   EventNode,
   GraphSnapshot,
+  IntentNode,
   PropositionNode,
+  ReferenceNode,
   QuantityNode,
   RelationNode,
   SemanticArgument,
@@ -377,6 +379,56 @@ const renderCause = (
   return resultWithMap(text, [relation.id, main.id], q);
 };
 
+const renderReference = (
+  snapshot: GraphSnapshot,
+  reference: ReferenceNode,
+): ControlledEnglishSurface | undefined => {
+  if (
+    reference.resolved === undefined ||
+    !reference.candidates.includes(reference.resolved)
+  ) {
+    return undefined;
+  }
+  const entity = nodeById(snapshot, reference.resolved, "entity");
+  if (entity?.concept !== "concept:core.software-service") return undefined;
+  return resultWithMap(
+    'Here, "it" refers to the service.',
+    [reference.id, entity.id],
+  );
+};
+
+const renderInstruction = (
+  snapshot: GraphSnapshot,
+  intent: IntentNode,
+): ControlledEnglishSurface | undefined => {
+  if (
+    intent.intent !== "concept:core.instruction" ||
+    intent.content === undefined
+  ) {
+    return undefined;
+  }
+  const constraint = nodeById(snapshot, intent.content, "constraint");
+  if (constraint === undefined) return undefined;
+  const rendered = renderConstraint(snapshot, constraint);
+  if (rendered === undefined) return undefined;
+  const content =
+    rendered.text.charAt(0).toLocaleLowerCase("en") +
+    rendered.text.slice(1);
+  const quantity = snapshot.nodes.find(
+    (node): node is QuantityNode =>
+      node.kind === "quantity" &&
+      rendered.sourceMap.some(
+        (entry) =>
+          entry.kind === "quantity" && entry.semanticRefs.includes(node.id),
+      ),
+  );
+  return resultWithMap(
+    `The instruction says ${content}`,
+    [intent.id, constraint.id],
+    quantity,
+  );
+};
+
 const attachPlan = (
   snapshot: GraphSnapshot,
   surface: ControlledEnglishSurface,
@@ -393,6 +445,18 @@ const attachPlan = (
 export const realizeControlledEnglishCorpusArtifact = (
   snapshot: GraphSnapshot,
 ): Result<ControlledEnglishRealization> => {
+  for (const node of snapshot.nodes) {
+    if (node.kind === "intent") {
+      const rendered = renderInstruction(snapshot, node);
+      if (rendered !== undefined) return attachPlan(snapshot, rendered);
+    }
+  }
+  for (const node of snapshot.nodes) {
+    if (node.kind === "reference") {
+      const rendered = renderReference(snapshot, node);
+      if (rendered !== undefined) return attachPlan(snapshot, rendered);
+    }
+  }
   for (const node of snapshot.nodes) {
     if (node.kind === "constraint" && node.constraintKind === "condition") {
       const rendered = renderCondition(snapshot, node);
