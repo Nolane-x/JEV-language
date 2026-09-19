@@ -522,7 +522,7 @@ describe("T276-T288 evaluation core conformance", () => {
         requirementSatisfaction: 1,
         candidateOracleUpperBound: 1,
         jevCalls: synthesis.usage.jevCalls,
-        searchStates: synthesis.usage.statesExpanded,
+        searchStates: synthesis.usage.exploredStates,
       },
     ]);
     expect(report.ok).toBe(true);
