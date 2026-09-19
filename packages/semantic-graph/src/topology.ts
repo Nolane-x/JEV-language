@@ -445,9 +445,9 @@ export class MentionIndex {
     );
   }
 
-  #append(
-    index: Map<string, MentionNode[]>,
-    key: string,
+  #append<K extends string>(
+    index: Map<K, MentionNode[]>,
+    key: K,
     mention: MentionNode,
   ): void {
     const values = index.get(key) ?? [];
