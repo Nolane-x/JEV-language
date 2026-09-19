@@ -20,7 +20,9 @@ const typeForScopeSymbol = (
   const fn = context.state.program.functions.find(
     (candidate) => candidate.id === context.functionId,
   );
-  const parameter = fn?.parameters.find((candidate) => candidate.id === symbolId);
+  const parameter = fn?.parameters.find(
+    (candidate) => candidate.id === symbolId,
+  );
   if (parameter !== undefined) return parameter.type;
 
   const symbol = context.state.program.symbols?.find(
@@ -52,10 +54,11 @@ export class InScopeSymbolGenerator implements CandidateGenerator {
   readonly id = "generator.in-scope-symbol.v1";
 
   supports(context: CandidateGenerationContext): boolean {
-    return context.scopeSymbols.length > 0;
+    return context.location === "expression" && context.scopeSymbols.length > 0;
   }
 
   generate(context: CandidateGenerationContext): ExpansionCandidate[] {
+    if (context.location !== "expression") return [];
     const candidates: ExpansionCandidate[] = [];
     for (const symbolId of [...context.scopeSymbols].sort()) {
       const type = typeForScopeSymbol(context, symbolId);
@@ -64,7 +67,10 @@ export class InScopeSymbolGenerator implements CandidateGenerator {
       }
       candidates.push({
         id: `candidate:symbol:${symbolId}`,
-        replacement: { kind: "variable", symbolId },
+        replacement: {
+          kind: "expression",
+          value: { kind: "variable", symbolId },
+        },
         newHoles: [],
         proofObligations: [
           obligation(
@@ -96,18 +102,25 @@ export class LiteralGenerator implements CandidateGenerator {
   readonly id = "generator.literal.v1";
 
   supports(context: CandidateGenerationContext): boolean {
-    return context.problem.environment.literals.length > 0;
+    return (
+      context.location === "expression" &&
+      context.problem.environment.literals.length > 0
+    );
   }
 
   generate(context: CandidateGenerationContext): ExpansionCandidate[] {
+    if (context.location !== "expression") return [];
     return context.problem.environment.literals
       .filter((literal) => samePirType(literal.type, context.expectedType))
       .map((literal) => ({
         id: `candidate:literal:${literal.id}`,
         replacement: {
-          kind: "literal" as const,
-          value: structuredClone(literal.value),
-          type: structuredClone(literal.type),
+          kind: "expression" as const,
+          value: {
+            kind: "literal" as const,
+            value: structuredClone(literal.value),
+            type: structuredClone(literal.type),
+          },
         },
         newHoles: [],
         proofObligations: [
@@ -133,50 +146,52 @@ export class FunctionCallGenerator implements CandidateGenerator {
   readonly id = "generator.function-call.v1";
 
   supports(context: CandidateGenerationContext): boolean {
-    return context.problem.environment.callables.length > 0;
+    return (
+      context.location === "expression" &&
+      context.problem.environment.callables.length > 0
+    );
   }
 
   generate(context: CandidateGenerationContext): ExpansionCandidate[] {
+    if (context.location !== "expression") return [];
     const candidates: ExpansionCandidate[] = [];
 
     for (const callable of context.problem.environment.callables) {
       if (!samePirType(callable.returnType, context.expectedType)) continue;
 
-      const argumentsList = callable.parameterTypes.map(
-        (parameterType, index) => ({
-          hole: {
-            id: `${context.hole.id}:call:${callable.id}:arg:${index}`,
-            expectedType: structuredClone(parameterType),
-            expectedEffect: "pure" as const,
-            requiredFacts: [],
-            forbiddenFacts: [],
-            scopeSymbols: [...context.scopeSymbols],
-            ...(context.hole.purpose === undefined
-              ? {}
-              : { purpose: context.hole.purpose }),
-            budget: structuredClone(context.hole.budget),
-          } satisfies ProgramHole,
-          expression: undefined,
+      const argumentHoles = callable.parameterTypes.map(
+        (parameterType, index): ProgramHole => ({
+          id: `${context.hole.id}:call:${callable.id}:arg:${index}`,
+          expectedType: structuredClone(parameterType),
+          expectedEffect: "pure",
+          requiredFacts: [],
+          forbiddenFacts: [],
+          scopeSymbols: [...context.scopeSymbols],
+          ...(context.hole.purpose === undefined
+            ? {}
+            : { purpose: context.hole.purpose }),
+          budget: structuredClone(context.hole.budget),
         }),
       );
-      const newHoles = argumentsList.map((entry) => entry.hole);
-      const expressionArguments = argumentsList.map((entry) => ({
-        kind: "hole" as const,
-        id: entry.hole.id,
-        expected: structuredClone(entry.hole.expectedType!),
-        ...(entry.hole.purpose === undefined
-          ? {}
-          : { purpose: entry.hole.purpose }),
-      }));
 
       candidates.push({
         id: `candidate:call:${callable.id}`,
         replacement: {
-          kind: "call",
-          callee: { kind: "symbol-ref", symbolId: callable.id },
-          arguments: expressionArguments,
+          kind: "expression",
+          value: {
+            kind: "call",
+            callee: { kind: "symbol-ref", symbolId: callable.id },
+            arguments: argumentHoles.map((entry) => ({
+              kind: "hole",
+              id: entry.id,
+              expected: structuredClone(entry.expectedType!),
+              ...(entry.purpose === undefined
+                ? {}
+                : { purpose: entry.purpose }),
+            })),
+          },
         },
-        newHoles,
+        newHoles: argumentHoles,
         proofObligations: [
           obligation(
             `obligation:type:call:${callable.id}`,
@@ -208,10 +223,14 @@ export class BranchGenerator implements CandidateGenerator {
   readonly id = "generator.branch.v1";
 
   supports(context: CandidateGenerationContext): boolean {
-    return context.problem.environment.branchSeeds.length > 0;
+    return (
+      context.location === "expression" &&
+      context.problem.environment.branchSeeds.length > 0
+    );
   }
 
   generate(context: CandidateGenerationContext): ExpansionCandidate[] {
+    if (context.location !== "expression") return [];
     return context.problem.environment.branchSeeds.map((seed) => {
       const trueHole: ProgramHole = {
         id: `${context.hole.id}:branch:${seed.id}:true`,
@@ -235,17 +254,20 @@ export class BranchGenerator implements CandidateGenerator {
       return {
         id: `candidate:branch:${seed.id}`,
         replacement: {
-          kind: "conditional" as const,
-          condition: structuredClone(seed.condition),
-          whenTrue: {
-            kind: "hole" as const,
-            id: trueHole.id,
-            expected: structuredClone(context.expectedType),
-          },
-          whenFalse: {
-            kind: "hole" as const,
-            id: falseHole.id,
-            expected: structuredClone(context.expectedType),
+          kind: "expression" as const,
+          value: {
+            kind: "conditional" as const,
+            condition: structuredClone(seed.condition),
+            whenTrue: {
+              kind: "hole" as const,
+              id: trueHole.id,
+              expected: structuredClone(context.expectedType),
+            },
+            whenFalse: {
+              kind: "hole" as const,
+              id: falseHole.id,
+              expected: structuredClone(context.expectedType),
+            },
           },
         },
         newHoles: [trueHole, falseHole],
@@ -269,9 +291,242 @@ export class BranchGenerator implements CandidateGenerator {
   }
 }
 
+export class CollectionPatternGenerator implements CandidateGenerator {
+  readonly id = "generator.collection-pattern.v1";
+
+  supports(context: CandidateGenerationContext): boolean {
+    return (
+      context.location === "expression" &&
+      context.expectedType.kind === "list" &&
+      context.scopeSymbols.length > 0
+    );
+  }
+
+  generate(context: CandidateGenerationContext): ExpansionCandidate[] {
+    if (
+      context.location !== "expression" ||
+      context.expectedType.kind !== "list"
+    ) {
+      return [];
+    }
+
+    const candidates: ExpansionCandidate[] = [];
+    for (const symbolId of [...context.scopeSymbols].sort()) {
+      const sourceType = typeForScopeSymbol(context, symbolId);
+      if (sourceType?.kind !== "list") continue;
+
+      if (
+        samePirType(sourceType, context.expectedType) &&
+        sourceType.element.kind === "record"
+      ) {
+        for (const [field, fieldType] of Object.entries(
+          sourceType.element.fields,
+        ).sort(([a], [b]) => a.localeCompare(b))) {
+          if (fieldType.kind !== "boolean") continue;
+          const itemId = `symbol:${context.hole.id}:filter:${field}:item`;
+          candidates.push({
+            id: `candidate:collection:filter:${symbolId}:${field}`,
+            replacement: {
+              kind: "expression",
+              value: {
+                kind: "filter",
+                collection: { kind: "variable", symbolId },
+                item: {
+                  id: itemId,
+                  name: "item",
+                  type: structuredClone(sourceType.element),
+                },
+                predicate: {
+                  kind: "property",
+                  object: { kind: "variable", symbolId: itemId },
+                  property: field,
+                },
+              },
+            },
+            newHoles: [],
+            proofObligations: [
+              obligation(
+                `obligation:type:collection-filter:${symbolId}:${field}`,
+                "type-safety",
+                "Filter preserves the input collection type.",
+              ),
+            ],
+            heuristicCost: 2,
+            provenance: {
+              kind: "collection-pattern",
+              generatorId: this.id,
+              evidenceRefs: [`scope:${context.hole.id}`, `field:${field}`],
+            },
+            resultType: structuredClone(context.expectedType),
+            effects: [],
+          });
+        }
+      }
+
+      if (sourceType.element.kind === "record") {
+        for (const [field, fieldType] of Object.entries(
+          sourceType.element.fields,
+        ).sort(([a], [b]) => a.localeCompare(b))) {
+          if (!samePirType(fieldType, context.expectedType.element)) continue;
+          const itemId = `symbol:${context.hole.id}:map:${field}:item`;
+          candidates.push({
+            id: `candidate:collection:map:${symbolId}:${field}`,
+            replacement: {
+              kind: "expression",
+              value: {
+                kind: "map",
+                collection: { kind: "variable", symbolId },
+                item: {
+                  id: itemId,
+                  name: "item",
+                  type: structuredClone(sourceType.element),
+                },
+                mapper: {
+                  kind: "property",
+                  object: { kind: "variable", symbolId: itemId },
+                  property: field,
+                },
+                resultElementType: structuredClone(fieldType),
+              },
+            },
+            newHoles: [],
+            proofObligations: [
+              obligation(
+                `obligation:type:collection-map:${symbolId}:${field}`,
+                "type-safety",
+                "Mapped field type must equal the requested output element type.",
+              ),
+            ],
+            heuristicCost: 3,
+            provenance: {
+              kind: "collection-pattern",
+              generatorId: this.id,
+              evidenceRefs: [`scope:${context.hole.id}`, `field:${field}`],
+            },
+            resultType: structuredClone(context.expectedType),
+            effects: [],
+          });
+        }
+      }
+    }
+
+    return candidates;
+  }
+}
+
+export class ReturnGenerator implements CandidateGenerator {
+  readonly id = "generator.return.v1";
+
+  supports(context: CandidateGenerationContext): boolean {
+    return context.location === "statement";
+  }
+
+  generate(context: CandidateGenerationContext): ExpansionCandidate[] {
+    if (context.location !== "statement") return [];
+
+    if (context.expectedType.kind === "void") {
+      return [
+        {
+          id: `candidate:return:void:${context.hole.id}`,
+          replacement: {
+            kind: "statements",
+            value: [{ kind: "return" }],
+          },
+          newHoles: [],
+          proofObligations: [],
+          heuristicCost: 1,
+          provenance: {
+            kind: "return",
+            generatorId: this.id,
+            evidenceRefs: [`hole:${context.hole.id}`],
+          },
+          resultType: { kind: "void" },
+          effects: [],
+        },
+      ];
+    }
+
+    const candidates: ExpansionCandidate[] = [];
+    for (const symbolId of [...context.scopeSymbols].sort()) {
+      const type = typeForScopeSymbol(context, symbolId);
+      if (type === undefined || !samePirType(type, context.expectedType)) {
+        continue;
+      }
+      candidates.push({
+        id: `candidate:return:symbol:${symbolId}`,
+        replacement: {
+          kind: "statements",
+          value: [
+            {
+              kind: "return",
+              value: { kind: "variable", symbolId },
+            },
+          ],
+        },
+        newHoles: [],
+        proofObligations: [
+          obligation(
+            `obligation:return-type:${symbolId}`,
+            "type-safety",
+            "Returned symbol type must equal the hole expected type.",
+          ),
+        ],
+        heuristicCost: 1,
+        provenance: {
+          kind: "return",
+          generatorId: this.id,
+          evidenceRefs: [`scope:${context.hole.id}`],
+        },
+        resultType: structuredClone(type),
+        effects: [],
+      });
+    }
+
+    for (const literal of context.problem.environment.literals) {
+      if (!samePirType(literal.type, context.expectedType)) continue;
+      candidates.push({
+        id: `candidate:return:literal:${literal.id}`,
+        replacement: {
+          kind: "statements",
+          value: [
+            {
+              kind: "return",
+              value: {
+                kind: "literal",
+                value: structuredClone(literal.value),
+                type: structuredClone(literal.type),
+              },
+            },
+          ],
+        },
+        newHoles: [],
+        proofObligations: [
+          obligation(
+            `obligation:return-type:literal:${literal.id}`,
+            "type-safety",
+            "Returned literal type must equal the hole expected type.",
+          ),
+        ],
+        heuristicCost: literal.cost ?? 2,
+        provenance: {
+          kind: "return",
+          generatorId: this.id,
+          evidenceRefs: [`literal:${literal.id}`],
+        },
+        resultType: structuredClone(literal.type),
+        effects: [],
+      });
+    }
+
+    return candidates;
+  }
+}
+
 export const coreCandidateGenerators = (): CandidateGenerator[] => [
   new InScopeSymbolGenerator(),
   new LiteralGenerator(),
   new FunctionCallGenerator(),
   new BranchGenerator(),
+  new CollectionPatternGenerator(),
+  new ReturnGenerator(),
 ];
