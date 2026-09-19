@@ -1,6 +1,6 @@
 # M4 — Grounding and Controlled Parser Gate Evidence
 
-Status: **implementation candidate — predecessor M3 live gate still open**
+Status: **verified**
 
 Specification basis: sections 409–410 and bootstrap tasks T085–T097 of the v0.4 master specification.
 
@@ -75,4 +75,4 @@ This verifies the deterministic M4 implementation while preserving the predecess
 
 ## Milestone-order rule
 
-The implementation for T085–T097 may be merged once deterministic CI passes, but M4 MUST NOT become `last_completed_gate` while the predecessor M3 live-smoke requirement remains open. The active milestone therefore remains M3 until that single explicitly authorized live test is recorded.
+The predecessor M3 gate is now verified by both deterministic CI and the isolated one-request live smoke. M4 already passed deterministic CI #81 and its implementation is merged, so the milestone-order dependency is satisfied and M4 is verified.
