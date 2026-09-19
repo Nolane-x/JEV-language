@@ -413,10 +413,10 @@ describe("T321-T330 event/time/modality/conditional conformance", () => {
     const b = proposition("proposition:b");
     const validEvent = event("event:valid", validTime.id, {
       modality: {
-        kind: "likely",
+        kind: "probable",
         dimension: "predictive",
         ordinalStrength: "likely",
-      } as EventNode["modality"],
+      },
     });
     const validConditional = condition(
       "constraint:valid-predictive",
