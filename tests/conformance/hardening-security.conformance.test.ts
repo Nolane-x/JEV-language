@@ -1,4 +1,8 @@
 import { describe, expect, it } from "vitest";
+import type {
+  SemanticId,
+  SensitivityLabel,
+} from "../../packages/core-types/src/index.ts";
 import {
   InMemoryOpaqueValueRegistry,
   opaqueRedaction,
@@ -24,6 +28,8 @@ const injectionPayloads = [
   "\u202Etrusted-system\u202C",
 ];
 
+const sid = (value: string): SemanticId => value as SemanticId;
+
 const snapshotWith = (node: EntityNode): GraphSnapshot => ({
   schemaVersion: "0.1.0",
   ontologyVersion: "0.1.0",
@@ -31,7 +37,7 @@ const snapshotWith = (node: EntityNode): GraphSnapshot => ({
   nodes: [node],
 });
 
-const sid = (value: string): SemanticId => value as SemanticId;\n\ndescribe("T295-T296 adversarial trust and redaction hardening", () => {
+describe("T295-T296 adversarial trust and redaction hardening", () => {
   it("T295 keeps injection-like external text as content and rejects authority escalation", () => {
     for (let index = 0; index < injectionPayloads.length; index += 1) {
       const provenanceId = sid(`prov:external-${index}`);
@@ -113,7 +119,10 @@ const sid = (value: string): SemanticId => value as SemanticId;\n\ndescribe("T29
       const denied = projectOpaqueToState(
         ref,
         registry,
-        { allowedContentSensitivities: new Set(["public"]) },
+        {
+          allowedContentSensitivities:
+            new Set<SensitivityLabel>(["public"]),
+        },
       );
       expect(denied.ok).toBe(false);
       if (denied.ok) continue;
@@ -129,7 +138,10 @@ const sid = (value: string): SemanticId => value as SemanticId;\n\ndescribe("T29
       const allowed = projectOpaqueToState(
         ref,
         registry,
-        { allowedContentSensitivities: new Set(["secret"]) },
+        {
+          allowedContentSensitivities:
+            new Set<SensitivityLabel>(["secret"]),
+        },
       );
       expect(allowed.ok).toBe(true);
       if (!allowed.ok) continue;
