@@ -1,6 +1,6 @@
 # code-backend-core
 
-Status: **candidate / M13 implementation complete pending gate CI**.
+Status: **verified through M13 Python backend**.
 
 Verified M12 TypeScript backend:
 
@@ -8,7 +8,7 @@ Verified M12 TypeScript backend:
 - TypeScript compiler-API parse/lift/lower/print/patch/diagnostic/typecheck path;
 - strict M12 conformance over the portable source subset and all eight M10 PIR fixtures.
 
-M13 Python candidate:
+Verified M13 Python backend:
 
 - CPython stdlib `ast.parse` parser adapter and `ast.unparse` printer adapter;
 - Python `compile(..., "exec")` syntax/compiler acceptance adapter;
@@ -23,4 +23,4 @@ M13 Python candidate:
 - deterministic formatter through stdlib AST unparse;
 - cross-backend ID-independent PIR semantic projection for TypeScript/Python fixtures.
 
-M13 does not claim M14 compiler/test repair loops, static Python type checking through mypy/pyright, arbitrary Python syntax coverage, or generative source production.
+The verified M13 scope does not claim M14 compiler/test repair loops, static Python type checking through mypy/pyright, arbitrary Python syntax coverage, or generative source production.
