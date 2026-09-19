@@ -23,6 +23,7 @@ export type JsgNodeKind =
   | "property"
   | "relation"
   | "proposition"
+  | "context"
   | "scope"
   | "scope-constraint"
   | "quantifier"
@@ -154,6 +155,15 @@ export interface ConditionalSemantics {
   contextAnchor?: SemanticRef;
 }
 
+export type CommitmentStatus =
+  | "asserted-by-speaker"
+  | "presupposed"
+  | "attributed-to-source"
+  | "believed-by-agent"
+  | "hypothesized"
+  | "verified"
+  | "unknown";
+
 export interface EpistemicSpec {
   status:
     | "asserted"
@@ -161,8 +171,104 @@ export interface EpistemicSpec {
     | "suspected"
     | "reported"
     | "questioned"
+    | "hypothesized"
+    | "verified"
+    | "presupposed"
     | "unknown";
   source?: SemanticRef;
+  commitment?: CommitmentStatus;
+}
+
+export type DeixisKind =
+  | "person"
+  | "spatial"
+  | "temporal"
+  | "discourse"
+  | "social";
+
+export type DeicticAnchorRole =
+  | "speaker"
+  | "addressee"
+  | "speaker-location"
+  | "speaker-time"
+  | "discourse-time"
+  | "discourse-focus"
+  | "participant-perspective"
+  | "social-anchor";
+
+export interface SocialDeicticAnchor {
+  relation: string;
+  participant: SemanticRef;
+}
+
+export interface DeicticContextSpec {
+  speaker?: SemanticRef;
+  addressee?: SemanticRef;
+  speakerTime?: SemanticRef;
+  speakerLocation?: SemanticRef;
+  discourseTime?: SemanticRef;
+  discourseFocus?: SemanticRef;
+  locale?: string;
+  participantPerspective?: SemanticRef;
+  socialAnchors?: SocialDeicticAnchor[];
+}
+
+export interface DeicticReferenceSpec {
+  kind: DeixisKind;
+  context: SemanticRef;
+  anchorRole: DeicticAnchorRole;
+  socialRelation?: string;
+}
+
+export type QuotationMode = "direct" | "indirect";
+
+export interface QuotationContextSpec {
+  mode: QuotationMode;
+  quotedSpeaker: SemanticRef;
+  quotedAddressee?: SemanticRef;
+  quotedTimeAnchor?: SemanticRef;
+  quotedLocationAnchor?: SemanticRef;
+  reporter?: SemanticRef;
+  sourceSpan?: SpanRef;
+  attributionConfidence?: number;
+  exactWording: boolean;
+}
+
+export type AttitudeKind =
+  | "believe"
+  | "know"
+  | "suspect"
+  | "hope"
+  | "want"
+  | "intend"
+  | "fear"
+  | "imagine"
+  | "remember"
+  | "forget";
+
+export interface AttitudeContextSpec {
+  holder: SemanticRef;
+  attitude: AttitudeKind;
+  contentRefs: SemanticRef[];
+  factive?: boolean;
+}
+
+export type SemanticContextKind = "deictic" | "quotation" | "attitude";
+
+export type EvidentialityMode =
+  | "direct-observation"
+  | "inference"
+  | "hearsay"
+  | "reported-statement"
+  | "document-tool-result"
+  | "user-assertion"
+  | "system-computation"
+  | "unknown";
+
+export interface EvidentialitySpec {
+  mode: EvidentialityMode;
+  source?: SemanticRef;
+  sourceDetail?: string;
 }
 
 export interface ScopeSpec {
@@ -336,6 +442,15 @@ export interface PropositionNode extends JsgNodeBase<"proposition"> {
   temporal?: SemanticRef;
   scope?: ScopeSpec;
   attribution?: SemanticRef;
+  context?: SemanticRef;
+}
+
+export interface ContextNode extends JsgNodeBase<"context"> {
+  contextKind: SemanticContextKind;
+  parentContext?: SemanticRef;
+  deictic?: DeicticContextSpec;
+  quotation?: QuotationContextSpec;
+  attitude?: AttitudeContextSpec;
 }
 
 export interface ScopeNode extends JsgNodeBase<"scope"> {
@@ -413,6 +528,7 @@ export interface AlternativeSetNode extends JsgNodeBase<"alternative-set"> {
 export interface ReferenceNode extends JsgNodeBase<"reference"> {
   candidates: SemanticRef[];
   resolved?: SemanticRef;
+  deictic?: DeicticReferenceSpec;
 }
 
 export interface CollectionNode extends JsgNodeBase<"collection"> {
@@ -442,6 +558,7 @@ export interface EvidenceNode extends JsgNodeBase<"evidence"> {
   supports: SemanticRef[];
   contradicts: SemanticRef[];
   payload: SemanticValue;
+  evidentiality?: EvidentialitySpec;
 }
 
 export interface UnknownConceptNode extends JsgNodeBase<"unknown-concept"> {
@@ -459,6 +576,7 @@ export type JsgNode =
   | PropertyNode
   | RelationNode
   | PropositionNode
+  | ContextNode
   | ScopeNode
   | ScopeConstraintNode
   | QuantifierNode
