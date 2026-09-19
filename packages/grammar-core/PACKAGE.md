@@ -14,3 +14,6 @@ Implemented grammar infrastructure:
 - feature-aware constraint evaluation.
 
 M18.2 conformance exercises the ABI through the packed parser and English grammar. Broad language coverage remains language-pack specific.
+
+
+T405-T407 typology expansion makes word-order policy explicit at the language-pack boundary and adds representations for discontinuous constituents and non-projective dependency edges. Shared grammar does not impose SVO; non-projectivity is reported rather than rejected.
