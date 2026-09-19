@@ -209,6 +209,7 @@ export interface ProgramAcceptanceResult {
 
 export interface ProgramAcceptanceVerifier {
   readonly id: string;
+  readonly costKind?: "deterministic" | "compiler" | "test";
   verify(input: {
     problem: SynthesisProblem;
     program: PirProgram;
