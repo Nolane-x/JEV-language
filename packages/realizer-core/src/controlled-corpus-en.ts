@@ -248,6 +248,39 @@ const renderConstraint = (
   return undefined;
 };
 
+const renderAttributedProposition = (
+  snapshot: GraphSnapshot,
+  proposition: PropositionNode,
+): ControlledEnglishSurface | undefined => {
+  if (
+    proposition.predicate !== "concept:core.delete" ||
+    proposition.epistemic?.status !== "reported" ||
+    proposition.attribution === undefined ||
+    proposition.polarity !== "positive"
+  ) {
+    return undefined;
+  }
+  const actorId = refForRole(proposition.arguments, "role:core.agent");
+  if (actorId === undefined || proposition.attribution !== actorId) {
+    return undefined;
+  }
+  const source = nodeById(snapshot, proposition.attribution, "entity");
+  const semantics = deleteSemantics(snapshot, actorId, proposition.arguments);
+  if (
+    source?.concept !== "concept:core.software-service" ||
+    semantics === undefined ||
+    semantics.quantity.comparator !== "exact"
+  ) {
+    return undefined;
+  }
+  const q = semantics.quantity;
+  return resultWithMap(
+    `According to the service, the service deletes exactly ${q.amount} ${fileNoun(q.amount)}.`,
+    [proposition.id],
+    q,
+  );
+};
+
 const renderQuestion = (
   snapshot: GraphSnapshot,
   proposition: PropositionNode,
@@ -374,6 +407,8 @@ export const realizeControlledEnglishCorpusArtifact = (
   }
   for (const node of snapshot.nodes) {
     if (node.kind === "proposition") {
+      const attributed = renderAttributedProposition(snapshot, node);
+      if (attributed !== undefined) return attachPlan(snapshot, attributed);
       const rendered = renderQuestion(snapshot, node);
       if (rendered !== undefined) return attachPlan(snapshot, rendered);
     }
