@@ -13,11 +13,16 @@ import type {
   TypecheckResult,
 } from "./backend.ts";
 
+export type PythonAstValue =
+  | JsonValue
+  | PythonAstNode
+  | PythonAstValue[];
+
 export interface PythonAstNode {
   _type: string;
   _start?: number;
   _end?: number;
-  [key: string]: JsonValue | undefined;
+  [key: string]: PythonAstValue | undefined;
 }
 
 const bridgeScript = String.raw`
@@ -302,17 +307,17 @@ export const compilePythonDocument = (
 };
 
 export const pythonAstNode = (
-  value: JsonValue | undefined,
+  value: PythonAstValue | undefined,
 ): PythonAstNode | undefined =>
   value !== null &&
   typeof value === "object" &&
   !Array.isArray(value) &&
-  typeof (value as Record<string, JsonValue>)._type === "string"
-    ? (value as unknown as PythonAstNode)
+  typeof (value as PythonAstNode)._type === "string"
+    ? (value as PythonAstNode)
     : undefined;
 
 export const pythonAstNodes = (
-  value: JsonValue | undefined,
+  value: PythonAstValue | undefined,
 ): PythonAstNode[] =>
   Array.isArray(value)
     ? value
