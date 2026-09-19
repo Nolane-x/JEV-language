@@ -2,10 +2,11 @@
 
 Status: **candidate / pending M8 gate verification**.
 
-The M8 Vietnamese pack is implemented independently against the shared semantic core. It does not translate Vietnamese through English surface text.
+The M8 Vietnamese pack implements the shared `HumanLanguagePack` ABI and maps Vietnamese independently against the shared semantic core. It does not translate Vietnamese through English surface text.
 
 Implemented foundation:
-- versioned `language.vi` pack manifest and machine-readable coverage matrix;
+- versioned `language.vi` manifest and machine-readable coverage matrix;
+- ABI tokenizer, morphology, lexicon, grammar, parser hooks, realization hooks, punctuation, discourse and conformance providers;
 - NFC-aware Vietnamese tokenizer assumptions;
 - seed lexicon for the controlled semantic domain plus multiword modality entries;
 - analytic morphology provider (no English-style tense inflection assumptions);
