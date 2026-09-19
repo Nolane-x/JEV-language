@@ -10,7 +10,7 @@ import {
 } from "./controlled-corpus.ts";
 
 const integer = (value: string | undefined): number | undefined => {
-  if (value === undefined || !/^\\d+$/u.test(value)) return undefined;
+  if (value === undefined || !/^\d+$/u.test(value)) return undefined;
   const parsed = Number(value);
   return Number.isSafeInteger(parsed) && parsed >= 0 ? parsed : undefined;
 };
