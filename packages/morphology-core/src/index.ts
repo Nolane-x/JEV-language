@@ -83,3 +83,5 @@ export const featureKey = (features: MorphFeatures): string =>
     .sort(([left], [right]) => left.localeCompare(right))
     .map(([key, value]) => `${key}=${JSON.stringify(value)}`)
     .join("|");
+
+export * from "./features.ts";
