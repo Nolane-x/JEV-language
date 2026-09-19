@@ -1,6 +1,7 @@
 import {
   canonicalJson,
   type JsonValue,
+  type SemanticId,
 } from "../../core-types/src/index.ts";
 import type {
   GraphSnapshot,
@@ -103,11 +104,16 @@ const sorted = (values: readonly string[]): string[] => [...values].sort();
 
 const hasPolarity = (
   node: JsgNode,
-): node is Extract<JsgNode, { polarity: unknown }> => "polarity" in node;
+): node is Extract<JsgNode, { kind: "event" | "state" | "relation" | "proposition" }> =>
+  node.kind === "event" ||
+  node.kind === "state" ||
+  node.kind === "relation" ||
+  node.kind === "proposition";
 
 const hasModality = (
   node: JsgNode,
-): node is Extract<JsgNode, { modality?: unknown }> => "modality" in node;
+): node is Extract<JsgNode, { kind: "event" | "proposition" }> =>
+  node.kind === "event" || node.kind === "proposition";
 
 const causalRelation = (relation: string): boolean =>
   /(?:^|[.:_-])(cause|enable|prevent|motivate|reason|evidence)(?:$|[.:_-])/i.test(
@@ -528,7 +534,7 @@ export class SemanticPreservationVerifier
           ...(violation.candidateNodeId === undefined
             ? []
             : [violation.candidateNodeId]),
-        ] as never[],
+        ] as SemanticId[],
         details: {
           invariant: violation.invariant,
         },
