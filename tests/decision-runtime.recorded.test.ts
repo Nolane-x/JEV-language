@@ -70,4 +70,34 @@ describe("recorded JDR", () => {
     });
     await expect(runtime.execute(request)).rejects.toBeInstanceOf(JdrError);
   });
+
+  it("tracks provider token usage and emits trace events", async () => {
+    const events: string[] = [];
+    const runtime = new DecisionRuntime({
+      adapter: new RecordedDecisionAdapter([response]),
+      budget: { maxRequests: 1, maxTotalTokens: 20 },
+      traceSink: (event) => events.push(event.kind),
+    });
+    const result = await runtime.execute(request);
+    expect(result.source).toBe("recorded");
+    expect(runtime.budgetUsage).toEqual({
+      requests: 1,
+      inputTokens: 12,
+      outputTokens: 2,
+    });
+    expect(events).toEqual(["request-start", "request-complete"]);
+  });
+
+  it("refuses another provider call after a configured token budget is exhausted", async () => {
+    const runtime = new DecisionRuntime({
+      adapter: new RecordedDecisionAdapter([response]),
+      budget: { maxRequests: 2, maxTotalTokens: 14 },
+    });
+    await runtime.execute(request);
+    await expect(runtime.execute({ ...request, id: "fixture-2" })).rejects.toBeInstanceOf(
+      JdrError,
+    );
+    expect(runtime.requestsUsed).toBe(1);
+  });
+
 });
