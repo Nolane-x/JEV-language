@@ -231,6 +231,31 @@ describe("M1 semantic graph acceptance", () => {
     expect(semanticDiff(initial, result.value.snapshot)).toEqual(diff);
   });
 
+  it("rolls back an uncommitted transaction without inventing a revision", () => {
+    const initial = buildFixture();
+    const graph = InMemorySemanticGraph.fromSnapshot(initial);
+    const before = canonicalSnapshotJson(graph.snapshot());
+    const revision = graph.revision;
+    const quantity = graph.get(id("quantity:limit"));
+    expect(quantity?.kind).toBe("quantity");
+    if (quantity?.kind !== "quantity") return;
+
+    const transaction = graph.beginTransaction([
+      {
+        kind: "replace-node",
+        node: { ...quantity, amount: 99 },
+      },
+    ]);
+    const rolledBack = graph.rollback(transaction);
+
+    expect(rolledBack.ok).toBe(true);
+    expect(graph.revision).toBe(revision);
+    expect(canonicalSnapshotJson(graph.snapshot())).toBe(before);
+    if (rolledBack.ok) {
+      expect(canonicalSnapshotJson(rolledBack.value)).toBe(before);
+    }
+  });
+
   it("leaves graph state and revision unchanged after a failed transaction", () => {
     const initial = buildFixture();
     const graph = InMemorySemanticGraph.fromSnapshot(initial);
