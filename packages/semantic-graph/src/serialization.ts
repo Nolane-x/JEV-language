@@ -213,6 +213,108 @@ const isAttributes = (value: unknown): boolean =>
 const isPolarity = (value: unknown): boolean =>
   value === "positive" || value === "negative";
 
+const isCommitmentStatus = (value: unknown): boolean =>
+  value === "asserted-by-speaker" ||
+  value === "presupposed" ||
+  value === "attributed-to-source" ||
+  value === "believed-by-agent" ||
+  value === "hypothesized" ||
+  value === "verified" ||
+  value === "unknown";
+
+const isEpistemicSpec = (value: unknown): boolean =>
+  isRecord(value) &&
+  (value.status === "asserted" ||
+    value.status === "believed" ||
+    value.status === "suspected" ||
+    value.status === "reported" ||
+    value.status === "questioned" ||
+    value.status === "hypothesized" ||
+    value.status === "verified" ||
+    value.status === "presupposed" ||
+    value.status === "unknown") &&
+  optionalString(value.source) &&
+  (value.commitment === undefined || isCommitmentStatus(value.commitment));
+
+const isDeicticContextSpec = (value: unknown): boolean =>
+  isRecord(value) &&
+  optionalString(value.speaker) &&
+  optionalString(value.addressee) &&
+  optionalString(value.speakerTime) &&
+  optionalString(value.speakerLocation) &&
+  optionalString(value.discourseTime) &&
+  optionalString(value.discourseFocus) &&
+  optionalString(value.locale) &&
+  optionalString(value.participantPerspective) &&
+  (value.socialAnchors === undefined ||
+    (Array.isArray(value.socialAnchors) &&
+      value.socialAnchors.every(
+        (item) =>
+          isRecord(item) &&
+          typeof item.relation === "string" &&
+          item.relation.trim() !== "" &&
+          typeof item.participant === "string",
+      )));
+
+const isDeicticReferenceSpec = (value: unknown): boolean =>
+  isRecord(value) &&
+  (value.kind === "person" ||
+    value.kind === "spatial" ||
+    value.kind === "temporal" ||
+    value.kind === "discourse" ||
+    value.kind === "social") &&
+  typeof value.context === "string" &&
+  (value.anchorRole === "speaker" ||
+    value.anchorRole === "addressee" ||
+    value.anchorRole === "speaker-location" ||
+    value.anchorRole === "speaker-time" ||
+    value.anchorRole === "discourse-time" ||
+    value.anchorRole === "discourse-focus" ||
+    value.anchorRole === "participant-perspective" ||
+    value.anchorRole === "social-anchor") &&
+  optionalString(value.socialRelation);
+
+const isQuotationContextSpec = (value: unknown): boolean =>
+  isRecord(value) &&
+  (value.mode === "direct" || value.mode === "indirect") &&
+  typeof value.quotedSpeaker === "string" &&
+  optionalString(value.quotedAddressee) &&
+  optionalString(value.quotedTimeAnchor) &&
+  optionalString(value.quotedLocationAnchor) &&
+  optionalString(value.reporter) &&
+  (value.sourceSpan === undefined || isSpanRef(value.sourceSpan)) &&
+  optionalNumber(value.attributionConfidence) &&
+  typeof value.exactWording === "boolean";
+
+const isAttitudeContextSpec = (value: unknown): boolean =>
+  isRecord(value) &&
+  typeof value.holder === "string" &&
+  (value.attitude === "believe" ||
+    value.attitude === "know" ||
+    value.attitude === "suspect" ||
+    value.attitude === "hope" ||
+    value.attitude === "want" ||
+    value.attitude === "intend" ||
+    value.attitude === "fear" ||
+    value.attitude === "imagine" ||
+    value.attitude === "remember" ||
+    value.attitude === "forget") &&
+  isStringArray(value.contentRefs) &&
+  (value.factive === undefined || typeof value.factive === "boolean");
+
+const isEvidentialitySpec = (value: unknown): boolean =>
+  isRecord(value) &&
+  (value.mode === "direct-observation" ||
+    value.mode === "inference" ||
+    value.mode === "hearsay" ||
+    value.mode === "reported-statement" ||
+    value.mode === "document-tool-result" ||
+    value.mode === "user-assertion" ||
+    value.mode === "system-computation" ||
+    value.mode === "unknown") &&
+  optionalString(value.source) &&
+  optionalString(value.sourceDetail);
+
 const isEventCategory = (value: unknown): boolean =>
   value === "event" ||
   value === "state" ||
@@ -417,7 +519,20 @@ const structurallyValidNode = (value: unknown): value is JsgNode => {
         isPolarity(value.polarity) &&
         optionalString(value.temporal) &&
         optionalString(value.attribution) &&
+        optionalString(value.context) &&
+        (value.epistemic === undefined || isEpistemicSpec(value.epistemic)) &&
         (value.modality === undefined || isModalitySpec(value.modality))
+      );
+    case "context":
+      return (
+        (value.contextKind === "deictic" ||
+          value.contextKind === "quotation" ||
+          value.contextKind === "attitude") &&
+        optionalString(value.parentContext) &&
+        (value.deictic === undefined || isDeicticContextSpec(value.deictic)) &&
+        (value.quotation === undefined ||
+          isQuotationContextSpec(value.quotation)) &&
+        (value.attitude === undefined || isAttitudeContextSpec(value.attitude))
       );
     case "scope":
       return (
@@ -508,7 +623,11 @@ const structurallyValidNode = (value: unknown): value is JsgNode => {
         optionalString(value.resolved)
       );
     case "reference":
-      return isStringArray(value.candidates) && optionalString(value.resolved);
+      return (
+        isStringArray(value.candidates) &&
+        optionalString(value.resolved) &&
+        (value.deictic === undefined || isDeicticReferenceSpec(value.deictic))
+      );
     case "collection":
       return isStringArray(value.members) && optionalString(value.concept);
     case "type":
@@ -534,7 +653,9 @@ const structurallyValidNode = (value: unknown): value is JsgNode => {
       return (
         isStringArray(value.supports) &&
         isStringArray(value.contradicts) &&
-        isSemanticValue(value.payload)
+        isSemanticValue(value.payload) &&
+        (value.evidentiality === undefined ||
+          isEvidentialitySpec(value.evidentiality))
       );
     case "unknown-concept":
       return (
