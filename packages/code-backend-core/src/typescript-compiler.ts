@@ -62,17 +62,75 @@ export const normalizeTypeScriptDiagnostic = (
 export const parseTypeScriptDocument = (
   document: SourceDocument,
 ): Result<ParsedSource<ts.SourceFile>> => {
-  const ast = ts.createSourceFile(
-    document.path ?? document.sourceId,
-    document.text,
-    ts.ScriptTarget.ES2022,
-    true,
-    ts.ScriptKind.TS,
-  );
+  const fileName = document.path ?? `/virtual/${document.sourceId}.ts`;
+  const options: ts.CompilerOptions = {
+    target: ts.ScriptTarget.ES2022,
+    module: ts.ModuleKind.ESNext,
+    noEmit: true,
+    noLib: true,
+    noResolve: true,
+  };
+  const host = ts.createCompilerHost(options);
+  const baseGetSourceFile = host.getSourceFile.bind(host);
+  const baseReadFile = host.readFile.bind(host);
+  const baseFileExists = host.fileExists.bind(host);
 
-  const diagnostics = ast.parseDiagnostics.map((diagnostic) =>
-    normalizeTypeScriptDiagnostic(diagnostic, document.sourceId),
-  );
+  host.fileExists = (name) =>
+    name === fileName || baseFileExists(name);
+  host.readFile = (name) =>
+    name === fileName ? document.text : baseReadFile(name);
+  host.getSourceFile = (
+    name,
+    languageVersion,
+    onError,
+    shouldCreateNewSourceFile,
+  ) =>
+    name === fileName
+      ? ts.createSourceFile(
+          name,
+          document.text,
+          languageVersion,
+          true,
+          ts.ScriptKind.TS,
+        )
+      : baseGetSourceFile(
+          name,
+          languageVersion,
+          onError,
+          shouldCreateNewSourceFile,
+        );
+
+  const program = ts.createProgram([fileName], options, host);
+  const ast = program.getSourceFile(fileName);
+  if (ast === undefined) {
+    return ok({
+      document: structuredClone(document),
+      ast: ts.createSourceFile(
+        fileName,
+        document.text,
+        ts.ScriptTarget.ES2022,
+        true,
+        ts.ScriptKind.TS,
+      ),
+      diagnostics: [
+        {
+          code: "TS_PARSE_SOURCE_MISSING",
+          severity: "error",
+          message: "TypeScript parser did not produce a source file.",
+          sourceId: document.sourceId,
+        },
+      ],
+    });
+  }
+
+  const diagnostics = program
+    .getSyntacticDiagnostics(ast)
+    .map((diagnostic) =>
+      normalizeTypeScriptDiagnostic(
+        diagnostic,
+        document.sourceId,
+      ),
+    );
 
   return ok({
     document: structuredClone(document),
