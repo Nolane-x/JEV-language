@@ -98,5 +98,7 @@ M13 does not claim:
 - all eight verified M10 PIR fixtures lower to Python accepted by the compile adapter
 - portable cross-backend fixtures pass TypeScript/Python semantic round-trip projection
 - live Jev requests consumed by M13: `0`
+- final documentation-head CI: run `#171` / run id `35432891962`
+- merged squash commit: `df4f806a2abf8635c7b423d3cddaebf6eaf4dfe4`
 
-The final documentation head must itself pass CI before merge.
+The final documentation head passed CI #171 and M13 was merged into `main`.

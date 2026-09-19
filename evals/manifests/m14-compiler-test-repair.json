@@ -1,0 +1,47 @@
+{
+  "id": "m14-compiler-test-repair-loop",
+  "version": "1.0.0",
+  "milestone": "M14",
+  "taskRange": "T227-T238",
+  "liveJevRequests": 0,
+  "implementationHead": "84c6fa59b739c237288dbe5cc7299707b506e996",
+  "ci": {
+    "runNumber": 182,
+    "runId": 35433304398,
+    "deterministicJobId": 105871603781,
+    "packageBoundaries": "success",
+    "strictTypeScript": "success",
+    "testFiles": {
+      "passed": 41,
+      "total": 41
+    },
+    "tests": {
+      "passed": 325,
+      "total": 325
+    },
+    "m14Conformance": {
+      "passed": 6,
+      "total": 6
+    }
+  },
+  "assertions": [
+    "stable-diagnostic-taxonomy",
+    "diagnostic-to-pir-source-location",
+    "bounded-guard-import-argument-return-generators",
+    "bounded-choice-repair-ranking",
+    "out-of-set-ranker-rejection",
+    "low-confidence-deterministic-fallback",
+    "compile-after-repair",
+    "normalized-test-after-repair",
+    "regression-verification",
+    "rollback-on-non-improvement",
+    "hard-iteration-compile-test-deadline-budgets",
+    "broken-code-to-executable-verified-behavior"
+  ],
+  "nonClaims": [
+    "arbitrary-generative-code-repair",
+    "whole-repository-refactoring",
+    "unbounded-multi-file-repair",
+    "soundness-for-all-diagnostics"
+  ]
+}
