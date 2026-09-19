@@ -245,6 +245,22 @@ const missingNodeSpecificViolations = (
       "An explicit negation scope object was dropped.",
     );
   }
+  if (node.kind === "event") {
+    if (node.modality !== undefined) {
+      add(
+        "modality",
+        "SEM_MODALITY_DROPPED",
+        "A source event modality was dropped.",
+      );
+    }
+    if (node.temporal !== undefined || node.aspect !== undefined) {
+      add(
+        "temporal-value",
+        "SEM_EVENT_TEMPORAL_DROPPED",
+        "A source event temporal/aspect interpretation was dropped.",
+      );
+    }
+  }
   if (node.kind === "proposition") {
     if (node.scope !== undefined) {
       add("scope", "SEM_SCOPE_DROPPED", "A source scope constraint was dropped.");
@@ -445,6 +461,22 @@ const compareMatchedNodes = (
     }
   }
 
+  if (left.kind === "event" && right.kind === "event") {
+    if (
+      left.eventClass !== right.eventClass ||
+      left.eventCategory !== right.eventCategory ||
+      left.eventMode !== right.eventMode ||
+      left.temporal !== right.temporal ||
+      left.aspect !== right.aspect
+    ) {
+      add(
+        "temporal-value",
+        "SEM_EVENT_TEMPORAL_CHANGED",
+        "Event class/category/mode, temporal anchor, or aspect changed.",
+      );
+    }
+  }
+
   if (hasModality(left) && hasModality(right)) {
     if (!semanticEqual(left.modality ?? null, right.modality ?? null)) {
       add(
@@ -462,7 +494,8 @@ const compareMatchedNodes = (
         right.constraintKind !== "condition" ||
         left.subject !== right.subject ||
         left.predicate !== right.predicate ||
-        !semanticEqual(left.parameters, right.parameters)
+        !semanticEqual(left.parameters, right.parameters) ||
+        !semanticEqual(left.conditional ?? null, right.conditional ?? null)
       )
     ) {
       add(
@@ -538,7 +571,13 @@ const compareMatchedNodes = (
   if (left.kind === "temporal" && right.kind === "temporal") {
     if (
       left.temporalKind !== right.temporalKind ||
-      !semanticEqual(left.value, right.value)
+      !semanticEqual(left.value, right.value) ||
+      left.anchor !== right.anchor ||
+      left.start !== right.start ||
+      left.end !== right.end ||
+      left.durationIso !== right.durationIso ||
+      left.calendar !== right.calendar ||
+      left.granularity !== right.granularity
     ) {
       add(
         "temporal-value",
