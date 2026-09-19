@@ -222,6 +222,29 @@ const missingNodeSpecificViolations = (
       "A source condition was dropped.",
     );
   }
+  if (
+    node.kind === "scope" ||
+    node.kind === "scope-constraint" ||
+    node.kind === "quantifier"
+  ) {
+    add(
+      "scope",
+      "SEM_SCOPE_DROPPED",
+      "A source scope/quantification semantic object was dropped.",
+    );
+  }
+  if (node.kind === "negation") {
+    add(
+      "negation",
+      "SEM_NEGATION_DROPPED",
+      "An explicit negation operator was dropped.",
+    );
+    add(
+      "scope",
+      "SEM_SCOPE_DROPPED",
+      "An explicit negation scope object was dropped.",
+    );
+  }
   if (node.kind === "proposition") {
     if (node.scope !== undefined) {
       add("scope", "SEM_SCOPE_DROPPED", "A source scope constraint was dropped.");
@@ -342,6 +365,69 @@ const compareMatchedNodes = (
         "identity-reference",
         "SEM_REFERENCE_CHANGED",
         "Reference candidates or resolved identity changed.",
+      );
+    }
+  }
+
+  if (left.kind === "scope" && right.kind === "scope") {
+    if (
+      left.operatorRef !== right.operatorRef ||
+      left.bodyRef !== right.bodyRef
+    ) {
+      add(
+        "scope",
+        "SEM_SCOPE_CHANGED",
+        "Scope operator/body identity changed.",
+      );
+    }
+  }
+
+  if (
+    left.kind === "scope-constraint" &&
+    right.kind === "scope-constraint"
+  ) {
+    if (
+      left.left !== right.left ||
+      left.relation !== right.relation ||
+      left.right !== right.right ||
+      left.status !== right.status
+    ) {
+      add(
+        "scope",
+        "SEM_SCOPE_CONSTRAINT_CHANGED",
+        "Scope relation, endpoints, or evidence status changed.",
+      );
+    }
+  }
+
+  if (left.kind === "quantifier" && right.kind === "quantifier") {
+    if (
+      left.quantifierKind !== right.quantifierKind ||
+      left.restrictor !== right.restrictor ||
+      left.body !== right.body ||
+      left.scope !== right.scope ||
+      !semanticEqual(left.cardinality ?? null, right.cardinality ?? null) ||
+      left.distributivity !== right.distributivity
+    ) {
+      add(
+        "scope",
+        "SEM_QUANTIFIER_CHANGED",
+        "Quantifier class, restrictor/body, cardinality, distributivity, or scope changed.",
+      );
+    }
+  }
+
+  if (left.kind === "negation" && right.kind === "negation") {
+    if (left.body !== right.body || left.scope !== right.scope) {
+      add(
+        "negation",
+        "SEM_NEGATION_CHANGED",
+        "Explicit negation body or scope changed.",
+      );
+      add(
+        "scope",
+        "SEM_SCOPE_CHANGED",
+        "Explicit negation scope changed.",
       );
     }
   }
