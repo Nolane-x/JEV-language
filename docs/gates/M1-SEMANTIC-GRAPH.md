@@ -1,6 +1,6 @@
 # M1 — Semantic Graph Gate Evidence
 
-Status: **candidate — pending CI on this branch**
+Status: **verified**
 
 Specification basis: sections 403–404 and bootstrap tasks T011–T025 of the v0.4 master specification.
 
@@ -60,4 +60,11 @@ It then proves:
 
 ## Verification rule
 
-Do not change this gate to **verified** until the complete branch head passes the deterministic GitHub Actions pipeline (package boundaries, strict TypeScript, full tests). Record the exact head SHA and CI run before advancing the implementation-state milestone to M2.
+Verified evidence:
+
+- branch head: `6725495b37bbb1f4f5ee005946adb336a0670c70`
+- GitHub Actions CI: run `#72` / run id `35419962854`
+- result: `success`
+- deterministic gate: package boundaries → strict typecheck → full test suite
+
+The implementation-state ledger may therefore advance to M2 ontology/open-world verification. The final documentation commit must itself pass CI before merge.
