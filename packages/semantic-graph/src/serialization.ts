@@ -213,6 +213,29 @@ const isAttributes = (value: unknown): boolean =>
 const isPolarity = (value: unknown): boolean =>
   value === "positive" || value === "negative";
 
+const isPresuppositionSpec = (value: unknown): boolean =>
+  isRecord(value) &&
+  (value.status === "triggered" ||
+    value.status === "satisfied" ||
+    value.status === "accommodated-local" ||
+    value.status === "accommodated-global" ||
+    value.status === "linked" ||
+    value.status === "challenged" ||
+    value.status === "unresolved") &&
+  typeof value.triggerId === "string" &&
+  optionalString(value.host) &&
+  optionalString(value.context) &&
+  optionalString(value.linkedRef);
+
+const isPragmaticInferenceSpec = (value: unknown): boolean =>
+  isRecord(value) &&
+  (value.status === "active" || value.status === "cancelled") &&
+  value.strength === "defeasible" &&
+  (value.sourceKind === "rule" || value.sourceKind === "jev-decision") &&
+  typeof value.sourceId === "string" &&
+  isStringArray(value.premiseRefs) &&
+  optionalString(value.cancellationReason);
+
 const isCommitmentStatus = (value: unknown): boolean =>
   value === "asserted-by-speaker" ||
   value === "presupposed" ||
@@ -521,6 +544,10 @@ const structurallyValidNode = (value: unknown): value is JsgNode => {
         optionalString(value.attribution) &&
         optionalString(value.context) &&
         (value.epistemic === undefined || isEpistemicSpec(value.epistemic)) &&
+        (value.presupposition === undefined ||
+          isPresuppositionSpec(value.presupposition)) &&
+        (value.pragmaticInference === undefined ||
+          isPragmaticInferenceSpec(value.pragmaticInference)) &&
         (value.modality === undefined || isModalitySpec(value.modality))
       );
     case "context":
