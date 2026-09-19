@@ -1,6 +1,6 @@
 # M5 — Constrained Realizer and Controlled Round-Trip Gate
 
-Status: **implementation candidate — predecessor M3 live gate still open**
+Status: **verified**
 
 Specification basis: sections 411–412 and bootstrap tasks T121–T144 of the v0.4 master specification.
 
@@ -82,6 +82,15 @@ This 100% figure applies **only** to the explicitly controlled corpus. It is not
 - clause-type punctuation;
 - explicit fallback ordering and failed-stage evidence.
 
+## Deterministic CI evidence
+
+- PR #19 implementation head: `76634222a6654a3f39fa89ea26a4ac6d4cecf3ad`
+- GitHub Actions CI run `#84` / run id `35421795660`: `success`
+- gate sequence prerequisite: M3 live smoke verified; M4 deterministic gate verified
+- live Jev requests consumed by M5 implementation: `0`
+
+The final documentation head containing this evidence must also pass deterministic CI before PR #19 is merged.
+
 ## Milestone-order rule
 
-The deterministic implementation may be merged after CI succeeds. M5 MUST NOT become `last_completed_gate` while M3's required one-request live smoke remains open. M2 therefore remains the last fully completed milestone until that predecessor gate is closed.
+M3 and M4 are now verified, and the M5 implementation head passed its deterministic gate. Once this final documentation head passes CI, the merged repository may advance `last_completed_gate` to M5 and `active_milestone` to M6.
