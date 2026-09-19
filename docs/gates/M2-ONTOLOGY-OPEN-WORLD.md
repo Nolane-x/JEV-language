@@ -58,9 +58,10 @@ Additional ontology integrity cases cover parent cycles, replacement cycles, unk
 
 Verified evidence:
 
-- branch head: `9eadcdc0bb2e581c09748df2eb71de965a6022a1`
-- GitHub Actions CI: run `#76` / run id `35420197439`
+- implementation head: `9eadcdc0bb2e581c09748df2eb71de965a6022a1` (CI #76 passed)
+- final documentation head: `b6d1f913107b72d76269fbcbab36ce8a447002d3`
+- GitHub Actions final CI: run `#77` / run id `35420243251`
 - result: `success`
 - deterministic gate: package boundaries → strict typecheck → full test suite
 
-The implementation-state ledger may therefore advance to M3 Jev Decision Runtime verification. The final documentation commit must itself pass CI before merge.
+The final documentation head also passed CI, so the merged M2 gate is fully verified and the implementation-state ledger has advanced to M3 Jev Decision Runtime verification.
