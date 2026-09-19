@@ -6,3 +6,4 @@ export * from "./trust.ts";
 export * from "./requirement-satisfaction.ts";
 export * from "./evidence-adapters.ts";
 export * from "./controlled-corpus-equivalence.ts";
+export * from "./expanded-english-equivalence.ts";
