@@ -51,7 +51,7 @@ export interface ControlledCorpusParse {
 
 type QuantityComparator = QuantityNode["comparator"];
 
-type ControlledFrame =
+export type ControlledFrame =
   | {
       kind: "event";
       amount: number;
@@ -290,15 +290,23 @@ const parseFrame = (text: string): ControlledFrame | undefined => {
   return undefined;
 };
 
-const buildFrame = (
-  text: string,
-  frame: ControlledFrame,
+export interface ControlledFrameBuildInput {
+  text: string;
+  frame: ControlledFrame;
+  languageHint: string;
+  actorSurface: string;
+  sourceId: string;
+}
+
+export const buildControlledFrame = (
+  input: ControlledFrameBuildInput,
 ): Result<ControlledCorpusParse> => {
+  const { text, frame } = input;
   const source: GroundingSource = {
-    id: "source:m4-controlled-corpus",
+    id: input.sourceId,
     version: "1",
     mediaType: "text/plain",
-    languageHint: "en",
+    languageHint: input.languageHint,
     content: text,
     trust: "user-content",
   };
@@ -312,7 +320,9 @@ const buildFrame = (
 
   const actorId = createSemanticId("entity");
   const quantityId = createSemanticId("quantity");
-  const actorStart = text.toLocaleLowerCase().indexOf("service");
+  const actorStart = text
+    .toLocaleLowerCase()
+    .indexOf(input.actorSurface.toLocaleLowerCase());
   if (actorStart < 0) {
     return err(
       new StructuredError(
@@ -333,7 +343,11 @@ const buildFrame = (
     names: [
       {
         kind: "span-ref",
-        span: makeUtf16Span(source, actorStart, actorStart + "service".length),
+        span: makeUtf16Span(
+          source,
+          actorStart,
+          actorStart + input.actorSurface.length,
+        ),
       },
     ],
     attributes: [],
@@ -622,5 +636,11 @@ export const parseControlledEnglishCorpus = (
       ),
     );
   }
-  return buildFrame(text, frame);
+  return buildControlledFrame({
+    text,
+    frame,
+    languageHint: "en",
+    actorSurface: "service",
+    sourceId: "source:m4-controlled-corpus",
+  });
 };
