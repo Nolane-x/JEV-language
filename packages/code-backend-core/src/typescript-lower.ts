@@ -851,8 +851,11 @@ const lowerStatementList = (
   return ok(output);
 };
 
-const exportModifiers = (fn: PirFunction): ts.Modifier[] => [
-  ...(fn.visibility === "public"
+const exportModifiers = (
+  fn: PirFunction,
+  exported: boolean,
+): ts.Modifier[] => [
+  ...(exported || fn.visibility === "public"
     ? [ts.factory.createModifier(ts.SyntaxKind.ExportKeyword)]
     : []),
   ...(fn.async === true
@@ -863,6 +866,7 @@ const exportModifiers = (fn: PirFunction): ts.Modifier[] => [
 const lowerFunction = (
   fn: PirFunction,
   root: LowerContext,
+  exported: boolean,
 ): Result<ts.FunctionDeclaration> => {
   const context: LowerContext = {
     names: new Map(root.names),
@@ -921,7 +925,7 @@ const lowerFunction = (
 
   return ok(
     ts.factory.createFunctionDeclaration(
-      exportModifiers(fn),
+      exportModifiers(fn, exported),
       undefined,
       sanitizeIdentifier(fn.name),
       typeParameters,
@@ -934,12 +938,13 @@ const lowerFunction = (
 
 const lowerTypeSymbol = (
   symbol: PirSymbol,
+  exported: boolean,
 ): ts.Statement | undefined => {
   if (symbol.symbolKind !== "type" || symbol.type === undefined) {
     return undefined;
   }
   return ts.factory.createTypeAliasDeclaration(
-    symbol.visibility === "public"
+    exported || symbol.visibility === "public"
       ? [ts.factory.createModifier(ts.SyntaxKind.ExportKeyword)]
       : undefined,
     symbolName(symbol),
@@ -999,14 +1004,24 @@ export const lowerPirToTypeScriptAst = (
   const statements: ts.Statement[] = [
     ...lowerImports(program),
   ];
+  const exportedRefs = new Set(
+    (program.modules ?? []).flatMap((module) => module.exports),
+  );
 
   for (const symbol of program.symbols ?? []) {
-    const lowered = lowerTypeSymbol(symbol);
+    const lowered = lowerTypeSymbol(
+      symbol,
+      exportedRefs.has(symbol.id),
+    );
     if (lowered !== undefined) statements.push(lowered);
   }
 
   for (const fn of program.functions) {
-    const lowered = lowerFunction(fn, root);
+    const lowered = lowerFunction(
+      fn,
+      root,
+      exportedRefs.has(fn.id),
+    );
     if (!lowered.ok) return lowered;
     statements.push(lowered.value);
   }
