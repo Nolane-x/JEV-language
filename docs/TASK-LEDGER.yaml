@@ -28,7 +28,7 @@ tasks:
   - {id: T181-T193, title: Program IR graph symbols types expressions statements functions modules contracts effects holes CFG and fixture corpus, status: implemented}
   - {id: T194-T208, title: synthesis candidates generators pruning hashing frontiers budgets Jev ranking and partial failures, status: implemented}
   - {id: T209-T219, title: TypeScript backend ABI manifest parse lift lower print bindings patch diagnostics typecheck and conformance, status: implemented}
-  - {id: T220-T238, title: Python backend synthesis extensions repair and compiler/test loops, status: partial}
+  - {id: T220-T226, title: Python parser lift lower bindings patch diagnostics conformance and cross-backend semantic fixtures, status: implemented}\n  - {id: T227-T238, title: normalized diagnostics repair candidates compiler/test repair loop rollback budgets and benchmark, status: partial}
   - {id: T239-T247, title: formal/data/query/math/logic/command/action IR schemas validators and deterministic renderers, status: implemented}
   - {id: T248-T252, title: universal expression target/request/artifact/result and capability manifest, status: implemented}
   - {id: T253-T257, title: universal parse/realize/express/transform/verify registry handlers, status: implemented}
