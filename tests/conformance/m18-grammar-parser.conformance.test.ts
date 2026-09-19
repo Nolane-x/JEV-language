@@ -24,7 +24,6 @@ const nounMatch = {
   lemma: "service",
   partOfSpeech: "noun" as const,
   surface: "service",
-  concept: "concept:core.software-service",
 };
 
 const ruleIds = (
