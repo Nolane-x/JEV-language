@@ -95,7 +95,47 @@ export interface DecisionProviderAdapter {
 
 export interface DecisionBudget {
   maxRequests: number;
+  maxInputTokens?: number;
+  maxOutputTokens?: number;
+  maxTotalTokens?: number;
 }
+
+export interface DecisionBudgetUsage {
+  requests: number;
+  inputTokens: number;
+  outputTokens: number;
+}
+
+export type DecisionTraceEvent =
+  | {
+      kind: "cache-hit";
+      requestId: string;
+      traceId: TraceId;
+      adapterId: string;
+    }
+  | {
+      kind: "request-start";
+      requestId: string;
+      traceId: TraceId;
+      adapterId: string;
+      requestNumber: number;
+    }
+  | {
+      kind: "request-complete";
+      requestId: string;
+      traceId: TraceId;
+      adapterId: string;
+      usage: DecisionUsage;
+    }
+  | {
+      kind: "request-failed";
+      requestId: string;
+      traceId: TraceId;
+      adapterId: string;
+      errorCode: string;
+    };
+
+export type DecisionTraceSink = (event: DecisionTraceEvent) => void;
 
 export interface DecisionCache {
   get(key: string): DecisionBatchResponse | undefined;
