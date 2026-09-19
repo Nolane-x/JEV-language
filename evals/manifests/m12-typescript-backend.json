@@ -1,0 +1,45 @@
+{
+  "id": "m12-typescript-backend",
+  "version": "1.0.0",
+  "milestone": "M12",
+  "taskRange": "T209-T219",
+  "specSections": [
+    421,
+    422
+  ],
+  "liveJevRequests": 0,
+  "requiredCapabilities": [
+    "parse",
+    "lift",
+    "lower",
+    "print",
+    "patch",
+    "diagnostics",
+    "typecheck"
+  ],
+  "liftCoverage": [
+    "module-import-export",
+    "functions",
+    "variables",
+    "object-array",
+    "conditionals",
+    "while-loop",
+    "for-of",
+    "calls",
+    "async-await",
+    "try-catch",
+    "interfaces-types",
+    "basic-generics"
+  ],
+  "lowerCorpus": "m10ProgramCorpus",
+  "assertions": [
+    "manifest-validation",
+    "parse-diagnostics",
+    "lifted-pir-validation",
+    "source-bindings",
+    "m10-pir-lower",
+    "strict-typecheck",
+    "minimal-patch",
+    "formatter-determinism"
+  ]
+}
