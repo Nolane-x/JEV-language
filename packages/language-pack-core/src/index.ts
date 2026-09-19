@@ -2,6 +2,7 @@ import type { SemanticId } from "../../core-types/src/index.ts";
 import type { GrammarCoverageMatrix, GrammarRegistry } from "../../grammar-core/src/index.ts";
 import type { LanguageNeutralLexiconIndex } from "../../lexicon-core/src/index.ts";
 import type { MorphologyProvider } from "../../morphology-core/src/index.ts";
+import type { LanguagePragmaticsProvider } from "./pragmatics.ts";
 
 export interface LanguagePackManifest {
   id: string;
@@ -154,6 +155,7 @@ export interface HumanLanguagePack<
   punctuation: PunctuationProvider;
   discourse: LanguageDiscourseProvider<TDiscourseContext, TDiscourseChoice>;
   temporalAspect?: TemporalAspectProvider;
+  pragmatics?: LanguagePragmaticsProvider;
   tests: LanguageConformanceManifest;
 }
 
@@ -168,6 +170,7 @@ export interface LanguagePackIdentityView {
   punctuation: Pick<PunctuationProvider, "language">;
   discourse: { readonly language: string };
   temporalAspect?: Pick<TemporalAspectProvider, "language">;
+  pragmatics?: Pick<LanguagePragmaticsProvider, "language">;
   tests: Pick<LanguageConformanceManifest, "language">;
 }
 
@@ -185,6 +188,7 @@ export const assertLanguagePackIdentity = (
     pack.punctuation.language,
     pack.discourse.language,
     ...(pack.temporalAspect === undefined ? [] : [pack.temporalAspect.language]),
+    ...(pack.pragmatics === undefined ? [] : [pack.pragmatics.language]),
     pack.tests.language,
   ];
   if (providerLanguages.some((value) => value !== language)) {
@@ -195,3 +199,5 @@ export const assertLanguagePackIdentity = (
 };
 
 export * from "./open-world-lexicon.ts";
+
+export * from "./pragmatics.ts";
