@@ -48,12 +48,20 @@ const replaceFunctionBody = (
   program: PirProgram,
   functionId: string,
   body: PirExpression,
-): PirProgram => ({
-  ...structuredClone(program),
-  functions: program.functions.map((fn) =>
-    fn.id === functionId ? { ...structuredClone(fn), body } : structuredClone(fn),
-  ),
-});
+  resolvedHoleId?: string,
+): PirProgram => {
+  const next = structuredClone(program);
+  next.functions = next.functions.map((fn) => {
+    if (fn.id !== functionId) return fn;
+    delete fn.statements;
+    fn.body = structuredClone(body);
+    return fn;
+  });
+  if (resolvedHoleId !== undefined && next.holes !== undefined) {
+    next.holes = next.holes.filter((hole) => hole.id !== resolvedHoleId);
+  }
+  return next;
+};
 
 export const expandFilterHole = (input: {
   program: PirProgram;
@@ -62,7 +70,12 @@ export const expandFilterHole = (input: {
   property: string;
 }): Result<SynthesisCandidate[]> => {
   const fn = input.program.functions.find((candidate) => candidate.id === input.functionId);
-  if (fn === undefined || fn.body.kind !== "hole" || fn.body.id !== input.holeId) {
+  if (
+    fn === undefined ||
+    fn.body === undefined ||
+    fn.body.kind !== "hole" ||
+    fn.body.id !== input.holeId
+  ) {
     return err(
       new StructuredError(
         "SYNTH_HOLE_NOT_FOUND",
@@ -105,7 +118,12 @@ export const expandFilterHole = (input: {
         property: input.property,
       },
     };
-    const program = replaceFunctionBody(input.program, fn.id, replacement);
+    const program = replaceFunctionBody(
+      input.program,
+      fn.id,
+      replacement,
+      input.holeId,
+    );
     const valid = validatePirProgram(program);
     if (!valid.ok) continue;
     candidates.push({
