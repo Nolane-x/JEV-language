@@ -208,11 +208,20 @@ export class AmbiguityResolverRegistry {
     }
 
     if (cloned.length === 1) {
+      const selected = cloned[0];
+      if (selected === undefined) {
+        return err(
+          new StructuredError(
+            "PARSER_NO_CANDIDATES",
+            "Parse candidate disappeared during ambiguity resolution.",
+          ),
+        );
+      }
       return ok({
         status: "unambiguous",
         classification: "none",
         candidates: cloned,
-        selected: cloned[0],
+        selected,
       });
     }
 
