@@ -1,0 +1,31 @@
+name: JEV Live Smoke
+
+on:
+  workflow_dispatch:
+    inputs:
+      confirm:
+        description: "Type YES to spend a minimal amount of TypeSafe/Jev quota"
+        required: true
+        default: "NO"
+
+permissions:
+  contents: read
+
+jobs:
+  live-smoke:
+    if: ${{ inputs.confirm == 'YES' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm install --ignore-scripts --no-audit --no-fund
+      - name: One-request live smoke
+        env:
+          TYPESAFE_API_KEY: ${{ secrets.TYPESAFE_API_KEY }}
+          JEV_ALLOW_LIVE: "1"
+          JEV_LIVE_MAX_REQUESTS: "1"
+        run: npm run eval:live

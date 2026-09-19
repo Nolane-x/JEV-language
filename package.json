@@ -1,0 +1,31 @@
+{
+  "name": "jev-language",
+  "version": "0.1.0-dev",
+  "private": true,
+  "type": "module",
+  "engines": { "node": ">=20" },
+  "scripts": {
+    "check": "npm run typecheck && npm run check:boundaries && npm run test",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "check:boundaries": "node scripts/check-boundaries.mjs",
+    "test": "vitest run",
+    "test:conformance": "vitest run tests/conformance",
+    "test:property": "vitest run tests/property",
+    "test:fuzz-smoke": "vitest run tests/fuzz",
+    "eval:recorded": "vitest run tests/decision-runtime.recorded.test.ts",
+    "eval:live": "tsx scripts/live-smoke.ts",
+    "benchmark": "tsx evals/runners/smoke.ts",
+    "format": "biome format --write .",
+    "lint": "biome check ."
+  },
+  "dependencies": {
+    "@typesafe-ai/sdk": "0.6.0"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "2.5.11",
+    "@types/node": "26.4.1",
+    "tsx": "4.23.13",
+    "typescript": "7.0.2",
+    "vitest": "4.1.11"
+  }
+}

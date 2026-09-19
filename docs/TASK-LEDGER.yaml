@@ -1,0 +1,22 @@
+spec_version: 0.4-master-implementation-research-expanded
+tasks:
+  - {id: T001, title: create workspace and package boundaries, status: implemented}
+  - {id: T002, title: enable strict TypeScript/base tooling, status: implemented}
+  - {id: T003, title: implement structured Result/Error utilities, status: in-progress}
+  - {id: T004, title: implement runtime schema-validation wrapper, status: in-progress}
+  - {id: T005, title: implement semantic ID types and constructors, status: in-progress}
+  - {id: T006, title: implement version types, status: in-progress}
+  - {id: T007, title: implement TrustLabel/Sensitivity types, status: in-progress}
+  - {id: T008, title: implement Provenance IDs and records, status: in-progress}
+  - {id: T009, title: implement canonical JSON utility, status: in-progress}
+  - {id: T010, title: implement hashing/digest interface, status: in-progress}
+  - {id: T011-T035, title: JSG bootstrap and validators, status: todo}
+  - {id: T036-T047, title: open-world values, status: todo}
+  - {id: T048-T059, title: ontology, status: todo}
+  - {id: T060-T072, title: Jev decision runtime, status: todo}
+  - {id: T073-T084, title: decision packs and budgeting, status: todo}
+  - {id: T085-T144, title: controlled grounding realizer round-trip, status: todo}
+  - {id: T145-T180, title: dialogue Vietnamese discourse, status: todo}
+  - {id: T181-T238, title: PIR synthesis backends repair, status: todo}
+  - {id: T239-T300, title: formal IR universal expression verification hardening, status: todo}
+  - {id: T301+, title: v0.4 research expansion tasks, status: todo}
