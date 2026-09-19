@@ -57,6 +57,7 @@ export type ControlledFrame =
       amount: number;
       comparator: QuantityComparator;
       polarity: EventNode["polarity"];
+      aspect?: EventNode["aspect"];
       date?: string;
       phenomena: ControlledCorpusPhenomenon[];
     }
@@ -418,6 +419,7 @@ export const buildControlledFrame = (
         },
       ],
       ...(temporalId === undefined ? {} : { temporal: temporalId }),
+      ...(frame.aspect === undefined ? {} : { aspect: frame.aspect }),
       polarity: frame.polarity,
     };
     operations.push({ kind: "add-node", node: event });
