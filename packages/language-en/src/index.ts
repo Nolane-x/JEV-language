@@ -122,7 +122,19 @@ export const createEnglishSeedLexicon = (): LanguageNeutralLexiconIndex => {
     functionLexeme("lexeme:en.must", "must", "auxiliary", "modality.required"),
     functionLexeme("lexeme:en.may", "may", "auxiliary", "modality.permitted"),
     functionLexeme("lexeme:en.can", "can", "auxiliary", "modality.possible"),
-    functionLexeme("lexeme:en.do", "do", "auxiliary", "auxiliary.do-support"),
+    {
+      id: "lexeme:en.do",
+      language: "en",
+      lemma: "do",
+      partOfSpeech: "auxiliary",
+      forms: ["does", "did", "done", "doing"],
+      senses: [
+        {
+          id: "lexeme:en.do.sense.1",
+          semanticTag: "auxiliary.do-support",
+        },
+      ],
+    },
     {
       id: "lexeme:en.be",
       language: "en",
@@ -385,31 +397,32 @@ export class EnglishMorphologyProvider implements MorphologyProvider {
 export const englishControlledCoverage = {
   language: "en",
   phenomena: {
-    "simple-declaratives": "partial",
+    "simple-declaratives": "controlled",
     negation: "controlled",
-    "yes-no-questions": "unsupported",
-    "wh-questions": "unsupported",
+    "yes-no-questions": "controlled",
+    "wh-questions": "controlled",
     imperatives: "unsupported",
-    "copular-clauses": "partial",
+    "copular-clauses": "controlled",
     transitives: "controlled",
-    intransitives: "unsupported",
-    coordination: "partial",
-    conditionals: "partial",
+    intransitives: "controlled",
+    coordination: "controlled",
+    conditionals: "controlled",
     modals: "controlled",
-    quantification: "partial",
+    quantification: "controlled",
     "numbers-units": "controlled",
-    "causal-adjuncts": "partial",
+    "time-adjuncts": "controlled",
+    "causal-adjuncts": "controlled",
     "dialogue-reference": "controlled",
     "instruction-as-content": "controlled",
   },
 } as const;
-
 
 const grammarRule = (
   id: string,
   lhs: string,
   rhs: GrammarRule["rhs"],
   priority = 0,
+  resultFeatures?: GrammarRule["resultFeatures"],
 ): GrammarRule => ({
   id,
   language: "en",
@@ -417,6 +430,9 @@ const grammarRule = (
   rhs,
   constraints: [],
   priority,
+  ...(resultFeatures === undefined
+    ? {}
+    : { resultFeatures }),
 });
 
 export const createEnglishControlledGrammar = (): GrammarRegistry => {
@@ -426,6 +442,37 @@ export const createEnglishControlledGrammar = (): GrammarRegistry => {
       "grammar:en.np.noun",
       "NP",
       [{ kind: "lexical", partOfSpeech: "noun", capture: "head" }],
+      30,
+    ),
+    grammarRule(
+      "grammar:en.np.determiner-noun",
+      "NP",
+      [
+        {
+          kind: "lexical",
+          partOfSpeech: "determiner",
+          capture: "determiner",
+        },
+        { kind: "lexical", partOfSpeech: "noun", capture: "head" },
+      ],
+      35,
+    ),
+    grammarRule(
+      "grammar:en.np.pronoun",
+      "NP",
+      [{ kind: "lexical", partOfSpeech: "pronoun", capture: "head" }],
+      30,
+    ),
+    grammarRule(
+      "grammar:en.adjp.adjective",
+      "ADJP",
+      [{ kind: "lexical", partOfSpeech: "adjective", capture: "head" }],
+      25,
+    ),
+    grammarRule(
+      "grammar:en.vp.intransitive",
+      "VP",
+      [{ kind: "lexical", partOfSpeech: "verb", capture: "predicate" }],
       20,
     ),
     grammarRule(
@@ -435,26 +482,47 @@ export const createEnglishControlledGrammar = (): GrammarRegistry => {
         { kind: "lexical", partOfSpeech: "verb", capture: "predicate" },
         { kind: "category", category: "NP", capture: "object" },
       ],
-      20,
+      35,
     ),
     grammarRule(
-      "grammar:en.s.declarative",
-      "S",
-      [
-        { kind: "category", category: "NP", capture: "subject" },
-        { kind: "category", category: "VP", capture: "predicate" },
-      ],
-      20,
-    ),
-    grammarRule(
-      "grammar:en.modal.required-negative",
+      "grammar:en.vp.copula-adjective",
       "VP",
       [
         {
           kind: "lexical",
           partOfSpeech: "auxiliary",
-          semanticTag: "modality.required",
-          capture: "modal",
+          semanticTag: "copula",
+          capture: "copula",
+        },
+        { kind: "category", category: "ADJP", capture: "predicate" },
+      ],
+      35,
+      { mood: "indicative" },
+    ),
+    grammarRule(
+      "grammar:en.vp.copula-nominal",
+      "VP",
+      [
+        {
+          kind: "lexical",
+          partOfSpeech: "auxiliary",
+          semanticTag: "copula",
+          capture: "copula",
+        },
+        { kind: "category", category: "NP", capture: "predicate" },
+      ],
+      30,
+      { mood: "indicative" },
+    ),
+    grammarRule(
+      "grammar:en.vp.negation-do",
+      "VP",
+      [
+        {
+          kind: "lexical",
+          partOfSpeech: "auxiliary",
+          semanticTag: "auxiliary.do-support",
+          capture: "auxiliary",
         },
         {
           kind: "lexical",
@@ -464,17 +532,100 @@ export const createEnglishControlledGrammar = (): GrammarRegistry => {
         },
         { kind: "category", category: "VP", capture: "content" },
       ],
-      30,
+      45,
+      { polarity: "negative" },
     ),
     grammarRule(
-      "grammar:en.coordination.and",
-      "COORD",
+      "grammar:en.vp.negation-bare",
+      "VP",
+      [
+        {
+          kind: "lexical",
+          partOfSpeech: "particle",
+          semanticTag: "polarity.negative",
+          capture: "negation",
+        },
+        { kind: "category", category: "VP", capture: "content" },
+      ],
+      25,
+      { polarity: "negative" },
+    ),
+    grammarRule(
+      "grammar:en.modal.required",
+      "VP",
+      [
+        {
+          kind: "lexical",
+          partOfSpeech: "auxiliary",
+          semanticTag: "modality.required",
+          capture: "modal",
+        },
+        { kind: "category", category: "VP", capture: "content" },
+      ],
+      45,
+      { modality: "required" },
+    ),
+    grammarRule(
+      "grammar:en.modal.permitted",
+      "VP",
+      [
+        {
+          kind: "lexical",
+          partOfSpeech: "auxiliary",
+          semanticTag: "modality.permitted",
+          capture: "modal",
+        },
+        { kind: "category", category: "VP", capture: "content" },
+      ],
+      45,
+      { modality: "permitted" },
+    ),
+    grammarRule(
+      "grammar:en.modal.possible",
+      "VP",
+      [
+        {
+          kind: "lexical",
+          partOfSpeech: "auxiliary",
+          semanticTag: "modality.possible",
+          capture: "modal",
+        },
+        { kind: "category", category: "VP", capture: "content" },
+      ],
+      45,
+      { modality: "possible" },
+    ),
+    grammarRule(
+      "grammar:en.s.declarative",
+      "S",
+      [
+        { kind: "category", category: "NP", capture: "subject" },
+        { kind: "category", category: "VP", capture: "predicate" },
+      ],
+      40,
+      { mood: "indicative" },
+    ),
+    grammarRule(
+      "grammar:en.s.coordination-and",
+      "S",
       [
         { kind: "category", category: "S", capture: "left" },
         { kind: "literal", surface: "and" },
         { kind: "category", category: "S", capture: "right" },
       ],
-      10,
+      15,
+      { coordination: "and" },
+    ),
+    grammarRule(
+      "grammar:en.s.coordination-or",
+      "S",
+      [
+        { kind: "category", category: "S", capture: "left" },
+        { kind: "literal", surface: "or" },
+        { kind: "category", category: "S", capture: "right" },
+      ],
+      15,
+      { coordination: "or" },
     ),
     grammarRule(
       "grammar:en.conditional.if",
@@ -484,7 +635,8 @@ export const createEnglishControlledGrammar = (): GrammarRegistry => {
         { kind: "category", category: "S", capture: "condition" },
         { kind: "category", category: "S", capture: "consequence" },
       ],
-      10,
+      20,
+      { mood: "conditional" },
     ),
     grammarRule(
       "grammar:en.causal.because",
@@ -494,7 +646,53 @@ export const createEnglishControlledGrammar = (): GrammarRegistry => {
         { kind: "literal", surface: "because" },
         { kind: "category", category: "S", capture: "cause" },
       ],
-      10,
+      20,
+      { relation: "cause" },
+    ),
+    grammarRule(
+      "grammar:en.time.deictic",
+      "TIME",
+      [
+        {
+          kind: "lexical",
+          partOfSpeech: "adverb",
+          semanticTag: "temporal.deictic",
+          capture: "time",
+        },
+      ],
+      30,
+      { temporal: "deictic" },
+    ),
+    grammarRule(
+      "grammar:en.s.time-adjunct",
+      "S",
+      [
+        { kind: "category", category: "S", capture: "clause" },
+        { kind: "category", category: "TIME", capture: "time" },
+      ],
+      18,
+      { temporal: "adjunct" },
+    ),
+    grammarRule(
+      "grammar:en.quantity.exact",
+      "QUANTITY",
+      [
+        { kind: "literal", surface: "exactly" },
+        { kind: "lexical", partOfSpeech: "numeral", capture: "amount" },
+      ],
+      35,
+      { comparator: "exact" },
+    ),
+    grammarRule(
+      "grammar:en.quantity.at-most",
+      "QUANTITY",
+      [
+        { kind: "literal", surface: "at" },
+        { kind: "literal", surface: "most" },
+        { kind: "lexical", partOfSpeech: "numeral", capture: "amount" },
+      ],
+      35,
+      { comparator: "at-most" },
     ),
     grammarRule(
       "grammar:en.quantity.more-than",
@@ -503,9 +701,66 @@ export const createEnglishControlledGrammar = (): GrammarRegistry => {
         { kind: "literal", surface: "more" },
         { kind: "literal", surface: "than" },
         { kind: "lexical", partOfSpeech: "numeral", capture: "amount" },
+      ],
+      35,
+      { comparator: "more-than" },
+    ),
+    grammarRule(
+      "grammar:en.np.quantified",
+      "NP",
+      [
+        { kind: "category", category: "QUANTITY", capture: "quantity" },
         { kind: "category", category: "NP", capture: "unit" },
       ],
-      20,
+      40,
+    ),
+    grammarRule(
+      "grammar:en.question.yes-no-do",
+      "QUESTION",
+      [
+        {
+          kind: "lexical",
+          partOfSpeech: "auxiliary",
+          semanticTag: "auxiliary.do-support",
+          capture: "auxiliary",
+        },
+        { kind: "category", category: "NP", capture: "subject" },
+        { kind: "category", category: "VP", capture: "predicate" },
+      ],
+      45,
+      { question: "yes-no" },
+    ),
+    grammarRule(
+      "grammar:en.question.yes-no-permission",
+      "QUESTION",
+      [
+        {
+          kind: "lexical",
+          partOfSpeech: "auxiliary",
+          semanticTag: "modality.permitted",
+          capture: "modal",
+        },
+        { kind: "category", category: "NP", capture: "subject" },
+        { kind: "category", category: "VP", capture: "predicate" },
+      ],
+      50,
+      { question: "yes-no", modality: "permitted" },
+    ),
+    grammarRule(
+      "grammar:en.question.yes-no-possibility",
+      "QUESTION",
+      [
+        {
+          kind: "lexical",
+          partOfSpeech: "auxiliary",
+          semanticTag: "modality.possible",
+          capture: "modal",
+        },
+        { kind: "category", category: "NP", capture: "subject" },
+        { kind: "category", category: "VP", capture: "predicate" },
+      ],
+      45,
+      { question: "yes-no", modality: "possible" },
     ),
     grammarRule(
       "grammar:en.question.wh",
@@ -518,7 +773,8 @@ export const createEnglishControlledGrammar = (): GrammarRegistry => {
         },
         { kind: "category", category: "S", capture: "body" },
       ],
-      10,
+      30,
+      { question: "wh" },
     ),
   ];
 
@@ -528,7 +784,6 @@ export const createEnglishControlledGrammar = (): GrammarRegistry => {
   }
   return registry;
 };
-
 
 export interface EnglishToken {
   surface: string;
