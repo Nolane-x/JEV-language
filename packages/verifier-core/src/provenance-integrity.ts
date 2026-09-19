@@ -1,0 +1,175 @@
+import type {
+  ProvenanceRecord,
+  ProvenanceRef,
+} from "../../provenance/src/index.ts";
+import type { Diagnostic } from "../../semantic-graph/src/index.ts";
+import type {
+  VerificationObligation,
+  VerificationResult,
+  Verifier,
+  VerifierManifest,
+  VerifyContext,
+} from "./framework.ts";
+
+export interface ProvenanceIntegritySubject {
+  requiredRefs: ProvenanceRef[];
+  records: ProvenanceRecord[];
+}
+
+export type ProvenanceIntegrityViolationCode =
+  | "PROVENANCE_REQUIRED_MISSING"
+  | "PROVENANCE_SOURCE_MISSING"
+  | "PROVENANCE_DUPLICATE_ID"
+  | "PROVENANCE_CYCLE";
+
+export interface ProvenanceIntegrityViolation {
+  code: ProvenanceIntegrityViolationCode;
+  message: string;
+  ref?: ProvenanceRef;
+}
+
+export const verifyProvenanceIntegrity = (
+  subject: ProvenanceIntegritySubject,
+): ProvenanceIntegrityViolation[] => {
+  const violations: ProvenanceIntegrityViolation[] = [];
+  const byId = new Map<ProvenanceRef, ProvenanceRecord>();
+
+  for (const record of subject.records) {
+    if (byId.has(record.id)) {
+      violations.push({
+        code: "PROVENANCE_DUPLICATE_ID",
+        message: `Duplicate provenance record id: ${record.id}.`,
+        ref: record.id,
+      });
+      continue;
+    }
+    byId.set(record.id, record);
+  }
+
+  for (const ref of [...new Set(subject.requiredRefs)]) {
+    if (!byId.has(ref)) {
+      violations.push({
+        code: "PROVENANCE_REQUIRED_MISSING",
+        message: `Required provenance reference is missing: ${ref}.`,
+        ref,
+      });
+    }
+  }
+
+  for (const record of subject.records) {
+    for (const sourceRef of record.sourceRefs) {
+      if (!byId.has(sourceRef)) {
+        violations.push({
+          code: "PROVENANCE_SOURCE_MISSING",
+          message:
+            `Provenance record ${record.id} references missing source ${sourceRef}.`,
+          ref: sourceRef,
+        });
+      }
+    }
+  }
+
+  const visiting = new Set<ProvenanceRef>();
+  const visited = new Set<ProvenanceRef>();
+  const cyclic = new Set<ProvenanceRef>();
+
+  const visit = (id: ProvenanceRef): boolean => {
+    if (visited.has(id)) return false;
+    if (visiting.has(id)) {
+      cyclic.add(id);
+      return true;
+    }
+
+    const record = byId.get(id);
+    if (record === undefined) return false;
+
+    visiting.add(id);
+    let hasCycle = false;
+    for (const sourceRef of record.sourceRefs) {
+      if (!byId.has(sourceRef)) continue;
+      if (visit(sourceRef)) {
+        cyclic.add(id);
+        hasCycle = true;
+      }
+    }
+    visiting.delete(id);
+    visited.add(id);
+    return hasCycle;
+  };
+
+  for (const id of byId.keys()) visit(id);
+  for (const id of [...cyclic].sort()) {
+    violations.push({
+      code: "PROVENANCE_CYCLE",
+      message: `Provenance ancestry must be acyclic; cycle includes ${id}.`,
+      ref: id,
+    });
+  }
+
+  return violations;
+};
+
+const severityFor = (
+  obligation: VerificationObligation,
+): Diagnostic["severity"] =>
+  obligation.severity === "required"
+    ? "error"
+    : obligation.severity === "recommended"
+      ? "warning"
+      : "info";
+
+export class ProvenanceIntegrityVerifier
+  implements Verifier<ProvenanceIntegritySubject>
+{
+  readonly manifest: VerifierManifest = {
+    id: "verifier.provenance-integrity",
+    version: "1.0.0",
+    description:
+      "Deterministically validates required provenance references, ancestry closure, unique identities, and acyclic source chains.",
+    mode: "deterministic",
+    kinds: ["provenance-integrity"],
+  };
+
+  canVerify(
+    obligation: VerificationObligation,
+    subject: ProvenanceIntegritySubject,
+  ): boolean {
+    return (
+      obligation.kind === "provenance-integrity" &&
+      Array.isArray(subject.requiredRefs) &&
+      Array.isArray(subject.records)
+    );
+  }
+
+  async verify(
+    obligation: VerificationObligation,
+    subject: ProvenanceIntegritySubject,
+    _context: VerifyContext,
+  ): Promise<VerificationResult> {
+    const violations = verifyProvenanceIntegrity(subject);
+    const severity = severityFor(obligation);
+
+    return {
+      obligationId: obligation.id,
+      status: violations.length === 0 ? "pass" : "fail",
+      evidence: [
+        `evidence:provenance-integrity:records:${subject.records.length}`,
+      ],
+      diagnostics: violations.map((violation) => ({
+        code: violation.code,
+        severity,
+        message: violation.message,
+        details:
+          violation.ref === undefined
+            ? undefined
+            : { provenanceRef: violation.ref },
+      })),
+      verifier: {
+        id: this.manifest.id,
+        version: this.manifest.version,
+        mode: this.manifest.mode,
+        evidenceGrade: "formal-deterministic-proof",
+      },
+    };
+  }
+}
