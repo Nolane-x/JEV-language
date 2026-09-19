@@ -152,6 +152,22 @@ export interface QueryIr {
   annotations?: Record<string, JsonValue>;
 }
 
+export type LogicTerm =
+  | {
+      kind: "variable";
+      name: string;
+      semanticRef?: SemanticRef;
+    }
+  | {
+      kind: "constant";
+      value: SemanticValue;
+    }
+  | {
+      kind: "function";
+      function: SemanticId;
+      args: LogicTerm[];
+    };
+
 export type LogicIr =
   | { kind: "proposition-ref"; ref: SemanticRef }
   | { kind: "boolean"; value: boolean }
@@ -163,7 +179,16 @@ export type LogicIr =
   | {
       kind: "predicate";
       predicate: SemanticId;
-      args: Array<{ role?: SemanticId; value: SemanticValue }>;
+      args: Array<{
+        role?: SemanticId;
+        value: SemanticValue | LogicTerm;
+      }>;
+    }
+  | {
+      kind: "comparison";
+      operator: "eq" | "neq" | "lt" | "lte" | "gt" | "gte";
+      left: LogicTerm;
+      right: LogicTerm;
     }
   | {
       kind: "quantifier";
@@ -488,6 +513,44 @@ export const validateQueryIr = (query: QueryIr): Result<QueryIr> => {
   return ok(structuredClone(query));
 };
 
+const logicTermKinds = new Set(["variable", "constant", "function"]);
+
+const isLogicTerm = (
+  value: SemanticValue | LogicTerm,
+): value is LogicTerm => logicTermKinds.has(value.kind);
+
+const validateLogicTerm = (
+  term: LogicTerm,
+  path: string,
+): StructuredError | undefined => {
+  switch (term.kind) {
+    case "variable":
+      return term.name.trim() === ""
+        ? new StructuredError(
+            "FORMAL_LOGIC_TERM_VARIABLE",
+            `Logic variable name is empty at ${path}.`,
+          )
+        : undefined;
+    case "constant":
+      return undefined;
+    case "function":
+      if (term.function.trim() === "") {
+        return new StructuredError(
+          "FORMAL_LOGIC_TERM_FUNCTION",
+          `Logic function identifier is empty at ${path}.`,
+        );
+      }
+      for (let index = 0; index < term.args.length; index += 1) {
+        const error = validateLogicTerm(
+          term.args[index]!,
+          `${path}.args[${index}]`,
+        );
+        if (error) return error;
+      }
+      return undefined;
+  }
+};
+
 export const validateLogicIr = (logic: LogicIr): Result<LogicIr> => {
   const visit = (node: LogicIr, path: string): StructuredError | undefined => {
     switch (node.kind) {
@@ -518,12 +581,27 @@ export const validateLogicIr = (logic: LogicIr): Result<LogicIr> => {
         return left ?? visit(node.right, `${path}.right`);
       }
       case "predicate":
-        return node.args.length === 0
-          ? new StructuredError(
-              "FORMAL_LOGIC_PREDICATE_ARITY",
-              `Predicate requires at least one argument at ${path}.`,
-            )
-          : undefined;
+        if (node.args.length === 0) {
+          return new StructuredError(
+            "FORMAL_LOGIC_PREDICATE_ARITY",
+            `Predicate requires at least one argument at ${path}.`,
+          );
+        }
+        for (let index = 0; index < node.args.length; index += 1) {
+          const value = node.args[index]!.value;
+          if (isLogicTerm(value)) {
+            const error = validateLogicTerm(
+              value,
+              `${path}.args[${index}].value`,
+            );
+            if (error) return error;
+          }
+        }
+        return undefined;
+      case "comparison": {
+        const left = validateLogicTerm(node.left, `${path}.left`);
+        return left ?? validateLogicTerm(node.right, `${path}.right`);
+      }
       case "quantifier":
         if (node.variable.trim() === "") {
           return new StructuredError(
