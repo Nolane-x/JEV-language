@@ -96,15 +96,23 @@ export interface HumanLanguagePack<
   tests: LanguageConformanceManifest;
 }
 
-export const assertLanguagePackIdentity = (
+export const assertLanguagePackIdentity = <
+  TToken,
+  TParseInput,
+  TParseResult,
+  TRealizeInput,
+  TRealizeResult,
+  TDiscourseContext,
+  TDiscourseChoice,
+>(
   pack: HumanLanguagePack<
-    unknown,
-    unknown,
-    unknown,
-    unknown,
-    unknown,
-    unknown,
-    unknown
+    TToken,
+    TParseInput,
+    TParseResult,
+    TRealizeInput,
+    TRealizeResult,
+    TDiscourseContext,
+    TDiscourseChoice
   >,
 ): void => {
   const language = pack.manifest.languageTag;
