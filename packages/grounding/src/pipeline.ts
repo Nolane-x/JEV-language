@@ -159,7 +159,8 @@ const normalizeUnicodeNfc = (
   const segmenter = new Intl.Segmenter(undefined, { granularity: "grapheme" });
   let text = "";
   const boundaryMap: number[] = [lineBoundaryMap[0] ?? 0];
-  const edits = [...priorEdits];
+  const lineToFinal = new Array<number>(lineNormalized.length + 1).fill(0);
+  const unicodeEdits: NormalizationEdit[] = [];
 
   for (const part of segmenter.segment(lineNormalized)) {
     const inputStart = part.index;
@@ -169,14 +170,21 @@ const normalizeUnicodeNfc = (
       lineBoundaryMap[inputEnd] ?? lineBoundaryMap[lineBoundaryMap.length - 1] ?? 0;
     const normalizedStart = text.length;
     const normalized = part.segment.normalize("NFC");
+
+    lineToFinal[inputStart] = normalizedStart;
+    for (let boundary = inputStart + 1; boundary < inputEnd; boundary += 1) {
+      lineToFinal[boundary] = normalizedStart;
+    }
+
     text += normalized;
+    lineToFinal[inputEnd] = text.length;
 
     for (let offset = 1; offset <= normalized.length; offset += 1) {
       boundaryMap.push(offset === normalized.length ? originalEnd : originalStart);
     }
 
     if (normalized !== part.segment) {
-      edits.push({
+      unicodeEdits.push({
         originalStart,
         originalEnd,
         normalizedStart,
@@ -186,7 +194,17 @@ const normalizeUnicodeNfc = (
     }
   }
 
-  return { text, boundaryMap, edits };
+  const rebasedPriorEdits = priorEdits.map((edit) => ({
+    ...edit,
+    normalizedStart: lineToFinal[edit.normalizedStart] ?? edit.normalizedStart,
+    normalizedEnd: lineToFinal[edit.normalizedEnd] ?? edit.normalizedEnd,
+  }));
+
+  return {
+    text,
+    boundaryMap,
+    edits: [...rebasedPriorEdits, ...unicodeEdits],
+  };
 };
 
 export const normalizeGroundingSource = (
