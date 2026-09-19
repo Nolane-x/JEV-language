@@ -18,3 +18,6 @@ This package does not claim open-domain parsing or natural conversation. Grammar
 
 
 T342 adds an optional presupposition-trigger registry provider to the shared language-pack ABI. Trigger descriptors are inspectable data (lexical, multiword, or construction keys) with explicit cancellability and projection preference; they do not execute accommodation or assert triggered content.
+
+
+T402-T410 typology expansion adds optional zero-realization/pro-drop, classifier-selection, social-deixis/honorific, constituent-order, morphological-construction and code-switch metadata contracts. Conformance mock packs exercise contrasting SOV/VSO/non-projective profiles without moving language-specific surfaces into the shared core.
