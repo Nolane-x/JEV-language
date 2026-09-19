@@ -14,6 +14,7 @@ import {
   reportSynthesisBenchmark,
   runBenchmark,
   validateDatasetManifest,
+  validateReproducibleEvaluationCase,
   type DatasetManifest,
 } from "../../packages/evaluation-core/src/index.ts";
 import {
@@ -70,6 +71,41 @@ describe("T276-T288 evaluation core conformance", () => {
     expect(duplicateTags.ok).toBe(false);
     if (!duplicateTags.ok) {
       expect(duplicateTags.error.code).toBe("EVAL_DATASET_DUPLICATE");
+    }
+  });
+
+  it("T276 validates reproducible evaluation-case semantics beyond exact target strings", () => {
+    const valid = validateReproducibleEvaluationCase({
+      id: "sem-00001",
+      input: "The service must not delete more than 3 files.",
+      expectedSemanticConstraints: [
+        { polarity: "negative" },
+        { quantity: { comparator: "at-most", amount: 3 } },
+      ],
+      allowedAlternatives: [
+        "The service may delete no more than 3 files.",
+      ],
+      forbiddenSemanticErrors: [
+        "negation-removed",
+        "quantity-changed",
+      ],
+      languageDomainVersion: "en-controlled@1",
+      expectedVerificationLevel: "semantic-round-trip",
+      tags: ["negation", "quantity"],
+    });
+    expect(valid.ok).toBe(true);
+
+    const missingSemantics = validateReproducibleEvaluationCase({
+      id: "bad-case",
+      input: "text",
+      allowedAlternatives: [],
+      forbiddenSemanticErrors: [],
+      languageDomainVersion: "en@1",
+      expectedVerificationLevel: "semantic",
+    });
+    expect(missingSemantics.ok).toBe(false);
+    if (!missingSemantics.ok) {
+      expect(missingSemantics.error.code).toBe("EVAL_CASE_SCHEMA");
     }
   });
 
