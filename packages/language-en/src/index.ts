@@ -17,6 +17,11 @@ import {
   type LexicalMatch,
 } from "../../lexicon-core/src/index.ts";
 import {
+  buildPackedGrammarForest,
+  type GrammarToken,
+  type SyntaxForest,
+} from "../../parser-core/src/index.ts";
+import {
   realizeControlledEnglishCorpus,
 } from "../../realizer-core/src/index.ts";
 import {
@@ -115,8 +120,32 @@ export const createEnglishSeedLexicon = (): LanguageNeutralLexiconIndex => {
       ],
     },
     functionLexeme("lexeme:en.must", "must", "auxiliary", "modality.required"),
+    functionLexeme("lexeme:en.may", "may", "auxiliary", "modality.permitted"),
+    functionLexeme("lexeme:en.can", "can", "auxiliary", "modality.possible"),
+    functionLexeme("lexeme:en.do", "do", "auxiliary", "auxiliary.do-support"),
+    {
+      id: "lexeme:en.be",
+      language: "en",
+      lemma: "be",
+      partOfSpeech: "auxiliary",
+      forms: ["am", "is", "are", "was", "were", "been", "being"],
+      senses: [{ id: "lexeme:en.be.sense.1", semanticTag: "copula" }],
+    },
     functionLexeme("lexeme:en.not", "not", "particle", "polarity.negative"),
-    functionLexeme("lexeme:en.be", "be", "auxiliary", "copula"),
+    functionLexeme("lexeme:en.the", "the", "determiner", "definiteness.definite"),
+    functionLexeme("lexeme:en.a", "a", "determiner", "definiteness.indefinite"),
+    functionLexeme("lexeme:en.an", "an", "determiner", "definiteness.indefinite"),
+    functionLexeme("lexeme:en.exactly", "exactly", "adverb", "quantity.exact"),
+    functionLexeme("lexeme:en.today", "today", "adverb", "temporal.deictic"),
+    functionLexeme("lexeme:en.active", "active", "adjective", "state.active"),
+    {
+      id: "lexeme:en.run",
+      language: "en",
+      lemma: "run",
+      partOfSpeech: "verb",
+      forms: ["runs", "ran", "running"],
+      senses: [{ id: "lexeme:en.run.sense.1", semanticTag: "predicate.run" }],
+    },
     functionLexeme("lexeme:en.if", "if", "conjunction", "condition.marker"),
     functionLexeme(
       "lexeme:en.because",
