@@ -220,6 +220,55 @@ const semanticValueMatchesSchema = (
   }
 };
 
+const sameActionSchema = (
+  left: ActionSchema,
+  right: ActionSchema,
+): boolean => {
+  if (left.kind !== right.kind) return false;
+  switch (left.kind) {
+    case "any":
+    case "null":
+    case "boolean":
+    case "number":
+    case "string":
+    case "reference":
+      return true;
+    case "collection":
+      return (
+        right.kind === "collection" &&
+        sameActionSchema(left.items, right.items)
+      );
+    case "object":
+      if (right.kind !== "object") return false;
+      if (
+        (left.additionalProperties === true) !==
+        (right.additionalProperties === true)
+      ) {
+        return false;
+      }
+      {
+        const leftFields = [...left.fields].sort((a, b) =>
+          a.name.localeCompare(b.name),
+        );
+        const rightFields = [...right.fields].sort((a, b) =>
+          a.name.localeCompare(b.name),
+        );
+        return (
+          leftFields.length === rightFields.length &&
+          leftFields.every((field, index) => {
+            const peer = rightFields[index];
+            return (
+              peer !== undefined &&
+              field.name === peer.name &&
+              field.required === peer.required &&
+              sameActionSchema(field.schema, peer.schema)
+            );
+          })
+        );
+      }
+  }
+};
+
 export const validateActionIr = (
   action: ActionIR,
   context: ActionValidationContext,
@@ -257,6 +306,18 @@ export const validateActionIr = (
   const validCapability = validateCapabilityDefinition(capability);
   if (!validCapability.ok) return err(validCapability.error);
 
+  if (
+    action.expectedReturn !== undefined &&
+    !sameActionSchema(action.expectedReturn, capability.output)
+  ) {
+    return err(
+      new StructuredError(
+        "ACTION_RETURN_SCHEMA_MISMATCH",
+        "Action expectedReturn conflicts with the declared capability output schema.",
+      ),
+    );
+  }
+
   if (action.provenance.length === 0) {
     return err(
       new StructuredError(
@@ -274,7 +335,19 @@ export const validateActionIr = (
   );
   if (parameterError) return err(parameterError);
 
+  for (const hint of action.riskHints ?? []) {
+    if (hint.trim() === "") {
+      return err(
+        new StructuredError(
+          "ACTION_RISK_HINT",
+          "Action risk hints must be non-empty when supplied.",
+        ),
+      );
+    }
+  }
+
   for (const ref of [
+    ...action.provenance,
     ...(action.preconditions ?? []),
     ...(action.expectedEffects ?? []),
     ...(action.semanticPurpose === undefined ? [] : [action.semanticPurpose]),
