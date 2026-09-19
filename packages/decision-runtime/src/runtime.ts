@@ -4,6 +4,7 @@ import {
   type JsonValue,
 } from "../../core-types/src/index.ts";
 import { JdrError } from "./errors.ts";
+import { validateDecisionBatchResponse } from "./validation.ts";
 import type {
   CalibrationHook,
   DecisionBatchRequest,
@@ -12,6 +13,7 @@ import type {
   DecisionBudgetUsage,
   DecisionCache,
   DecisionProviderAdapter,
+  DecisionRetryPolicy,
   DecisionTraceEvent,
   DecisionTraceSink,
 } from "./types.ts";
@@ -94,63 +96,137 @@ export class DecisionRuntime {
       };
     }
 
-    this.#assertBudgetAvailable();
+    const retry = this.#normalizeRetryPolicy(request.retryPolicy);
+    let lastError: JdrError | undefined;
 
-    this.#usage.requests += 1;
-    this.#emit({
-      kind: "request-start",
-      requestId: request.id,
-      traceId,
-      adapterId: this.#adapter.id,
-      requestNumber: this.#usage.requests,
-    });
-
-    try {
-      const response = await this.#adapter.execute(requestWithTrace, signal);
-      this.#usage.inputTokens += response.usage.inputTokens;
-      this.#usage.outputTokens += response.usage.outputTokens;
-      this.#assertTokenBudget();
-
-      const calibrated =
-        this.#calibration === undefined
-          ? response
-          : {
-              ...response,
-              answers: response.answers.map((answer) => {
-                const question = request.questions[answer.questionId];
-                if (question === undefined) return answer;
-                return this.#calibration?.calibrate({
-                  questionId: answer.questionId,
-                  question,
-                  answer,
-                }) ?? answer;
-              }),
-            };
-
-      const normalized: DecisionBatchResponse = {
-        ...calibrated,
-        traceId,
-      };
-      this.#cache?.set(key, normalized);
+    for (let attempt = 1; attempt <= retry.maxAttempts; attempt += 1) {
+      this.#assertBudgetAvailable();
+      this.#usage.requests += 1;
       this.#emit({
-        kind: "request-complete",
+        kind: "request-start",
         requestId: request.id,
         traceId,
         adapterId: this.#adapter.id,
-        usage: response.usage,
+        requestNumber: this.#usage.requests,
       });
-      return normalized;
-    } catch (error) {
-      this.#emit({
-        kind: "request-failed",
-        requestId: request.id,
-        traceId,
-        adapterId: this.#adapter.id,
-        errorCode:
-          error instanceof JdrError ? error.code : "JDR_PROVIDER_ERROR",
-      });
-      throw error;
+
+      try {
+        const response = await this.#adapter.execute(requestWithTrace, signal);
+        const validated = validateDecisionBatchResponse(
+          requestWithTrace,
+          response,
+        );
+        if (!validated.ok) throw validated.error;
+
+        this.#usage.inputTokens += validated.value.usage.inputTokens;
+        this.#usage.outputTokens += validated.value.usage.outputTokens;
+        this.#assertTokenBudget();
+
+        const calibrated =
+          this.#calibration === undefined
+            ? validated.value
+            : {
+                ...validated.value,
+                answers: validated.value.answers.map((answer) => {
+                  const question = request.questions[answer.questionId];
+                  if (question === undefined) return answer;
+                  return this.#calibration?.calibrate({
+                    questionId: answer.questionId,
+                    question,
+                    answer,
+                  }) ?? answer;
+                }),
+              };
+
+        const normalized: DecisionBatchResponse = {
+          ...calibrated,
+          traceId,
+        };
+        const calibratedValidation = validateDecisionBatchResponse(
+          requestWithTrace,
+          normalized,
+        );
+        if (!calibratedValidation.ok) throw calibratedValidation.error;
+
+        this.#cache?.set(key, normalized);
+        this.#emit({
+          kind: "request-complete",
+          requestId: request.id,
+          traceId,
+          adapterId: this.#adapter.id,
+          usage: validated.value.usage,
+        });
+        return normalized;
+      } catch (error) {
+        const normalizedError =
+          error instanceof JdrError
+            ? error
+            : new JdrError(
+                "JDR_PROVIDER_ERROR",
+                error instanceof Error ? error.message : "Unknown provider error.",
+              );
+        lastError = normalizedError;
+        this.#emit({
+          kind: "request-failed",
+          requestId: request.id,
+          traceId,
+          adapterId: this.#adapter.id,
+          errorCode: normalizedError.code,
+        });
+
+        const canRetry =
+          attempt < retry.maxAttempts &&
+          retry.retryableCodes.includes(normalizedError.code);
+        if (!canRetry) throw normalizedError;
+        if ((retry.backoffMs ?? 0) > 0) {
+          await new Promise<void>((resolve) => {
+            setTimeout(resolve, retry.backoffMs);
+          });
+        }
+      }
     }
+
+    throw (
+      lastError ??
+      new JdrError(
+        "JDR_PROVIDER_ERROR",
+        "Decision execution ended without a response or structured error.",
+      )
+    );
+  }
+
+  #normalizeRetryPolicy(
+    policy: DecisionRetryPolicy | undefined,
+  ): DecisionRetryPolicy {
+    const resolved: DecisionRetryPolicy = policy ?? {
+      maxAttempts: 1,
+      retryableCodes: [
+        "JDR_TIMEOUT",
+        "JDR_RATE_LIMIT",
+        "JDR_PROVIDER_ERROR",
+        "JDR_SCHEMA_MISMATCH",
+      ],
+      backoffMs: 0,
+    };
+    if (
+      !Number.isInteger(resolved.maxAttempts) ||
+      resolved.maxAttempts < 1 ||
+      resolved.maxAttempts > 10 ||
+      (resolved.backoffMs !== undefined &&
+        (!Number.isFinite(resolved.backoffMs) || resolved.backoffMs < 0))
+    ) {
+      throw new JdrError(
+        "JDR_INVALID_REQUEST",
+        "Retry policy requires maxAttempts in [1, 10] and non-negative backoffMs.",
+      );
+    }
+    return {
+      maxAttempts: resolved.maxAttempts,
+      retryableCodes: [...new Set(resolved.retryableCodes)],
+      ...(resolved.backoffMs === undefined
+        ? {}
+        : { backoffMs: resolved.backoffMs }),
+    };
   }
 
   #assertBudgetAvailable(): void {
