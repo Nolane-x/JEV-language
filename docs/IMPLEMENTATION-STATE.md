@@ -35,12 +35,12 @@ blocked_items:
   - live-Jev-smoke-not-yet-executed
 next_tasks:
   - complete remaining M1 staged semantic validators and graph operations
-  - build M3 calibration fixtures/report before candidate quality claim
+  - run the single explicitly authorized live-Jev smoke required to close M3; keep gate incomplete until then
   - harden M17 verifier orchestration, provenance edge cases, and cross-adapter conformance
   - expand M16 multi-target adapters beyond the controlled delete-limit semantic subset
   - run exactly one manual live-Jev smoke only when explicitly desired
 last_verified_main_commit: 7dac106cdf08bc89be50833ed7dc4e7e6f5cd20e
-last_verified_pr_head: 9eadcdc0bb2e581c09748df2eb71de965a6022a1
+last_verified_pr_head: b6d1f913107b72d76269fbcbab36ce8a447002d3
 ```
 
 ## Current state
@@ -56,8 +56,8 @@ A runnable foundation now exists, but this ledger deliberately does **not** mark
 - Open-world source spans, normalization maps, stale-span detection, numeric/quantity/temporal/path/URL/email/filename literals, opaque integrity validation, sensitivity/redaction, and secret-safe state projection.
 - Ontology namespace/store, expanded reusable core primitive inventory, provisional concepts, compositional concepts, domain/range traversal, transactional merge, and deprecation/alias handling.
 - JSG typed node/value algebra, atomic transactions, revisions, canonical serialization/deserialization, restore, semantic diff/query and staged foundation validation.
-- Recorded and TypeSafe JDR adapters, normalized typed answers, request budgets, cache, calibration hook, structured errors and token usage accounting.
-- Decision-pack registry and lifecycle contract, with evidence-based candidate/production maturity gates.
+- Recorded and TypeSafe JDR adapters, shared provider-response runtime validation, normalized typed answers, bounded transport retry policy, request/token budgets, cache, calibration hooks, structured errors and trace accounting.
+- Decision-pack registry/lifecycle contract, candidate-source provenance and recall evidence, deterministic decision-DAG batching, calibration profile registry, abstention policy, and evidence-based candidate/production maturity gates.
 - JDR request/token budgets, deterministic trace events, cache accounting, and calibration hooks.
 - Ontology transactional batch merge, parent-cycle rejection, ancestry queries, deprecation/replacement resolution, and replacement-cycle rejection.
 - Generic VerificationObligation/Verifier ABI, evidence grading, deterministic-verifier precedence, and critical semantic-preservation checks including role bindings and temporal values.
