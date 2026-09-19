@@ -44,7 +44,9 @@ tasks:
   - {id: T266, title: implement program compile/test evidence adapter, status: verified}
   - {id: T267, title: implement evidence grading, status: verified}
   - {id: T268-T275, title: extension manifest registry compatibility conformance loaders and isolation, status: verified}
-  - {id: T276-T288, title: evaluation manifests runners reporters benchmarks zero-generative audit and replay manifests, status: verified}\n  - {id: T289-T296, title: deserializer normalization forest patch fuzzing canonical and transaction properties trust injection and redaction hardening, status: implemented}\n  - {id: T297-T300, title: performance instrumentation cache correctness cancellation crash and release conformance report, status: todo}
+  - {id: T276-T288, title: evaluation manifests runners reporters benchmarks zero-generative audit and replay manifests, status: verified}
+  - {id: T289-T296, title: deserializer normalization forest patch fuzzing canonical and transaction properties trust injection and redaction hardening, status: verified}
+  - {id: T297-T300, title: performance instrumentation cache correctness cancellation crash and release conformance report, status: verified}
   - {id: T301+, title: v0.4 research-expansion semantics/synthesis/conformance tasks, status: todo}
 vertical_slices:
   - {id: VS1, title: controlled English requirement parse-realize-roundtrip, status: implemented}
