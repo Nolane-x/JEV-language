@@ -326,7 +326,7 @@ export const validateDiscoursePlan = (
   }
 
   const ordered = orderDiscourse(plan);
-  if (!ordered.ok) return ordered as Result<DiscoursePlan>;
+  if (!ordered.ok) return err(ordered.error);
 
   return ok(structuredClone(plan));
 };
