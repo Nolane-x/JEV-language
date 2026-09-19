@@ -302,3 +302,14 @@ export const buildAction = (
   action: ActionIR,
   context: ActionValidationContext,
 ): Result<ActionIR> => validateActionIr(action, context);
+
+
+export const renderActionIr = (
+  action: ActionIR,
+  context: ActionValidationContext,
+): Result<string> => {
+  const valid = validateActionIr(action, context);
+  return valid.ok
+    ? ok(JSON.stringify(valid.value))
+    : err(valid.error);
+};
