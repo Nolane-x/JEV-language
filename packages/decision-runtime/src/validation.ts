@@ -76,14 +76,12 @@ const validateAnswer = (
 
   if (
     typeof answer.selected !== "number" ||
-    !Number.isInteger(answer.selected) ||
-    answer.selected < 0 ||
-    answer.selected >= question.levels.length
+    !Number.isFinite(answer.selected)
   ) {
     return err(
       new JdrError(
         "JDR_SCHEMA_MISMATCH",
-        `Score answer ${answer.questionId} must select a valid level index.`,
+        `Score answer ${answer.questionId} must select a finite numeric score.`,
       ),
     );
   }
