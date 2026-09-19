@@ -4,6 +4,7 @@ import type {
   HoleId,
   PirExpression,
   PirProgram,
+  PirStatement,
   PirType,
   ProgramHole,
   ProgramRef,
@@ -18,6 +19,8 @@ export interface CandidateSource {
     | "in-scope-symbol"
     | "function-call"
     | "branch"
+    | "collection-pattern"
+    | "return"
     | "plugin";
   generatorId: string;
   evidenceRefs: string[];
@@ -34,9 +37,13 @@ export interface SynthesisProofObligation {
   description: string;
 }
 
+export type ExpansionReplacement =
+  | { kind: "expression"; value: PirExpression }
+  | { kind: "statements"; value: PirStatement[] };
+
 export interface ExpansionCandidate {
   id: CandidateId;
-  replacement: PirExpression;
+  replacement: ExpansionReplacement;
   newHoles: ProgramHole[];
   proofObligations: SynthesisProofObligation[];
   heuristicCost: number;
@@ -176,6 +183,7 @@ export interface CandidateGenerationContext {
   functionId: string;
   hole: ProgramHole;
   expectedType: PirType;
+  location: "expression" | "statement";
   scopeSymbols: ProgramRef[];
 }
 
