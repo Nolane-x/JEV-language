@@ -5,6 +5,7 @@ import type {
   TrustLabel,
 } from "../../core-types/src/index.ts";
 import type {
+  SpanRef,
   StringLikeValue,
 } from "../../open-world-values/src/index.ts";
 import type {
@@ -15,6 +16,7 @@ import type { ProvenanceRef } from "../../provenance/src/index.ts";
 
 export type JsgNodeKind =
   | "entity"
+  | "mention"
   | "event"
   | "state"
   | "action"
@@ -119,6 +121,22 @@ export interface EntityNode extends JsgNodeBase<"entity"> {
   attributes: SemanticAttribute[];
   memberships: SemanticRef[];
   lifecycle?: "active" | "historical" | "hypothetical" | "unknown";
+}
+
+export type MentionExpressionType =
+  | "name"
+  | "pronoun"
+  | "description"
+  | "demonstrative"
+  | "zero"
+  | "other";
+
+export interface MentionNode extends JsgNodeBase<"mention"> {
+  entityRef: SemanticRef;
+  sourceSpan?: SpanRef;
+  expressionType: MentionExpressionType;
+  language?: string;
+  salience: number;
 }
 
 export interface EventNode extends JsgNodeBase<"event"> {
@@ -252,6 +270,7 @@ export interface UnknownConceptNode extends JsgNodeBase<"unknown-concept"> {
 
 export type JsgNode =
   | EntityNode
+  | MentionNode
   | EventNode
   | StateNode
   | ActionNode
