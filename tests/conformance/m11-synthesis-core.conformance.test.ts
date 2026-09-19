@@ -795,6 +795,92 @@ describe("M11 synthesis core conformance", () => {
     );
   });
 
+  it.each([
+    ["compiler", "SYNTH_COMPILER_BUDGET_EXHAUSTED"],
+    ["test", "SYNTH_TEST_BUDGET_EXHAUSTED"],
+  ] as const)(
+    "enforces %s acceptance-verifier budgets",
+    async (costKind, expectedCode) => {
+      const goalHole = hole({
+        id: `hole:${costKind}-budget`,
+        type: numberType,
+        effect: "pure",
+      });
+      const problem: SynthesisProblem = {
+        id: `problem:${costKind}-budget`,
+        program: expressionProgram({
+          id: `${costKind}-budget`,
+          returnType: numberType,
+          hole: goalHole,
+        }),
+        environment: {
+          literals: [{ id: "one", value: 1, type: numberType }],
+          callables: [],
+          branchSeeds: [],
+        },
+        requirements: ["return one"],
+      };
+      const result = await synthesizeProgram(problem, {
+        registry: registry(new LiteralGenerator()),
+        budget: budget({
+          maxCompilerRuns: 0,
+          maxTestRuns: 0,
+        }),
+        verifiers: [
+          {
+            id: `verifier:${costKind}-budget`,
+            costKind,
+            verify: () => ({
+              accepted: true,
+              evidence: ["should-not-run"],
+              diagnostics: [],
+            }),
+          },
+        ],
+      });
+
+      expect(result.status).toBe("failure");
+      if (result.status !== "failure") return;
+      expect(result.kind).toBe("budget");
+      expect(result.diagnostics[0]?.code).toBe(expectedCode);
+    },
+  );
+
+  it("returns a structured partial result when serialized-state memory exceeds the configured budget", async () => {
+    const goalHole = hole({
+      id: "hole:memory-budget",
+      type: numberType,
+      effect: "pure",
+    });
+    const problem: SynthesisProblem = {
+      id: "problem:memory-budget",
+      program: expressionProgram({
+        id: "memory-budget",
+        returnType: numberType,
+        hole: goalHole,
+      }),
+      environment: {
+        literals: [{ id: "one", value: 1, type: numberType }],
+        callables: [],
+        branchSeeds: [],
+      },
+      requirements: ["return one"],
+    };
+
+    const result = await synthesizeProgram(problem, {
+      registry: registry(new LiteralGenerator()),
+      budget: budget({ maxMemoryBytes: 1 }),
+    });
+
+    expect(result.status).toBe("failure");
+    if (result.status !== "failure") return;
+    expect(result.kind).toBe("budget");
+    expect(result.diagnostics[0]?.code).toBe(
+      "SYNTH_MEMORY_BUDGET_EXHAUSTED",
+    );
+    expect(result.bestPartialProgram).toBeDefined();
+  });
+
   it("supports pluggable best-first and beam frontiers", () => {
     const baseProgram = expressionProgram({
       id: "frontier",
