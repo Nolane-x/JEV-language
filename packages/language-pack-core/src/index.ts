@@ -121,6 +121,37 @@ export interface TemporalAspectProvider {
   }): AspectFeatureMapping;
 }
 
+export type PresuppositionTriggerKind =
+  | "lexical"
+  | "multiword"
+  | "construction";
+
+export type PresuppositionProjectionPreference =
+  | "local"
+  | "global"
+  | "unresolved";
+
+export interface LanguagePresuppositionTriggerDescriptor {
+  id: string;
+  language: string;
+  kind: PresuppositionTriggerKind;
+  /**
+   * Inspectable language-pack key such as a lexeme id, multiword unit id, or
+   * construction id. It is not executable code and does not assert the
+   * triggered content by itself.
+   */
+  triggerKey: string;
+  presuppositionType: string;
+  cancellable: boolean;
+  projectionPreference: PresuppositionProjectionPreference;
+}
+
+export interface PresuppositionTriggerRegistryProvider {
+  readonly id: string;
+  readonly language: string;
+  triggers(): readonly LanguagePresuppositionTriggerDescriptor[];
+}
+
 export interface LanguageConformanceManifest {
   id: string;
   language: string;
@@ -154,6 +185,7 @@ export interface HumanLanguagePack<
   punctuation: PunctuationProvider;
   discourse: LanguageDiscourseProvider<TDiscourseContext, TDiscourseChoice>;
   temporalAspect?: TemporalAspectProvider;
+  presuppositionTriggers?: PresuppositionTriggerRegistryProvider;
   tests: LanguageConformanceManifest;
 }
 
@@ -168,6 +200,7 @@ export interface LanguagePackIdentityView {
   punctuation: Pick<PunctuationProvider, "language">;
   discourse: { readonly language: string };
   temporalAspect?: Pick<TemporalAspectProvider, "language">;
+  presuppositionTriggers?: Pick<PresuppositionTriggerRegistryProvider, "language">;
   tests: Pick<LanguageConformanceManifest, "language">;
 }
 
@@ -185,6 +218,9 @@ export const assertLanguagePackIdentity = (
     pack.punctuation.language,
     pack.discourse.language,
     ...(pack.temporalAspect === undefined ? [] : [pack.temporalAspect.language]),
+    ...(pack.presuppositionTriggers === undefined
+      ? []
+      : [pack.presuppositionTriggers.language]),
     pack.tests.language,
   ];
   if (providerLanguages.some((value) => value !== language)) {
