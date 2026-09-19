@@ -36,15 +36,16 @@ partial_vertical_slices:
   - m7-dialogue-semantics
   - m8-vietnamese-language-pack
   - m10-program-ir
+  - m11-synthesis-core
 known_failures: []
 blocked_items: []
 next_tasks:
-  - complete M11 typed-hole synthesis registry/pruning/frontier/budget/dedup/Jev-ranking/partial-failure gate
+  - verify M11 synthesis-core gate on CI before advancing to M12 TypeScript backend
   - complete remaining M1 staged semantic validators and graph operations
   - harden M17 verifier orchestration, provenance edge cases, and cross-adapter conformance
   - expand M16 multi-target adapters beyond the controlled delete-limit semantic subset
-last_verified_main_commit: 10367222ca4e38c6f631c249605ce7c25e2ce04f
-last_verified_pr_head: 11d350679b2afd3df4491da207a5a6f946b8b109
+last_verified_main_commit: ac7d59bf15e4db9f854fa430ef3d5b50f1378c71
+last_verified_pr_head: e91e4faff813dc99514bdca67159c9e28a91906d
 ```
 
 ## Current state
@@ -73,6 +74,7 @@ M0–M9 are verified at their milestone gates. M3 includes the required one-requ
 - M8 verified Vietnamese language pack: direct Vietnamese↔JSG parsing/realization, bilingual semantic-equivalence corpus, language-specific classifier/aspect/address behavior, and the shared Section-251 HumanLanguagePack ABI for English/Vietnamese.
 - M9 verified multilingual semantic gate: independent English/Vietnamese G→surface→G round trips, resolved-reference and instruction-as-content JSG structures, and dimension-level diagnostics for predicate/roles/polarity/modality/quantity/time/condition/causality/attribution/reference/instruction content.
 - M10 verified Program IR: backend-neutral graph/model with modules, symbols, expanded types/expressions/statements, contracts/effects, typed holes, source bindings, atomic transactions, deterministic validation/serialization, derived CFG/def-use analysis and all eight required corpus fixtures.
+- M11 synthesis-core candidate: typed expression/statement holes, six generator families, deterministic hard pruning, best-first/beam frontiers, state deduplication, bounded search budgets, bounded recorded-Jev ranking, acceptance verifiers, structured partial failures and traceable multi-step composition.
 - Graph-structured Discourse IR foundation with deterministic prerequisite-aware ordering.
 - Formal IR family foundation (Data/Schema/Query/Math/Logic/Command), capability-validated Action IR, and harness-neutral Universal Expression contract.
 - Registry-driven Universal Expression runtime plus trace DAG/config-digest/replay-manifest foundation.
@@ -81,7 +83,7 @@ M0–M9 are verified at their milestone gates. M3 includes the required one-requ
 
 ## Still partial by design
 
-The master specification is much broader than the bootstrap wave. Broad NLU/NLG, full dialogue/pragmatics, full Vietnamese grammar, full PIR/search/CEGIS, code patching/repair, richer formal backends, broader M16 multi-target coverage beyond the controlled semantic subset and concrete program adapters, broader verifier orchestration/provenance edge cases, full conformance matrix and research-expansion tasks remain open. Package stubs say `NOT_IMPLEMENTED` or `PARTIAL` rather than pretending they exist.
+The master specification is much broader than the bootstrap wave. Broad NLU/NLG, full dialogue/pragmatics, full Vietnamese grammar, compiler-backed CEGIS, code patching/repair, richer formal backends, broader M16 multi-target coverage beyond the controlled semantic subset and concrete program adapters, broader verifier orchestration/provenance edge cases, full conformance matrix and research-expansion tasks remain open. Package stubs say `NOT_IMPLEMENTED` or `PARTIAL` rather than pretending they exist.
 
 ## Quota policy
 
