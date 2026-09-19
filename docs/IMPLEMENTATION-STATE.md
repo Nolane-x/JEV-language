@@ -35,13 +35,13 @@ blocked_items:
   - live-Jev-smoke-not-yet-executed
 next_tasks:
   - complete remaining M1 staged semantic validators and graph operations
-  - expand M2 ontology/open-world conformance beyond transactional evolution
+  - verify M2 ontology/open-world gate on CI before advancing active milestone
   - build M3 calibration fixtures/report before candidate quality claim
   - harden M17 verifier orchestration, provenance edge cases, and cross-adapter conformance
   - expand M16 multi-target adapters beyond the controlled delete-limit semantic subset
   - run exactly one manual live-Jev smoke only when explicitly desired
 last_verified_main_commit: 7dac106cdf08bc89be50833ed7dc4e7e6f5cd20e
-last_verified_pr_head: 6725495b37bbb1f4f5ee005946adb336a0670c70
+last_verified_pr_head: e225bd34ed7f3f5a6133e39d59a275d5ffd15f6b
 ```
 
 ## Current state
@@ -54,8 +54,8 @@ A runnable foundation now exists, but this ledger deliberately does **not** mark
 - Machine-readable package maturity/dependency DAG plus source-import boundary enforcement.
 - Structured Result/Error, semantic IDs, versions, trust/sensitivity labels, canonical JSON and SHA-256 digest utilities.
 - Provenance records/store.
-- Open-world source spans, stale-span detection, deterministic literal recognition, opaque-value sensitivity and redaction.
-- Ontology namespace/store/core seed/provisional concepts.
+- Open-world source spans, normalization maps, stale-span detection, numeric/quantity/temporal/path/URL/email/filename literals, opaque integrity validation, sensitivity/redaction, and secret-safe state projection.
+- Ontology namespace/store, expanded reusable core primitive inventory, provisional concepts, compositional concepts, domain/range traversal, transactional merge, and deprecation/alias handling.
 - JSG typed node/value algebra, atomic transactions, revisions, canonical serialization/deserialization, restore, semantic diff/query and staged foundation validation.
 - Recorded and TypeSafe JDR adapters, normalized typed answers, request budgets, cache, calibration hook, structured errors and token usage accounting.
 - Decision-pack registry and lifecycle contract, with evidence-based candidate/production maturity gates.
