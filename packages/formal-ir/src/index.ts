@@ -449,9 +449,114 @@ const validateQueryExpr = (
   }
 };
 
+const validateQuerySource = (
+  source: QuerySource,
+  path: string,
+): StructuredError | undefined => {
+  if (source.id.trim() === "") {
+    return new StructuredError(
+      "FORMAL_QUERY_SOURCE_ID",
+      `Query source id is empty at ${path}.`,
+    );
+  }
+  if (source.alias !== undefined && source.alias.trim() === "") {
+    return new StructuredError(
+      "FORMAL_QUERY_SOURCE_ALIAS",
+      `Query source alias is empty at ${path}.`,
+    );
+  }
+
+  switch (source.kind) {
+    case "named":
+      return source.name === undefined || source.name.trim() === ""
+        ? new StructuredError(
+            "FORMAL_QUERY_SOURCE_NAMED",
+            `Named query source is missing its name at ${path}.`,
+          )
+        : undefined;
+    case "semantic":
+      return source.semanticRef === undefined
+        ? new StructuredError(
+            "FORMAL_QUERY_SOURCE_SEMANTIC",
+            `Semantic query source is missing its semantic reference at ${path}.`,
+          )
+        : undefined;
+    case "subquery":
+      if (source.subquery === undefined) {
+        return new StructuredError(
+          "FORMAL_QUERY_SOURCE_SUBQUERY",
+          `Subquery source is missing its query at ${path}.`,
+        );
+      }
+      {
+        const nested = validateQueryIr(source.subquery);
+        return nested.ok ? undefined : nested.error;
+      }
+  }
+};
+
 export const validateQueryIr = (query: QueryIr): Result<QueryIr> => {
   if (query.id.trim() === "") {
     return err(new StructuredError("FORMAL_QUERY_ID", "Query id is required."));
+  }
+  if (query.source !== undefined) {
+    const sourceError = validateQuerySource(query.source, "$.source");
+    if (sourceError) return err(sourceError);
+  }
+  for (let index = 0; index < (query.joins ?? []).length; index += 1) {
+    const join = query.joins![index]!;
+    const sourceError = validateQuerySource(
+      join.source,
+      `$.joins[${index}].source`,
+    );
+    if (sourceError) return err(sourceError);
+  }
+  if (query.mutation !== undefined) {
+    const targetError = validateQuerySource(
+      query.mutation.target,
+      "$.mutation.target",
+    );
+    if (targetError) return err(targetError);
+
+    const values = query.mutation.values ?? [];
+    if (
+      (query.mutation.kind === "insert" ||
+        query.mutation.kind === "update") &&
+      values.length === 0
+    ) {
+      return err(
+        new StructuredError(
+          "FORMAL_QUERY_MUTATION_VALUES",
+          `${query.mutation.kind} mutation requires at least one field value.`,
+        ),
+      );
+    }
+    if (
+      query.mutation.kind === "delete" &&
+      query.mutation.values !== undefined
+    ) {
+      return err(
+        new StructuredError(
+          "FORMAL_QUERY_DELETE_VALUES",
+          "Delete mutation cannot carry assignment values.",
+        ),
+      );
+    }
+    const fieldNames = new Set<string>();
+    for (const value of values) {
+      if (
+        value.field.trim() === "" ||
+        fieldNames.has(value.field)
+      ) {
+        return err(
+          new StructuredError(
+            "FORMAL_QUERY_MUTATION_FIELD",
+            "Mutation fields must be unique and non-empty.",
+          ),
+        );
+      }
+      fieldNames.add(value.field);
+    }
   }
   if (query.mode === "read" && query.mutation !== undefined) {
     return err(
