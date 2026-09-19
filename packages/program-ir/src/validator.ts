@@ -1340,7 +1340,7 @@ const validateFunction = (
         returnType: fn.returnType,
         allowAwait: fn.async === true,
         loopDepth: 0,
-        holes,
+        ...(holes === undefined ? {} : { holes }),
       },
     );
     if (!body.ok) return body;
