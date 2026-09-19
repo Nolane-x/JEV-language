@@ -265,7 +265,8 @@
       "dependencies": [
         "grammar-core",
         "morphology-core",
-        "lexicon-core"
+        "lexicon-core",
+        "core-types"
       ]
     },
     "repair-core": {
