@@ -110,7 +110,9 @@ export const resolveReference = async (input: {
   if (answer.confidence === undefined || answer.confidence < minimumConfidence) {
     return ok({
       candidates: candidates.map((candidate) => candidate.id),
-      confidence: answer.confidence,
+      ...(answer.confidence === undefined
+        ? {}
+        : { confidence: answer.confidence }),
       source: "unresolved",
     });
   }
