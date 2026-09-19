@@ -4,3 +4,4 @@ export * from "./serialization.ts";
 export * from "./query.ts";
 
 export * from "./topology.ts";
+export * from "./scope.ts";
