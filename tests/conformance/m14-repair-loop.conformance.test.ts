@@ -516,7 +516,21 @@ describe("M14 compiler/test repair loop", () => {
       },
     });
 
-    expect(result.status).toBe("success");
+    expect(
+      result.status,
+      result.status === "failure"
+        ? JSON.stringify({
+            kind: result.kind,
+            diagnostics: result.diagnostics.map((entry) => ({
+              kind: entry.kind,
+              code: entry.compiler.code,
+              message: entry.compiler.message,
+            })),
+            usage: result.usage,
+            trace: result.trace,
+          })
+        : undefined,
+    ).toBe("success");
     if (result.status !== "success") return;
 
     expect(result.compile.ok).toBe(true);
