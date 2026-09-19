@@ -59,6 +59,13 @@ const bilingual = [
   },
 ] as const;
 
+const requireOk = <T>(
+  result: { ok: true; value: T } | { ok: false; error: Error },
+): T => {
+  if (!result.ok) throw result.error;
+  return result.value;
+};
+
 describe("M8 independent Vietnamese parsing/realization and cross-lingual semantics", () => {
   for (const fixture of bilingual) {
     it(`maps English and Vietnamese to equivalent JSG: ${fixture.vi}`, () => {
@@ -70,28 +77,26 @@ describe("M8 independent Vietnamese parsing/realization and cross-lingual semant
 
       const equivalence = verifyControlledCorpusEquivalence(
         en.value.snapshot,
-        vi.value.snapshot,
+        viValue.snapshot,
       );
       expect(equivalence.equivalent).toBe(true);
     });
 
     it(`executes Vietnamese -> JSG -> English without an English parsing pivot: ${fixture.vi}`, () => {
       const vi = parseControlledVietnameseCorpus(fixture.vi);
-      expect(vi.ok).toBe(true);
-      if (!vi.ok) return;
+      const viValue = requireOk(vi);
 
-      const english = realizeControlledEnglishCorpus(vi.value.snapshot);
+      const english = realizeControlledEnglishCorpus(viValue.snapshot);
       expect(english.ok).toBe(true);
       if (!english.ok) return;
 
       const reparsed = parseControlledEnglishCorpus(english.value);
-      expect(reparsed.ok).toBe(true);
-      if (!reparsed.ok) return;
+      const reparsedValue = requireOk(reparsed);
 
       expect(
         verifyControlledCorpusEquivalence(
-          vi.value.snapshot,
-          reparsed.value.snapshot,
+          viValue.snapshot,
+          reparsedValue.snapshot,
         ).equivalent,
       ).toBe(true);
     });
@@ -106,13 +111,12 @@ describe("M8 independent Vietnamese parsing/realization and cross-lingual semant
       if (!vietnamese.ok) return;
 
       const reparsed = parseControlledVietnameseCorpus(vietnamese.value);
-      expect(reparsed.ok).toBe(true);
-      if (!reparsed.ok) return;
+      const reparsedValue = requireOk(reparsed);
 
       expect(
         verifyControlledCorpusEquivalence(
           en.value.snapshot,
-          reparsed.value.snapshot,
+          reparsedValue.snapshot,
         ).equivalent,
       ).toBe(true);
     });
@@ -148,14 +152,13 @@ describe("M8 independent Vietnamese parsing/realization and cross-lingual semant
     const classified = parseControlledVietnameseCorpus(
       "Dịch vụ xóa đúng 3 cái tệp.",
     );
-    expect(plain.ok).toBe(true);
-    expect(classified.ok).toBe(true);
-    if (!plain.ok || !classified.ok) return;
+    const plainValue = requireOk(plain);
+    const classifiedValue = requireOk(classified);
 
     expect(
       verifyControlledCorpusEquivalence(
-        plain.value.snapshot,
-        classified.value.snapshot,
+        plainValue.snapshot,
+        classifiedValue.snapshot,
       ).equivalent,
     ).toBe(true);
   });
@@ -167,10 +170,9 @@ describe("M8 independent Vietnamese parsing/realization and cross-lingual semant
   ] as const) {
     it(`preserves Vietnamese aspect marker semantics: ${fixture.surface}`, () => {
       const parsed = parseControlledVietnameseCorpus(fixture.surface);
-      expect(parsed.ok).toBe(true);
-      if (!parsed.ok) return;
+      const parsedValue = requireOk(parsed);
 
-      const event = parsed.value.snapshot.nodes.find(
+      const event = parsedValue.snapshot.nodes.find(
         (node) => node.kind === "event",
       );
       expect(event?.kind).toBe("event");
@@ -178,7 +180,7 @@ describe("M8 independent Vietnamese parsing/realization and cross-lingual semant
       expect(event.aspect).toBe(fixture.aspect);
 
       const realized = realizeControlledVietnameseCorpus(
-        parsed.value.snapshot,
+        parsedValue.snapshot,
       );
       expect(realized).toEqual({ ok: true, value: fixture.surface });
 
@@ -186,12 +188,11 @@ describe("M8 independent Vietnamese parsing/realization and cross-lingual semant
         realized.ok
           ? parseControlledVietnameseCorpus(realized.value)
           : realized;
-      expect(reparsed.ok).toBe(true);
-      if (!reparsed.ok) return;
+      const reparsedValue = requireOk(reparsed);
 
       expect(
-        projectControlledCorpusSemantics(reparsed.value.snapshot),
-      ).toEqual(projectControlledCorpusSemantics(parsed.value.snapshot));
+        projectControlledCorpusSemantics(reparsedValue.snapshot),
+      ).toEqual(projectControlledCorpusSemantics(parsedValue.snapshot));
     });
   }
 
