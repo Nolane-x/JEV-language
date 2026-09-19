@@ -1073,4 +1073,6 @@ export const generateBenchmarkReplayManifest = (
     }),
   );
 };
-\nexport * from "./performance.ts";\nexport * from "./release.ts";\n
+
+export * from "./performance.ts";
+export * from "./release.ts";
