@@ -778,10 +778,18 @@ export const validateCommandIr = (
 
 const renderValidated = <T>(
   validation: Result<T>,
-): Result<string> =>
-  validation.ok
-    ? ok(JSON.stringify(validation.value))
-    : err(validation.error);
+): Result<string> => {
+  if (!validation.ok) return err(validation.error);
+  const rendered = JSON.stringify(validation.value);
+  return rendered === undefined
+    ? err(
+        new StructuredError(
+          "FORMAL_RENDER_UNDEFINED",
+          "Validated formal IR did not produce a serializable rendering.",
+        ),
+      )
+    : ok(rendered);
+};
 
 export const renderDataIr = (value: DataIr): Result<string> =>
   renderValidated(validateDataIr(value));
