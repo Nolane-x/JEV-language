@@ -7,6 +7,10 @@ import type {
   HumanLanguagePack,
   LanguageConformanceManifest,
   PunctuationProvider,
+  type LanguagePackConformanceProfile,
+  type LanguagePackFeatureManifest,
+  type LocaleFormattingProfile,
+  type NumberRenderingStrategy,
 } from "../../language-pack-core/src/index.ts";
 import {
   LanguageNeutralLexiconIndex,
@@ -62,6 +66,137 @@ export const vietnameseLanguagePackManifest: VietnameseLanguagePackManifest = {
     semanticSchema: ">=0.1 <1.0",
   },
 };
+
+export const vietnameseLanguageFeatureManifest: LanguagePackFeatureManifest = {
+  schemaVersion: "jl-language-features-1",
+  language: "vi",
+  version: "1.0.0",
+  features: {
+    declaratives: {
+      parse: "controlled",
+      generate: "controlled",
+      evidenceRefs: ["tests/conformance/m8-vietnamese-language-pack.conformance.test.ts"],
+    },
+    negation: {
+      parse: "controlled",
+      generate: "controlled",
+      evidenceRefs: ["tests/conformance/m8-vietnamese-language-pack.conformance.test.ts"],
+    },
+    questions: {
+      parse: "controlled",
+      generate: "controlled",
+      evidenceRefs: ["tests/conformance/m8-vietnamese-language-pack.conformance.test.ts"],
+    },
+    classifiers: {
+      parse: "controlled",
+      generate: "controlled",
+      evidenceRefs: ["tests/conformance/t401-t410-language-typology.conformance.test.ts"],
+    },
+    aspect: {
+      parse: "controlled",
+      generate: "controlled",
+      evidenceRefs: ["tests/conformance/t321-t330-event-time-modality.conformance.test.ts"],
+    },
+    conditionals: {
+      parse: "controlled",
+      generate: "controlled",
+      evidenceRefs: ["tests/conformance/m8-vietnamese-language-pack.conformance.test.ts"],
+    },
+    modality: {
+      parse: "controlled",
+      generate: "controlled",
+      evidenceRefs: ["tests/conformance/m9-multilingual-semantic-equivalence.conformance.test.ts"],
+    },
+    "mixed-language": {
+      parse: "partial",
+      generate: "partial",
+      evidenceRefs: ["tests/conformance/t401-t410-language-typology.conformance.test.ts"],
+    },
+    "open-vocabulary": {
+      parse: "partial",
+      generate: "partial",
+      evidenceRefs: ["tests/conformance/t391-t400-lexicon-open-vocabulary.conformance.test.ts"],
+    },
+  },
+  constructions: [
+    {
+      id: "construction:shared:declarative",
+      scope: "shared",
+      semanticContract: "proposition -> declarative utterance",
+      parse: true,
+      generate: true,
+    },
+    {
+      id: "construction:vi:classifier",
+      scope: "language-specific",
+      language: "vi",
+      semanticContract: "Vietnamese quantity/noun classifier realization",
+      parse: true,
+      generate: true,
+    },
+  ],
+  semanticExtensions: [
+    {
+      id: "semantic-extension:vi:classifier",
+      language: "vi",
+      namespace: "lang:vi:classifier",
+      extensionKeys: ["generic-artifact", "optional-file-classifier"],
+    },
+  ],
+  localeProfileIds: ["locale:vi-VN"],
+  mixedLanguage: {
+    mode: "evidence-based",
+    defaultLanguage: "vi",
+    allowedLanguages: ["vi", "en"],
+    preserveOpaqueTerms: true,
+    maxSwitches: 4,
+  },
+  lexicalFallback: {
+    order: ["preserve", "borrow", "transliterate"],
+    preserveOriginal: true,
+    allowBorrowing: true,
+    allowTransliteration: true,
+    requireProvenance: true,
+  },
+};
+
+export const vietnameseLocaleProfiles: LocaleFormattingProfile[] = [
+  {
+    id: "locale:vi-VN",
+    locale: "vi-VN",
+    languageHint: "vi",
+    decimalSeparator: ",",
+    groupSeparator: ".",
+    groupSize: 3,
+    dateOrder: "dmy",
+    dateSeparator: "/",
+    timeSeparator: ":",
+    timezoneDisplay: "preserve",
+  },
+];
+
+export const vietnameseNumberStrategies: NumberRenderingStrategy[] = [
+  {
+    id: "number:vi:decimal",
+    style: "decimal",
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 3,
+    useGrouping: true,
+  },
+  {
+    id: "number:vi:percent",
+    style: "percent",
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 2,
+    useGrouping: false,
+  },
+];
+
+export const vietnameseLanguageConformanceProfile = {
+  featureManifest: vietnameseLanguageFeatureManifest,
+  locales: vietnameseLocaleProfiles,
+  numberStrategies: vietnameseNumberStrategies,
+} satisfies LanguagePackConformanceProfile;
 
 const lexeme = (
   id: string,
@@ -496,6 +631,7 @@ export const vietnameseConformanceManifest: LanguageConformanceManifest = {
 
 export const vietnameseLanguagePack = {
   manifest: vietnameseLanguagePackManifest,
+  featureManifest: vietnameseLanguageFeatureManifest,
   tokenizer: {
     id: "language-vi.tokenizer.controlled-v1",
     language: "vi",
