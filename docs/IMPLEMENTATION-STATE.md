@@ -53,7 +53,7 @@ A runnable foundation now exists, but this ledger deliberately does **not** mark
 
 ## Still partial by design
 
-The master specification is much broader than the bootstrap wave. Broad NLU/NLG, discourse/pragmatics, full Vietnamese grammar, full PIR/search/CEGIS, code patching/repair, formal IRs, universal expression API, comprehensive verifier stack, full conformance matrix and research-expansion tasks remain open. Package stubs say `NOT_IMPLEMENTED` or `PARTIAL` rather than pretending they exist.
+The master specification is much broader than the bootstrap wave. Broad NLU/NLG, discourse/pragmatics, full Vietnamese grammar, full PIR/search/CEGIS, code patching/repair, formal IRs, universal expression API, remaining verifier adapters, full conformance matrix and research-expansion tasks remain open. Package stubs say `NOT_IMPLEMENTED` or `PARTIAL` rather than pretending they exist.
 
 ## Quota policy
 
