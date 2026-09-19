@@ -3,8 +3,8 @@
 ```yaml
 spec_version: 0.4-master-implementation-research-expanded
 spec_digest_sha256: 9b8bc907fa0da89d4b7ea2e0be886919deffdb35e398ea7897ea77d305380f5b
-last_completed_gate: M6-bidirectional-English
-active_milestone: M7-dialogue-semantics
+last_completed_gate: M7-dialogue-semantics
+active_milestone: M8-vietnamese
 stable_packages: []
 candidate_packages:
   - core-types
@@ -37,17 +37,18 @@ partial_vertical_slices:
 known_failures: []
 blocked_items: []
 next_tasks:
-  - verify the M7 dialogue-semantics gate on deterministic CI before advancing to M8
+  - complete T158-T169 Vietnamese language-pack and cross-lingual semantic-equivalence gate
+  - build Vietnamese parsing/realization independently against shared JSG rather than English surface text
   - complete remaining M1 staged semantic validators and graph operations
   - harden M17 verifier orchestration, provenance edge cases, and cross-adapter conformance
   - expand M16 multi-target adapters beyond the controlled delete-limit semantic subset
 last_verified_main_commit: 31e90135c6c042051357838cbfe95307fc562ff6
-last_verified_pr_head: f72bbd16aff49119f4ad8b87348112106a2f7c75
+last_verified_pr_head: fa4d0de0b3852c88ec636d887fc40f849d0f7c37
 ```
 
 ## Current state
 
-M0–M6 are verified and merged. M3 includes the required one-request live Jev acceptance run; M4–M6 are deterministic language-engine gates. M6 passed its section-413 bidirectional English fixtures and the held-out template-leakage benchmark in CI #97. M7 dialogue semantics is now the active milestone.
+M0–M7 are verified at their milestone gates. M3 includes the required one-request live Jev acceptance run; M4–M7 use deterministic/recorded language-engine evidence. M7 passed CI #107 with its transactional dialogue state, 22-turn long-reference fixture and compaction invariants. M8 Vietnamese is now the active milestone.
 
 ## Implemented foundation
 
@@ -67,7 +68,7 @@ M0–M6 are verified and merged. M3 includes the required one-request live Jev a
 - First four narrow bootstrap vertical slices: controlled English, recorded reference choice, controlled Vietnamese, and PIR typed-hole → TypeScript.
 - M4 controlled grounding/parser foundation with reversible normalization, packed syntax forests, bounded recorded-JDR ambiguity choice, JSG commit, and corpus coverage for event/negation/quantity/time/condition/cause/requirement/permission/prohibition/comparison/question.
 - M5 constrained English realization with discourse/clause plans, lexical/morphology planning primitives, semantic source maps, attribution-safe realization, fallback policy, and a 100% semantic round-trip target on the current 11-fixture controlled corpus.
-- M6 verified bidirectional English expansion: semantic discourse-relation planning, safety-gated aggregation, explicit paraphrase lattices, repetition/style/audience planning, collocation scoring, bounded pragmatic Decision Packs, human-eval export, verified-by-round-trip synonyms/active-passive/temporal/condition/cause/reported-speech variants, relative clauses, pronoun-linked multi-sentence discourse, exact unknown-name preservation, and a passing 14-sample held-out template-leakage benchmark.\n- M7 candidate dialogue semantics: revisioned transactional state, topic stack, salience/reference candidates, questions, requests, commitments, correction/retraction history, ellipsis/follow-up reconstruction, bounded reference Decision Pack, semantics-preserving compaction, and a 22-turn long-reference acceptance fixture.
+- M6 verified bidirectional English expansion: semantic discourse-relation planning, safety-gated aggregation, explicit paraphrase lattices, repetition/style/audience planning, collocation scoring, bounded pragmatic Decision Packs, human-eval export, verified-by-round-trip synonyms/active-passive/temporal/condition/cause/reported-speech variants, relative clauses, pronoun-linked multi-sentence discourse, exact unknown-name preservation, and a passing 14-sample held-out template-leakage benchmark.\n- M7 verified dialogue semantics: revisioned transactional state, topic stack, salience/reference candidates, questions, requests, commitments, correction/retraction history, ellipsis/follow-up reconstruction, bounded reference Decision Pack, semantics-preserving compaction, and a passing 22-turn long-reference acceptance fixture.
 - Graph-structured Discourse IR foundation with deterministic prerequisite-aware ordering.
 - Formal IR family foundation (Data/Schema/Query/Math/Logic/Command), capability-validated Action IR, and harness-neutral Universal Expression contract.
 - Registry-driven Universal Expression runtime plus trace DAG/config-digest/replay-manifest foundation.
