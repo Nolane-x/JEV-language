@@ -45,6 +45,66 @@ export type JsgNodeKind =
 export type Polarity = "positive" | "negative";
 export type SemanticRef = SemanticId;
 
+export type EventCategory =
+  | "event"
+  | "state"
+  | "process"
+  | "transition"
+  | "achievement"
+  | "activity";
+
+export type EventMode =
+  | "episodic"
+  | "habitual"
+  | "generic"
+  | "dispositional"
+  | "law-like";
+
+export type EventAspect =
+  | "completed"
+  | "ongoing"
+  | "planned"
+  | "perfective"
+  | "imperfective"
+  | "progressive"
+  | "perfect"
+  | "prospective"
+  | "habitual"
+  | "iterative"
+  | "none"
+  | "unknown";
+
+export type TemporalRelation =
+  | "before"
+  | "after"
+  | "meets"
+  | "met-by"
+  | "overlaps"
+  | "overlapped-by"
+  | "starts"
+  | "started-by"
+  | "during"
+  | "contains"
+  | "finishes"
+  | "finished-by"
+  | "equals"
+  | "unknown";
+
+export type ModalityDimension =
+  | "epistemic"
+  | "alethic"
+  | "deontic"
+  | "dynamic-capability"
+  | "volitional"
+  | "predictive";
+
+export type ModalStrength =
+  | "impossible"
+  | "unlikely"
+  | "possible"
+  | "likely"
+  | "necessary";
+
 export interface ModalitySpec {
   kind:
     | "asserted"
@@ -54,9 +114,44 @@ export interface ModalitySpec {
     | "permitted"
     | "required"
     | "forbidden"
+    | "intended"
+    | "capable"
     | "hypothetical"
     | "counterfactual";
+  /** Legacy scalar retained for compatibility; ordinalStrength is normative. */
   strength?: number;
+  dimension?: ModalityDimension;
+  operator?: string;
+  ordinalStrength?: ModalStrength;
+  source?: SemanticRef;
+  scope?: SemanticRef;
+  contextAnchor?: SemanticRef;
+  calibratedProbability?: number;
+}
+
+export type ConditionalKind =
+  | "factual"
+  | "predictive"
+  | "hypothetical"
+  | "counterfactual"
+  | "instructional-guard"
+  | "biconditional"
+  | "unless";
+
+export interface CounterfactualMetadata {
+  antecedentStatus: "contrary-to-fact" | "remote" | "unknown";
+  consequentStatus?: "expected" | "possible" | "remote" | "unknown";
+  referenceWorld?: SemanticRef;
+}
+
+export interface ConditionalSemantics {
+  kind: ConditionalKind;
+  antecedent: SemanticRef;
+  consequent: SemanticRef;
+  modality?: ModalitySpec;
+  temporalRelation?: TemporalRelation;
+  counterfactual?: CounterfactualMetadata;
+  contextAnchor?: SemanticRef;
 }
 
 export interface EpistemicSpec {
@@ -190,10 +285,14 @@ export interface MentionNode extends JsgNodeBase<"mention"> {
 }
 
 export interface EventNode extends JsgNodeBase<"event"> {
+  /** Event occurrence identity is this node's id; eventClass is its type/class. */
   predicate: ConceptRef;
+  eventClass?: ConceptRef;
+  eventCategory?: EventCategory;
+  eventMode?: EventMode;
   roles: RoleBinding[];
   temporal?: SemanticRef;
-  aspect?: "completed" | "ongoing" | "planned" | "habitual" | "unknown";
+  aspect?: EventAspect;
   modality?: ModalitySpec;
   polarity: Polarity;
 }
@@ -275,6 +374,12 @@ export interface QuantityNode extends JsgNodeBase<"quantity"> {
 export interface TemporalNode extends JsgNodeBase<"temporal"> {
   temporalKind: "instant" | "interval" | "duration" | "recurrence" | "relative";
   value: JsonValue;
+  anchor?: SemanticRef;
+  start?: string;
+  end?: string;
+  durationIso?: string;
+  calendar?: string;
+  granularity?: "year" | "month" | "day" | "hour" | "minute" | "second" | "unknown";
 }
 
 export interface LocationNode extends JsgNodeBase<"location"> {
@@ -297,6 +402,7 @@ export interface ConstraintNode extends JsgNodeBase<"constraint"> {
   subject: SemanticRef;
   predicate: ConceptRef;
   parameters: SemanticArgument[];
+  conditional?: ConditionalSemantics;
 }
 
 export interface AlternativeSetNode extends JsgNodeBase<"alternative-set"> {
