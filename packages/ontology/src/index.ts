@@ -22,6 +22,7 @@ export interface ConceptDefinition {
   definition?: JsonValue;
   provenance?: ProvenanceRef[];
   aliases?: ConceptRef[];
+  replacedBy?: ConceptRef;
 }
 
 export interface RelationDefinition {
@@ -131,6 +132,133 @@ export class OntologyStore {
       }
     }
     return false;
+  }
+
+  ancestorsOf(id: ConceptRef): ConceptRef[] {
+    const output = new Set<ConceptRef>();
+    const queue = [...(this.#concepts.get(id)?.parents ?? [])];
+    while (queue.length > 0) {
+      const current = queue.shift();
+      if (current === undefined || output.has(current)) continue;
+      output.add(current);
+      queue.push(...(this.#concepts.get(current)?.parents ?? []));
+    }
+    return [...output].sort();
+  }
+
+  relationDomain(id: RelationRef): ConceptRef[] {
+    return [...(this.#relations.get(id)?.domain ?? [])];
+  }
+
+  relationRange(id: RelationRef): ConceptRef[] {
+    return [...(this.#relations.get(id)?.range ?? [])];
+  }
+
+  resolveConcept(id: ConceptRef): ConceptDefinition | undefined {
+    const direct = this.#concepts.get(id);
+    if (direct !== undefined) {
+      if (direct.status === "deprecated" && direct.replacedBy !== undefined) {
+        return this.resolveConcept(direct.replacedBy);
+      }
+      return structuredClone(direct);
+    }
+    for (const definition of this.#concepts.values()) {
+      if (definition.aliases?.includes(id)) {
+        return structuredClone(definition);
+      }
+    }
+    return undefined;
+  }
+
+  deprecateConcept(
+    id: ConceptRef,
+    replacement?: ConceptRef,
+  ): Result<void> {
+    const current = this.#concepts.get(id);
+    if (current === undefined) {
+      return err(
+        new StructuredError(
+          "ONTO_CONCEPT_NOT_FOUND",
+          `Cannot deprecate missing concept: ${id}`,
+        ),
+      );
+    }
+    if (replacement !== undefined && !this.#concepts.has(replacement)) {
+      return err(
+        new StructuredError(
+          "ONTO_REPLACEMENT_NOT_FOUND",
+          `Replacement concept does not exist: ${replacement}`,
+        ),
+      );
+    }
+    this.#concepts.set(id, {
+      ...structuredClone(current),
+      status: "deprecated",
+      ...(replacement === undefined ? {} : { replacedBy: replacement }),
+    });
+    return ok(undefined);
+  }
+
+  mergeConcepts(definitions: ConceptDefinition[]): Result<void> {
+    const staged = new Map<ConceptRef, ConceptDefinition>();
+    for (const [id, definition] of this.#concepts.entries()) {
+      staged.set(id, structuredClone(definition));
+    }
+
+    const incoming = new Set<ConceptRef>();
+    for (const definition of definitions) {
+      if (incoming.has(definition.id) || staged.has(definition.id)) {
+        return err(
+          new StructuredError(
+            "ONTO_CONCEPT_EXISTS",
+            `Concept already exists in merge transaction: ${definition.id}`,
+          ),
+        );
+      }
+      incoming.add(definition.id);
+      staged.set(definition.id, structuredClone(definition));
+    }
+
+    for (const definition of definitions) {
+      for (const parent of definition.parents) {
+        if (!staged.has(parent)) {
+          return err(
+            new StructuredError(
+              "ONTO_INVALID_PARENT",
+              `Unknown parent concept in merge transaction: ${parent}`,
+            ),
+          );
+        }
+      }
+    }
+
+    const visiting = new Set<ConceptRef>();
+    const visited = new Set<ConceptRef>();
+    const visit = (id: ConceptRef): boolean => {
+      if (visiting.has(id)) return false;
+      if (visited.has(id)) return true;
+      visiting.add(id);
+      for (const parent of staged.get(id)?.parents ?? []) {
+        if (!visit(parent)) return false;
+      }
+      visiting.delete(id);
+      visited.add(id);
+      return true;
+    };
+
+    for (const id of staged.keys()) {
+      if (!visit(id)) {
+        return err(
+          new StructuredError(
+            "ONTO_PARENT_CYCLE",
+            "Ontology merge would introduce a parent cycle.",
+          ),
+        );
+      }
+    }
+
+    this.#concepts = staged;
+    return ok(undefined);
   }
 
   snapshot(): {
