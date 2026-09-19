@@ -11,6 +11,7 @@ import {
   generateRepairCandidates,
   locateImplicatedProgramNodes,
   normalizeRepairDiagnostic,
+  normalizeRepairTestResult,
   repairCandidateDecisionPack,
   repairProgram,
   type NormalizedTestResult,
@@ -70,65 +71,39 @@ class ExportBehaviorRunner implements RepairTestRunner {
       const exports = executeModule(input.source);
       const exported = exports[this.exportName];
       if (typeof exported !== "function") {
-        const diagnostic = normalizeRepairDiagnostic({
-          backendId: "test.typescript-runtime",
-          source: input.source,
-          compiler: {
-            code: "TEST_EXPORT_MISSING",
-            severity: "error",
-            message: `Expected callable export ${this.exportName}.`,
-            sourceId: input.source.path,
-            category: "test",
-          },
-        });
-        return {
-          ok: false,
+        return normalizeRepairTestResult({
           runner: this.id,
+          source: input.source,
           cases: [
             {
               id: this.exportName,
               status: "fail",
-              message: diagnostic.compiler.message,
+              message: `Expected callable export ${this.exportName}.`,
             },
           ],
-          diagnostics: [diagnostic],
-          evidence: [],
-        };
+        });
       }
 
       const actual = (exported as () => unknown)();
       if (!Object.is(actual, this.expected)) {
-        const diagnostic = normalizeRepairDiagnostic({
-          backendId: "test.typescript-runtime",
-          source: input.source,
-          compiler: {
-            code: "TEST_BEHAVIOR_MISMATCH",
-            severity: "error",
-            message:
-              `Export ${this.exportName} returned ${JSON.stringify(actual)} ` +
-              `instead of ${JSON.stringify(this.expected)}.`,
-            sourceId: input.source.path,
-            category: "test",
-          },
-        });
-        return {
-          ok: false,
+        return normalizeRepairTestResult({
           runner: this.id,
+          source: input.source,
           cases: [
             {
               id: this.exportName,
               status: "fail",
-              message: diagnostic.compiler.message,
+              message:
+                `Export ${this.exportName} returned ${JSON.stringify(actual)} ` +
+                `instead of ${JSON.stringify(this.expected)}.`,
             },
           ],
-          diagnostics: [diagnostic],
-          evidence: [],
-        };
+        });
       }
 
-      return {
-        ok: true,
+      return normalizeRepairTestResult({
         runner: this.id,
+        source: input.source,
         cases: [
           {
             id: this.exportName,
@@ -138,28 +113,13 @@ class ExportBehaviorRunner implements RepairTestRunner {
             ],
           },
         ],
-        diagnostics: [],
-        evidence: [
-          `runtime:${this.exportName}=${JSON.stringify(actual)}`,
-        ],
-      };
+      });
     } catch (error) {
       const message =
         error instanceof Error ? error.message : String(error);
-      const diagnostic = normalizeRepairDiagnostic({
-        backendId: "test.typescript-runtime",
-        source: input.source,
-        compiler: {
-          code: "TEST_RUNTIME_EXCEPTION",
-          severity: "error",
-          message,
-          sourceId: input.source.path,
-          category: "test",
-        },
-      });
-      return {
-        ok: false,
+      return normalizeRepairTestResult({
         runner: this.id,
+        source: input.source,
         cases: [
           {
             id: this.exportName,
@@ -167,9 +127,7 @@ class ExportBehaviorRunner implements RepairTestRunner {
             message,
           },
         ],
-        diagnostics: [diagnostic],
-        evidence: [],
-      };
+      });
     }
   }
 }
