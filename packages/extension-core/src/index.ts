@@ -1161,7 +1161,7 @@ export interface OntologyPackLoadResult {
 }
 
 const referencesKnownConcept = (
-  id: string,
+  id: ConceptDefinition["id"],
   store: OntologyStore,
 ): boolean => store.getConcept(id) !== undefined;
 
