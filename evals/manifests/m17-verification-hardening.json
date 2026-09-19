@@ -1,0 +1,29 @@
+{
+  "id": "m17-verification-hardening",
+  "version": "1.0.0",
+  "milestone": "M17",
+  "taskRange": "T259-T267",
+  "liveJevRequests": 0,
+  "requiredFamilies": [
+    "semantic-preservation",
+    "round-trip",
+    "provenance-integrity",
+    "security-trust",
+    "requirement-satisfaction",
+    "grammar-validation",
+    "program-compile-test-evidence",
+    "replay-bundle"
+  ],
+  "hardeningAssertions": [
+    "deterministic-precedence",
+    "same-tier-conflict-is-unknown",
+    "pass-requires-evidence",
+    "verifier-identity-matches-registration",
+    "required-unknown-is-not-pass",
+    "provenance-ancestry-closed-and-acyclic",
+    "provenance-trust-no-escalation",
+    "replay-bundle-digest-integrity",
+    "raw-result-digests-bound-to-trace",
+    "authoritative-result-digests-bound-to-trace"
+  ]
+}

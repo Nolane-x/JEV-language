@@ -17,6 +17,7 @@ export type VerificationKind =
   | "requirement-satisfaction"
   | "behavioral-evidence"
   | "naturalness-style"
+  | "provenance-integrity"
   | "security-trust"
   | "program-evidence";
 
@@ -113,6 +114,19 @@ export const strongestEvidenceGrade = (
   return strongest;
 };
 
+export const weakestEvidenceGrade = (
+  grades: readonly EvidenceGrade[],
+): EvidenceGrade => {
+  if (grades.length === 0) return "unverified";
+  let weakest = grades[0]!;
+  for (const grade of grades.slice(1)) {
+    if (evidenceStrength[grade] < evidenceStrength[weakest]) {
+      weakest = grade;
+    }
+  }
+  return weakest;
+};
+
 export const verificationSatisfiesObligation = (
   obligation: VerificationObligation,
   result: VerificationResult,
@@ -127,20 +141,25 @@ export const verificationSatisfiesObligation = (
 export const selectAuthoritativeResult = (
   results: readonly VerificationResult[],
 ): VerificationResult | undefined => {
-  const determinate = results.filter(
-    (result) => result.status === "pass" || result.status === "fail",
+  const ordered = [...results].sort((a, b) =>
+    a.verifier.id.localeCompare(b.verifier.id),
   );
-  if (determinate.length === 0) return results[0];
-
-  const deterministic = determinate.find(
-    (result) => result.verifier.mode === "deterministic",
+  for (const mode of [
+    "deterministic",
+    "external-tool",
+    "jev-assisted",
+  ] as const) {
+    const tier = ordered.filter(
+      (result) =>
+        result.verifier.mode === mode &&
+        (result.status === "pass" || result.status === "fail"),
+    );
+    if (tier.length === 0) continue;
+    return tier.find((result) => result.status === "fail") ?? tier[0];
+  }
+  return (
+    ordered.find((result) => result.status === "unknown") ??
+    ordered.find((result) => result.status === "skipped") ??
+    ordered[0]
   );
-  if (deterministic !== undefined) return deterministic;
-
-  const external = determinate.find(
-    (result) => result.verifier.mode === "external-tool",
-  );
-  if (external !== undefined) return external;
-
-  return determinate[0];
 };
