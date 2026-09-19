@@ -1,6 +1,6 @@
 # M9 — Multilingual Semantic Equivalence Gate Evidence
 
-Status: **candidate — pending deterministic CI**
+Status: **verified**
 
 Specification basis: section 416, section 254, section 105, and the semantic-equivalence procedure in section 507 of the v0.4 master specification.
 
@@ -126,14 +126,19 @@ A negative control compares positive and negative versions of the same event and
 - `liveJevRequests = 0`;
 - deterministic D0 evaluation.
 
-## Gate rule
+## Verification evidence
 
-Do not mark M9 **verified** until the complete branch head passes:
+- PR #25 implementation head: `cdb155efbad1c8efbe6647f37e6e3433dcf01394`;
+- GitHub Actions CI run `#136` / run id `35427381683`: `success`;
+- package boundaries: pass;
+- strict TypeScript: pass;
+- full deterministic suite: **36/36 test files, 280/280 tests**;
+- all M9 corpus pairs and both independent realization directions: pass;
+- negative-control polarity mutation: detected as a failing semantic dimension;
+- live Jev requests consumed: `0`.
 
-1. package-boundary validation;
-2. strict TypeScript;
-3. the full deterministic test suite;
-4. every M9 corpus pair and both realization directions;
-5. the negative-control semantic-loss check.
+## Gate result
 
-No live Jev request is required for M9.
+M9 satisfies the section-416 multilingual semantic-equivalence gate over the current English/Vietnamese controlled corpus. The evaluator is language-neutral at the semantic-comparison layer and can accept additional language-pack results later without changing JSG.
+
+M9 is therefore **verified**.
