@@ -161,11 +161,6 @@ describe("M1 semantic graph acceptance", () => {
     const snapshot = buildFixture();
     const kinds = new Set(snapshot.nodes.map((node) => node.kind));
 
-    expect(kinds).toEqual(
-      expect.objectContaining
-        ? kinds
-        : kinds,
-    );
     expect(kinds.has("entity")).toBe(true);
     expect(kinds.has("event")).toBe(true);
     expect(kinds.has("proposition")).toBe(true);
