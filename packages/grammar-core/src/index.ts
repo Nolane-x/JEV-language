@@ -8,9 +8,64 @@ import {
 import type { LexicalMatch } from "../../lexicon-core/src/index.ts";
 import type { GraphOperation } from "../../semantic-graph/src/index.ts";
 
-export type GrammarCategory = string;
+export const STANDARD_GRAMMAR_CATEGORIES = [
+  "S",
+  "CLAUSE",
+  "NP",
+  "VP",
+  "PP",
+  "ADJP",
+  "ADVP",
+  "QUESTION",
+  "COORD",
+  "QUANTITY",
+  "TIME",
+  "MODAL",
+  "COPULA",
+] as const;
 
-export type GrammarPattern =
+export type StandardGrammarCategory =
+  (typeof STANDARD_GRAMMAR_CATEGORIES)[number];
+
+export type GrammarCategory =
+  | StandardGrammarCategory
+  | (string & {});
+
+export const STANDARD_GRAMMAR_FEATURES = [
+  "number",
+  "person",
+  "tense",
+  "aspect",
+  "mood",
+  "voice",
+  "polarity",
+  "modality",
+  "question",
+  "wh",
+  "case",
+  "definiteness",
+  "animacy",
+  "comparator",
+  "temporal",
+] as const;
+
+export type GrammarFeatureValue = string | number | boolean;
+export type GrammarFeatures = Record<string, GrammarFeatureValue>;
+
+export interface GrammarFeatureConstraint {
+  feature: string;
+  equals?: GrammarFeatureValue;
+  oneOf?: GrammarFeatureValue[];
+  present?: boolean;
+}
+
+interface GrammarPatternFeatures {
+  featureConstraints?: GrammarFeatureConstraint[];
+  optional?: boolean;
+  repeat?: "zero-or-more" | "one-or-more";
+}
+
+export type GrammarPattern = (
   | {
       kind: "category";
       category: GrammarCategory;
@@ -29,13 +84,15 @@ export type GrammarPattern =
       partOfSpeech?: string;
       semanticTag?: string;
       capture?: string;
-    };
+    }) &
+  GrammarPatternFeatures;
 
 export interface GrammarBinding {
   categories: Record<string, string[]>;
   surfaces: Record<string, string[]>;
   lexical: Record<string, LexicalMatch[]>;
   features: Record<string, JsonValue>;
+  featureSets?: Record<string, GrammarFeatures>;
 }
 
 export interface GrammarConstraintContext {
@@ -75,6 +132,7 @@ export interface GrammarRule {
   semanticConstruction?: GrammarSemanticConstruction;
   realizationPlan?: RealizationPlan;
   priority?: number;
+  resultFeatures?: GrammarFeatures;
   annotations?: Record<string, JsonValue>;
 }
 
@@ -93,6 +151,41 @@ export interface GrammarCoverageMatrix {
   notes?: Record<string, string>;
 }
 
+const normalizedFeatureConstraints = (
+  constraints: GrammarFeatureConstraint[] | undefined,
+): JsonValue[] =>
+  [...(constraints ?? [])]
+    .sort((a, b) => a.feature.localeCompare(b.feature))
+    .map((constraint) => ({
+      feature: constraint.feature,
+      equals: constraint.equals ?? null,
+      oneOf: [...(constraint.oneOf ?? [])],
+      present: constraint.present ?? null,
+    }));
+
+export const grammarFeaturesSatisfy = (
+  features: GrammarFeatures,
+  constraints: readonly GrammarFeatureConstraint[] | undefined,
+): boolean =>
+  (constraints ?? []).every((constraint) => {
+    const value = features[constraint.feature];
+    if (constraint.present === true && value === undefined) return false;
+    if (constraint.present === false && value !== undefined) return false;
+    if (
+      constraint.equals !== undefined &&
+      value !== constraint.equals
+    ) {
+      return false;
+    }
+    if (
+      constraint.oneOf !== undefined &&
+      (value === undefined || !constraint.oneOf.includes(value))
+    ) {
+      return false;
+    }
+    return true;
+  });
+
 const patternSignature = (pattern: GrammarPattern): JsonValue => {
   if (pattern.kind === "category") {
     return {
@@ -100,6 +193,9 @@ const patternSignature = (pattern: GrammarPattern): JsonValue => {
       category: pattern.category,
       optional: pattern.optional ?? false,
       repeat: pattern.repeat ?? "",
+      featureConstraints: normalizedFeatureConstraints(
+        pattern.featureConstraints,
+      ),
     };
   }
   if (pattern.kind === "literal") {
@@ -109,12 +205,18 @@ const patternSignature = (pattern: GrammarPattern): JsonValue => {
         ? pattern.surface
         : pattern.surface.toLocaleLowerCase(),
       caseSensitive: pattern.caseSensitive ?? false,
+      featureConstraints: normalizedFeatureConstraints(
+        pattern.featureConstraints,
+      ),
     };
   }
   return {
     kind: pattern.kind,
     partOfSpeech: pattern.partOfSpeech ?? "",
     semanticTag: pattern.semanticTag ?? "",
+    featureConstraints: normalizedFeatureConstraints(
+      pattern.featureConstraints,
+    ),
   };
 };
 
@@ -135,6 +237,9 @@ const cloneGrammarRule = (rule: GrammarRule): GrammarRule => ({
   ...(rule.realizationPlan === undefined
     ? {}
     : { realizationPlan: structuredClone(rule.realizationPlan) }),
+  ...(rule.resultFeatures === undefined
+    ? {}
+    : { resultFeatures: structuredClone(rule.resultFeatures) }),
   ...(rule.annotations === undefined
     ? {}
     : { annotations: structuredClone(rule.annotations) }),
@@ -165,6 +270,28 @@ export const validateGrammarRule = (
   }
   const captures = new Set<string>();
   for (const pattern of rule.rhs) {
+    for (const constraint of pattern.featureConstraints ?? []) {
+      if (constraint.feature.trim() === "") {
+        return err(
+          new StructuredError(
+            "GRAMMAR_FEATURE_NAME",
+            `Grammar rule ${rule.id} contains an empty feature constraint name.`,
+          ),
+        );
+      }
+      if (
+        constraint.equals !== undefined &&
+        constraint.oneOf !== undefined &&
+        !constraint.oneOf.includes(constraint.equals)
+      ) {
+        return err(
+          new StructuredError(
+            "GRAMMAR_FEATURE_CONSTRAINT",
+            `Grammar rule ${rule.id} has incompatible equals/oneOf constraints for ${constraint.feature}.`,
+          ),
+        );
+      }
+    }
     const capture = pattern.capture;
     if (capture === undefined) continue;
     if (capture.trim() === "" || captures.has(capture)) {
