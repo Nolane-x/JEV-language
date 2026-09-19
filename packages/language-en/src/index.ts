@@ -70,6 +70,18 @@ export const createEnglishSeedLexicon = (): LanguageNeutralLexiconIndex => {
       ["services"],
     ),
     noun("lexeme:en.file", "file", "concept:core.file", ["files"]),
+    noun(
+      "lexeme:en.instruction",
+      "instruction",
+      "concept:core.instruction",
+      ["instructions"],
+    ),
+    functionLexeme(
+      "lexeme:en.it",
+      "it",
+      "pronoun",
+      "reference.anaphoric",
+    ),
     {
       id: "lexeme:en.delete",
       language: "en",
