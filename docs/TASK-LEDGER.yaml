@@ -17,7 +17,19 @@ tasks:
   - {id: T048-T059, title: ontology/namespaces/provisional concepts, status: partial}
   - {id: T060-T072, title: Jev decision runtime/adapters/recorded mode/budget/cache/calibration, status: partial}
   - {id: T073-T084, title: decision packs/registry/lifecycle/budgeting, status: partial}
-  - {id: T085-T144, title: controlled grounding/realizer/round-trip bootstrap, status: partial}
+  - {id: T085-T095, title: normalization/segmentation/tokenization/language spans/literals/lexicon ABI/parse forest/semantic construction/ambiguity registry, status: implemented}
+  - {id: T096, title: integrate Jev resolution for one ambiguity type, status: todo}
+  - {id: T097, title: commit parse result into JSG transaction, status: implemented}
+  - {id: T098, title: define Lexeme/LexicalSense schemas, status: implemented}
+  - {id: T099, title: define valency frames, status: implemented}
+  - {id: T100, title: define collocation rules, status: implemented}
+  - {id: T101, title: implement language-neutral lexicon index, status: implemented}
+  - {id: T102, title: implement English seed lexicon, status: implemented}
+  - {id: T103, title: implement English morphology provider subset, status: implemented}
+  - {id: T104, title: implement unknown-token preservation, status: implemented}
+  - {id: T105, title: implement multiword expression entries, status: implemented}
+  - {id: T106, title: add lexicon conformance tests, status: implemented}
+  - {id: T107-T144, title: grammar/parser/realizer/round-trip expansion, status: todo}
   - {id: T145-T180, title: dialogue/Vietnamese/discourse/pragmatics, status: partial}
   - {id: T181-T199, title: PIR typed foundation and typed-hole contracts, status: partial}
   - {id: T200-T238, title: synthesis/backends/repair/compiler-loop, status: partial}
