@@ -19,7 +19,7 @@ tasks:
   - {id: T073-T084, title: decision packs/registry/lifecycle/budgeting, status: implemented}
   - {id: T085-T097, title: controlled grounding parser ambiguity and JSG commit foundation, status: implemented}
   - {id: T098-T106, title: lexicon morphology unknown preservation MWE and conformance foundation, status: verified}
-  - {id: T107-T120, title: grammar and parser expansion, status: partial}
+  - {id: T107-T120, title: grammar categories rule ABI packed parser English syntax phenomena and syntax-to-JSG bridge, status: implemented}
   - {id: T121-T133, title: constrained realizer expansion, status: implemented}
   - {id: T134-T144, title: controlled round-trip semantic corpus, status: implemented}
   - {id: T145-T157, title: dialogue state reference correction and long-turn conformance, status: implemented}
