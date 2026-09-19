@@ -447,6 +447,11 @@ export const globalAssertionPropositions = (
   return snapshot.nodes
     .filter((node): node is PropositionNode => node.kind === "proposition")
     .filter((node) => !embeddedByContext(node, contexts))
+    .filter(
+      (node) =>
+        node.presupposition === undefined &&
+        node.pragmaticInference === undefined,
+    )
     .filter((node) => {
       const commitment = node.epistemic?.commitment;
       return (
