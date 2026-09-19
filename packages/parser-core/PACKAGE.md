@@ -1,3 +1,3 @@
 # parser-core
 
-Status: **prototype / NOT_IMPLEMENTED**. Current controlled parsing lives in grounding until the parser ABI stabilizes.
+Status: **prototype / PARTIAL**. M4 now provides packed syntax-forest structures, semantic construction rules, ambiguity classification/resolution ABI, and JSG parse commits. Broad grammar coverage and live Jev ambiguity resolution remain incomplete.
