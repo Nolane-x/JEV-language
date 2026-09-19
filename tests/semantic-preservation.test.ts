@@ -42,7 +42,10 @@ const entity = (): EntityNode => ({
   memberships: [],
 });
 
-const quantity = (amount = 3, unit = "concept:test.file"): QuantityNode => ({
+const quantity = (
+  amount = 3,
+  unit: QuantityNode["unit"] = "concept:test.file",
+): QuantityNode => ({
   id: "quantity:limit",
   kind: "quantity",
   schemaVersion: "0.1.0",
