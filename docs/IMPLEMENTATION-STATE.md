@@ -49,12 +49,11 @@ partial_vertical_slices:
 known_failures: []
 blocked_items: []
 next_tasks:
-  - verify T311-T320 scope/quantification on deterministic CI
-  - continue T321-T330 event/time/modality/conditionals after scope gate verification
+  - continue T331-T340 deixis/attitudes/evidence on top of the verified temporal-modal substrate
   - continue M18 language expansion beyond the verified grammar/parser wave
   - expand M16 multi-target adapters beyond the controlled delete-limit semantic subset
-last_verified_main_commit: 153986e6a703db534bbe413007a0199582a764e3
-last_verified_pr_head: ddb868a8c60ad2531b4a2090453563ebe87eaf1f
+last_verified_main_commit: 304c2ca9540908906add3958da831a0c03b675b5
+last_verified_pr_head: ca0ceae3e553480eebc712f210a159431876c0ee
 ```
 
 ## Current state
@@ -98,7 +97,9 @@ M0–M9 are verified at their milestone gates. M3 includes the required one-requ
 
 - T301-T310 graph topology verified: canonical graph-view/projector APIs, reentrant shared-node analysis, explicit MentionNode/entity separation and mention indexes, provisional disconnected graph fragments with deterministic merge diagnostics, explicit cycle-permission registry/enforcement, and bounded topology property tests. CI passed 54/54 test files and 427/427 tests with package boundaries and strict typecheck green; live Jev requests: 0.
 
-- T311-T320 scope/quantification candidate implemented: explicit ScopeNode/ScopeConstraintNode, unresolved relative scope, generalized QuantifierNode/cardinality/distributivity semantics, explicit negation scope, staged scope validation, evidence-tier resolution pipeline, ambiguity-preserving generation filtering, and an adversarial executable benchmark. Verification pending branch CI; live Jev requests: 0.
+- T311-T320 scope/quantification verified: explicit ScopeNode/ScopeConstraintNode, unresolved relative scope, generalized QuantifierNode/cardinality/distributivity semantics, explicit negation scope, staged scope validation, evidence-tier resolution pipeline, ambiguity-preserving generation filtering, and an adversarial executable benchmark. CI passed 55/55 test files and 436/436 tests with boundaries/typecheck green; merged main commit `304c2ca` passed deterministic CI; live Jev requests: 0.
+
+- T321-T330 event/time/modality/conditionals verified: refined event/process/transition/achievement/activity ontology, explicit event-token versus event-class semantics, temporal object registry with interval-relation constraints, language-pack tense/time separation and aspect mapping ABI, dimensioned/ordinal modality with separate calibrated probability, conditional variants and counterfactual metadata, runtime boundary validation, semantic-preservation checks, and a deterministic adversarial benchmark. After correcting a round-trip test that incorrectly assumed insertion-order preservation instead of canonical node ordering, CI passed 56/56 test files and 445/445 tests with package boundaries and strict typecheck green; live Jev requests: 0.
 
 ## Still partial by design
 

@@ -213,6 +213,127 @@ const isAttributes = (value: unknown): boolean =>
 const isPolarity = (value: unknown): boolean =>
   value === "positive" || value === "negative";
 
+const isEventCategory = (value: unknown): boolean =>
+  value === "event" ||
+  value === "state" ||
+  value === "process" ||
+  value === "transition" ||
+  value === "achievement" ||
+  value === "activity";
+
+const isEventMode = (value: unknown): boolean =>
+  value === "episodic" ||
+  value === "habitual" ||
+  value === "generic" ||
+  value === "dispositional" ||
+  value === "law-like";
+
+const isEventAspect = (value: unknown): boolean =>
+  value === "completed" ||
+  value === "ongoing" ||
+  value === "planned" ||
+  value === "perfective" ||
+  value === "imperfective" ||
+  value === "progressive" ||
+  value === "perfect" ||
+  value === "prospective" ||
+  value === "habitual" ||
+  value === "iterative" ||
+  value === "none" ||
+  value === "unknown";
+
+const isTemporalRelation = (value: unknown): boolean =>
+  value === "before" ||
+  value === "after" ||
+  value === "meets" ||
+  value === "met-by" ||
+  value === "overlaps" ||
+  value === "overlapped-by" ||
+  value === "starts" ||
+  value === "started-by" ||
+  value === "during" ||
+  value === "contains" ||
+  value === "finishes" ||
+  value === "finished-by" ||
+  value === "equals" ||
+  value === "unknown";
+
+const isModalitySpec = (value: unknown): boolean => {
+  if (!isRecord(value) || typeof value.kind !== "string") return false;
+  const validKind =
+    value.kind === "asserted" ||
+    value.kind === "possible" ||
+    value.kind === "probable" ||
+    value.kind === "necessary" ||
+    value.kind === "permitted" ||
+    value.kind === "required" ||
+    value.kind === "forbidden" ||
+    value.kind === "intended" ||
+    value.kind === "capable" ||
+    value.kind === "hypothetical" ||
+    value.kind === "counterfactual";
+  const validDimension =
+    value.dimension === undefined ||
+    value.dimension === "epistemic" ||
+    value.dimension === "alethic" ||
+    value.dimension === "deontic" ||
+    value.dimension === "dynamic-capability" ||
+    value.dimension === "volitional" ||
+    value.dimension === "predictive";
+  const validOrdinal =
+    value.ordinalStrength === undefined ||
+    value.ordinalStrength === "impossible" ||
+    value.ordinalStrength === "unlikely" ||
+    value.ordinalStrength === "possible" ||
+    value.ordinalStrength === "likely" ||
+    value.ordinalStrength === "necessary";
+  return (
+    validKind &&
+    validDimension &&
+    validOrdinal &&
+    optionalString(value.operator) &&
+    optionalString(value.source) &&
+    optionalString(value.scope) &&
+    optionalString(value.contextAnchor) &&
+    optionalNumber(value.strength) &&
+    optionalNumber(value.calibratedProbability)
+  );
+};
+
+const isConditionalSemantics = (value: unknown): boolean => {
+  if (!isRecord(value)) return false;
+  const validKind =
+    value.kind === "factual" ||
+    value.kind === "predictive" ||
+    value.kind === "hypothetical" ||
+    value.kind === "counterfactual" ||
+    value.kind === "instructional-guard" ||
+    value.kind === "biconditional" ||
+    value.kind === "unless";
+  const validCounterfactual =
+    value.counterfactual === undefined ||
+    (isRecord(value.counterfactual) &&
+      (value.counterfactual.antecedentStatus === "contrary-to-fact" ||
+        value.counterfactual.antecedentStatus === "remote" ||
+        value.counterfactual.antecedentStatus === "unknown") &&
+      (value.counterfactual.consequentStatus === undefined ||
+        value.counterfactual.consequentStatus === "expected" ||
+        value.counterfactual.consequentStatus === "possible" ||
+        value.counterfactual.consequentStatus === "remote" ||
+        value.counterfactual.consequentStatus === "unknown") &&
+      optionalString(value.counterfactual.referenceWorld));
+  return (
+    validKind &&
+    typeof value.antecedent === "string" &&
+    typeof value.consequent === "string" &&
+    (value.modality === undefined || isModalitySpec(value.modality)) &&
+    (value.temporalRelation === undefined ||
+      isTemporalRelation(value.temporalRelation)) &&
+    validCounterfactual &&
+    optionalString(value.contextAnchor)
+  );
+};
+
 const hasBaseEnvelope = (value: Record<string, unknown>): boolean =>
   typeof value.id === "string" &&
   typeof value.kind === "string" &&
@@ -249,9 +370,15 @@ const structurallyValidNode = (value: unknown): value is JsgNode => {
     case "event":
       return (
         typeof value.predicate === "string" &&
+        optionalString(value.eventClass) &&
+        (value.eventCategory === undefined ||
+          isEventCategory(value.eventCategory)) &&
+        (value.eventMode === undefined || isEventMode(value.eventMode)) &&
         isRoleBindings(value.roles) &&
         isPolarity(value.polarity) &&
-        optionalString(value.temporal)
+        optionalString(value.temporal) &&
+        (value.aspect === undefined || isEventAspect(value.aspect)) &&
+        (value.modality === undefined || isModalitySpec(value.modality))
       );
     case "state":
       return (
@@ -289,7 +416,8 @@ const structurallyValidNode = (value: unknown): value is JsgNode => {
         isRoleBindings(value.arguments) &&
         isPolarity(value.polarity) &&
         optionalString(value.temporal) &&
-        optionalString(value.attribution)
+        optionalString(value.attribution) &&
+        (value.modality === undefined || isModalitySpec(value.modality))
       );
     case "scope":
       return (
@@ -329,7 +457,27 @@ const structurallyValidNode = (value: unknown): value is JsgNode => {
           typeof value.approximate === "boolean")
       );
     case "temporal":
-      return typeof value.temporalKind === "string" && isJsonValue(value.value);
+      return (
+        (value.temporalKind === "instant" ||
+          value.temporalKind === "interval" ||
+          value.temporalKind === "duration" ||
+          value.temporalKind === "recurrence" ||
+          value.temporalKind === "relative") &&
+        isJsonValue(value.value) &&
+        optionalString(value.anchor) &&
+        optionalString(value.start) &&
+        optionalString(value.end) &&
+        optionalString(value.durationIso) &&
+        optionalString(value.calendar) &&
+        (value.granularity === undefined ||
+          value.granularity === "year" ||
+          value.granularity === "month" ||
+          value.granularity === "day" ||
+          value.granularity === "hour" ||
+          value.granularity === "minute" ||
+          value.granularity === "second" ||
+          value.granularity === "unknown")
+      );
     case "location":
       return (
         typeof value.locationKind === "string" &&
@@ -344,7 +492,9 @@ const structurallyValidNode = (value: unknown): value is JsgNode => {
         typeof value.constraintKind === "string" &&
         typeof value.subject === "string" &&
         typeof value.predicate === "string" &&
-        isRoleBindings(value.parameters)
+        isRoleBindings(value.parameters) &&
+        (value.conditional === undefined ||
+          isConditionalSemantics(value.conditional))
       );
     case "alternative-set":
       return (

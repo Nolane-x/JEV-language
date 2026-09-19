@@ -489,6 +489,22 @@ export const createCoreOntology = (): OntologyStore => {
     }),
     coreConcept("concept:core.state", "state", { kind: "property" }),
     coreConcept("concept:core.event", "event", { kind: "event" }),
+    coreConcept("concept:core.process", "process", {
+      kind: "event",
+      parents: ["concept:core.event"],
+    }),
+    coreConcept("concept:core.transition", "transition", {
+      kind: "event",
+      parents: ["concept:core.event"],
+    }),
+    coreConcept("concept:core.achievement", "achievement", {
+      kind: "event",
+      parents: ["concept:core.transition"],
+    }),
+    coreConcept("concept:core.activity", "activity", {
+      kind: "event",
+      parents: ["concept:core.process"],
+    }),
     coreConcept("concept:core.action", "action", {
       kind: "action",
       parents: ["concept:core.event"],
