@@ -34,11 +34,11 @@ partial_vertical_slices:
   - m5-controlled-realizer-roundtrip
   - m6-discourse-naturalness-foundation
   - m7-dialogue-semantics
+  - m8-vietnamese-language-pack
 known_failures: []
 blocked_items: []
 next_tasks:
-  - complete T158-T169 Vietnamese language-pack and cross-lingual semantic-equivalence gate
-  - build Vietnamese parsing/realization independently against shared JSG rather than English surface text
+  - verify M8 Vietnamese language-pack and cross-lingual semantic-equivalence gate on CI
   - complete remaining M1 staged semantic validators and graph operations
   - harden M17 verifier orchestration, provenance edge cases, and cross-adapter conformance
   - expand M16 multi-target adapters beyond the controlled delete-limit semantic subset
@@ -69,6 +69,7 @@ M0–M7 are verified at their milestone gates. M3 includes the required one-requ
 - M4 controlled grounding/parser foundation with reversible normalization, packed syntax forests, bounded recorded-JDR ambiguity choice, JSG commit, and corpus coverage for event/negation/quantity/time/condition/cause/requirement/permission/prohibition/comparison/question.
 - M5 constrained English realization with discourse/clause plans, lexical/morphology planning primitives, semantic source maps, attribution-safe realization, fallback policy, and a 100% semantic round-trip target on the current 11-fixture controlled corpus.
 - M6 verified bidirectional English expansion: semantic discourse-relation planning, safety-gated aggregation, explicit paraphrase lattices, repetition/style/audience planning, collocation scoring, bounded pragmatic Decision Packs, human-eval export, verified-by-round-trip synonyms/active-passive/temporal/condition/cause/reported-speech variants, relative clauses, pronoun-linked multi-sentence discourse, exact unknown-name preservation, and a passing 14-sample held-out template-leakage benchmark.\n- M7 verified dialogue semantics: revisioned transactional state, topic stack, salience/reference candidates, questions, requests, commitments, correction/retraction history, ellipsis/follow-up reconstruction, bounded reference Decision Pack, semantics-preserving compaction, and a passing 22-turn long-reference acceptance fixture.
+- M8 implementation candidate: Vietnamese manifest/lexicon/tokenizer/analytic morphology/grammar/classifier/aspect/address strategies plus direct Vietnamese↔JSG parsing/realization and bilingual semantic-equivalence corpus.
 - Graph-structured Discourse IR foundation with deterministic prerequisite-aware ordering.
 - Formal IR family foundation (Data/Schema/Query/Math/Logic/Command), capability-validated Action IR, and harness-neutral Universal Expression contract.
 - Registry-driven Universal Expression runtime plus trace DAG/config-digest/replay-manifest foundation.

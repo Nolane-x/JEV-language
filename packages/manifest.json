@@ -177,7 +177,8 @@
         "morphology-core",
         "lexicon-core",
         "parser-core",
-        "realizer-core"
+        "realizer-core",
+        "grounding"
       ]
     },
     "program-ir": {

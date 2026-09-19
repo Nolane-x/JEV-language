@@ -33,6 +33,7 @@ export type ControlledCorpusProjection =
       actorConcept: string;
       operation: string;
       polarity: EventNode["polarity"];
+      aspect?: EventNode["aspect"];
       quantity: ControlledQuantityProjection;
       temporal?: JsonValue;
     }
@@ -262,6 +263,7 @@ export const projectControlledCorpusSemantics = (
         actorConcept: actor.concept,
         operation: event.predicate,
         polarity: event.polarity,
+        ...(event.aspect === undefined ? {} : { aspect: event.aspect }),
         quantity,
         ...(temporal === undefined
           ? {}
