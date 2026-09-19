@@ -519,6 +519,10 @@ export const vietnameseLanguagePack = {
     choose: chooseVietnameseAddressStrategy,
   },
   tests: vietnameseConformanceManifest,
+  // Compatibility aliases retained for the M8 public surface; the common ABI
+  // routes new integrations through parserHooks/realizationHooks.
+  parse: parseControlledVietnameseCorpus,
+  realize: realizeControlledVietnameseCorpus,
 } satisfies HumanLanguagePack<
   VietnameseToken,
   string,
