@@ -91,3 +91,38 @@ export const sentinelDecisionPack: DecisionPackManifest = {
   fallback: { onLowConfidence: "preserve-ambiguity" },
   fixtures: [],
 };
+
+export class DecisionPackRegistry {
+  #packs = new Map<string, DecisionPackManifest>();
+
+  register(pack: DecisionPackManifest): Result<void> {
+    const validated = validateDecisionPack(pack);
+    if (!validated.ok) return validated;
+    const key = `${pack.id}@${pack.version}`;
+    if (this.#packs.has(key)) {
+      return err(
+        new StructuredError(
+          "DPACK_DUPLICATE",
+          `Decision pack already registered: ${key}`,
+        ),
+      );
+    }
+    this.#packs.set(key, structuredClone(pack));
+    return ok(undefined);
+  }
+
+  get(id: string, version: string): DecisionPackManifest | undefined {
+    const value = this.#packs.get(`${id}@${version}`);
+    return value === undefined ? undefined : structuredClone(value);
+  }
+
+  list(): DecisionPackManifest[] {
+    return [...this.#packs.values()]
+      .map((value) => structuredClone(value))
+      .sort((a, b) =>
+        a.id === b.id
+          ? a.version.localeCompare(b.version)
+          : a.id.localeCompare(b.id),
+      );
+  }
+}
