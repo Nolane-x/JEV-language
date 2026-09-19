@@ -13,12 +13,36 @@ export type ConceptRef = SemanticId;
 export type RelationRef = SemanticId;
 export type RoleRef = SemanticId;
 
+export type ConceptKind =
+  | "entity"
+  | "event"
+  | "property"
+  | "relation"
+  | "action"
+  | "abstract";
+
+export interface ConceptConstraint {
+  kind: string;
+  value?: JsonValue;
+}
+
+export interface ConceptComposition {
+  components: ConceptRef[];
+  definingRelations: Array<{
+    relation: RelationRef | RoleRef;
+    target: ConceptRef;
+  }>;
+}
+
 export interface ConceptDefinition {
   id: ConceptRef;
   namespace: string;
   labels: Record<string, string>;
   parents: ConceptRef[];
   status: "core" | "domain" | "provisional" | "deprecated";
+  kind?: ConceptKind;
+  constraints?: ConceptConstraint[];
+  composition?: ConceptComposition;
   definition?: JsonValue;
   provenance?: ProvenanceRef[];
   aliases?: ConceptRef[];
@@ -64,6 +88,95 @@ export class OntologyStore {
   #concepts = new Map<ConceptRef, ConceptDefinition>();
   #relations = new Map<RelationRef, RelationDefinition>();
   #roles = new Map<RoleRef, RoleDefinition>();
+
+  composeConcept(input: {
+    id: ConceptRef;
+    namespace: string;
+    labels: Record<string, string>;
+    components: ConceptRef[];
+    definingRelations?: ConceptComposition["definingRelations"];
+    parents?: ConceptRef[];
+    status?: "domain" | "provisional";
+    kind?: ConceptKind;
+    constraints?: ConceptConstraint[];
+    provenance?: ProvenanceRef[];
+  }): Result<ConceptDefinition> {
+    if (input.components.length === 0) {
+      return err(
+        new StructuredError(
+          "ONTO_COMPOSITION_EMPTY",
+          "A composite concept requires at least one existing component.",
+        ),
+      );
+    }
+    if (new Set(input.components).size !== input.components.length) {
+      return err(
+        new StructuredError(
+          "ONTO_COMPOSITION_DUPLICATE_COMPONENT",
+          "Composite concept components must be unique.",
+        ),
+      );
+    }
+    if (input.components.includes(input.id)) {
+      return err(
+        new StructuredError(
+          "ONTO_COMPOSITION_SELF_REFERENCE",
+          "A composite concept cannot include itself as a component.",
+        ),
+      );
+    }
+
+    for (const component of input.components) {
+      if (!this.#concepts.has(component)) {
+        return err(
+          new StructuredError(
+            "ONTO_COMPOSITION_UNKNOWN_COMPONENT",
+            `Unknown composition component: ${component}`,
+          ),
+        );
+      }
+    }
+
+    const definingRelations = input.definingRelations ?? [];
+    for (const relation of definingRelations) {
+      if (
+        !this.#relations.has(relation.relation) &&
+        !this.#roles.has(relation.relation)
+      ) {
+        return err(
+          new StructuredError(
+            "ONTO_COMPOSITION_UNKNOWN_RELATION",
+            `Unknown composition relation: ${relation.relation}`,
+          ),
+        );
+      }
+      if (!this.#concepts.has(relation.target)) {
+        return err(
+          new StructuredError(
+            "ONTO_COMPOSITION_UNKNOWN_TARGET",
+            `Unknown composition target: ${relation.target}`,
+          ),
+        );
+      }
+    }
+
+    const definition: ConceptDefinition = {
+      id: input.id,
+      namespace: input.namespace,
+      labels: structuredClone(input.labels),
+      parents: [...(input.parents ?? input.components.slice(0, 1))],
+      status: input.status ?? "domain",
+      kind: input.kind ?? "abstract",
+      constraints: structuredClone(input.constraints ?? []),
+      composition: {
+        components: [...input.components],
+        definingRelations: structuredClone(definingRelations),
+      },
+      provenance: [...(input.provenance ?? [])],
+    };
+    const added = this.addConcept(definition);
+    return added.ok ? ok(structuredClone(definition)) : err(added.error);
+  }
 
   addConcept(definition: ConceptDefinition): Result<void> {
     if (!isSemanticId(definition.id)) {
@@ -319,31 +432,147 @@ export class OntologyStore {
   }
 }
 
-const coreConcept = (id: ConceptRef, label: string): ConceptDefinition => ({
+const coreConcept = (
+  id: ConceptRef,
+  label: string,
+  input: {
+    kind?: ConceptKind;
+    parents?: ConceptRef[];
+  } = {},
+): ConceptDefinition => ({
   id,
   namespace: "core",
   labels: { en: label },
-  parents: [],
+  parents: [...(input.parents ?? [])],
   status: "core",
+  kind: input.kind ?? "abstract",
+  constraints: [],
+  provenance: [],
 });
 
 export const createCoreOntology = (): OntologyStore => {
   const store = new OntologyStore();
-  const concepts: Array<[ConceptRef, string]> = [
-    ["concept:core.entity", "entity"],
-    ["concept:core.event", "event"],
-    ["concept:core.action", "action"],
-    ["concept:core.software-service", "software service"],
-    ["concept:core.file", "file"],
-    ["concept:core.delete", "delete"],
-    ["concept:core.maximum-cardinality", "maximum cardinality"],
-    ["concept:core.requirement", "requirement"],
-    ["concept:core.unknown", "unknown"],
+  const concepts: ConceptDefinition[] = [
+    coreConcept("concept:core.entity", "entity", { kind: "entity" }),
+    coreConcept("concept:core.physical-object", "physical object", {
+      kind: "entity",
+      parents: ["concept:core.entity"],
+    }),
+    coreConcept("concept:core.abstract-object", "abstract object", {
+      parents: ["concept:core.entity"],
+    }),
+    coreConcept("concept:core.person", "person", {
+      kind: "entity",
+      parents: ["concept:core.entity"],
+    }),
+    coreConcept("concept:core.organization", "organization", {
+      kind: "entity",
+      parents: ["concept:core.entity"],
+    }),
+    coreConcept("concept:core.location", "location", {
+      kind: "entity",
+      parents: ["concept:core.entity"],
+    }),
+    coreConcept("concept:core.time", "time"),
+    coreConcept("concept:core.quantity", "quantity"),
+    coreConcept("concept:core.information", "information"),
+    coreConcept("concept:core.artifact", "artifact", {
+      kind: "entity",
+      parents: ["concept:core.entity"],
+    }),
+    coreConcept("concept:core.software-artifact", "software artifact", {
+      kind: "entity",
+      parents: ["concept:core.artifact"],
+    }),
+    coreConcept("concept:core.state", "state", { kind: "property" }),
+    coreConcept("concept:core.event", "event", { kind: "event" }),
+    coreConcept("concept:core.action", "action", {
+      kind: "action",
+      parents: ["concept:core.event"],
+    }),
+    coreConcept("concept:core.change", "change", {
+      kind: "event",
+      parents: ["concept:core.event"],
+    }),
+    coreConcept("concept:core.creation", "creation", {
+      kind: "action",
+      parents: ["concept:core.change"],
+    }),
+    coreConcept("concept:core.destruction", "destruction", {
+      kind: "action",
+      parents: ["concept:core.change"],
+    }),
+    coreConcept("concept:core.transfer", "transfer", {
+      kind: "action",
+      parents: ["concept:core.action"],
+    }),
+    coreConcept("concept:core.communication", "communication", {
+      kind: "action",
+      parents: ["concept:core.action"],
+    }),
+    coreConcept("concept:core.perception", "perception", {
+      kind: "event",
+      parents: ["concept:core.event"],
+    }),
+    coreConcept("concept:core.cognition", "cognition", {
+      kind: "event",
+      parents: ["concept:core.event"],
+    }),
+    coreConcept("concept:core.possession", "possession", { kind: "relation" }),
+    coreConcept("concept:core.comparison", "comparison", { kind: "relation" }),
+    coreConcept("concept:core.membership", "membership", { kind: "relation" }),
+    coreConcept("concept:core.part-whole", "part-whole", { kind: "relation" }),
+    coreConcept("concept:core.cause", "cause", { kind: "relation" }),
+    coreConcept("concept:core.condition", "condition", { kind: "relation" }),
+    coreConcept("concept:core.purpose", "purpose", { kind: "relation" }),
+    coreConcept("concept:core.permission", "permission"),
+    coreConcept("concept:core.requirement", "requirement"),
+    coreConcept("concept:core.prohibition", "prohibition"),
+    coreConcept("concept:core.possibility", "possibility"),
+    coreConcept("concept:core.certainty", "certainty"),
+    coreConcept("concept:core.truth", "truth"),
+    coreConcept("concept:core.falsehood", "falsehood"),
+    coreConcept("concept:core.unknown", "unknown"),
+    coreConcept("concept:core.software-service", "software service", {
+      kind: "entity",
+      parents: ["concept:core.software-artifact"],
+    }),
+    coreConcept("concept:core.file", "file", {
+      kind: "entity",
+      parents: ["concept:core.artifact"],
+    }),
+    coreConcept("concept:core.delete", "delete", {
+      kind: "action",
+      parents: ["concept:core.destruction"],
+    }),
+    coreConcept("concept:core.maximum-cardinality", "maximum cardinality", {
+      kind: "property",
+      parents: ["concept:core.quantity"],
+    }),
   ];
-  for (const [id, label] of concepts) {
-    const result = store.addConcept(coreConcept(id, label));
-    if (!result.ok) throw result.error;
-  }
+
+  const merged = store.mergeConcepts(concepts);
+  if (!merged.ok) throw merged.error;
+
+  store.upsertRelation({
+    id: "relation:core.function",
+    namespace: "core",
+    labels: { en: "function" },
+    domain: ["concept:core.artifact"],
+    range: ["concept:core.action"],
+  });
+  store.upsertRelation({
+    id: "relation:core.object",
+    namespace: "core",
+    labels: { en: "object" },
+    range: ["concept:core.entity"],
+  });
+  store.upsertRelation({
+    id: "relation:core.context",
+    namespace: "core",
+    labels: { en: "context" },
+    range: ["concept:core.entity"],
+  });
   store.upsertRole({
     id: "role:core.agent",
     namespace: "core",
@@ -370,5 +599,7 @@ export const provisionalConcept = (
   labels: { source: label },
   parents,
   status: "provisional",
+  kind: "abstract",
+  constraints: [],
   provenance,
 });
