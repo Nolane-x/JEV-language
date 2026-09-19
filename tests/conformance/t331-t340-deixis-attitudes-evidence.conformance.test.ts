@@ -1,9 +1,10 @@
 import { describe, expect, it } from "vitest";
-import type { JsonValue, SemanticId } from "../../packages/core-types/src/index.ts";
+import { sha256, type JsonValue, type SemanticId } from "../../packages/core-types/src/index.ts";
 import {
   runBenchmark,
   type DatasetManifest,
 } from "../../packages/evaluation-core/src/index.ts";
+import type { SpanRef } from "../../packages/open-world-values/src/index.ts";
 import type { ProvenanceRef } from "../../packages/provenance/src/index.ts";
 import {
   QuotationContextStack,
@@ -69,7 +70,7 @@ const location = (id: string): LocationNode => ({
         value: {
           kind: "surface-literal",
           value: id,
-          origin: "user",
+          origin: "parsed-literal",
         },
       },
     },
@@ -100,13 +101,13 @@ const snapshot = (
   nodes,
 });
 
-const sourceSpan = {
+const sourceSpan: SpanRef = {
   sourceId: "source:t331",
   sourceVersion: "1",
-  coordinateSystem: "utf16" as const,
+  coordinateSystem: "utf16",
   start: 0,
   end: 12,
-  digest: "sha256:t331-quote",
+  digest: sha256("t331 quote"),
 };
 
 describe("T331-T340 deixis, attitudes, and evidence conformance", () => {
@@ -407,7 +408,7 @@ describe("T331-T340 deixis, attitudes, and evidence conformance", () => {
       contradicts: [],
       payload: { kind: "boolean", value: true },
       confidence: {
-        source: "deterministic-verifier",
+        source: "rule",
         probability: 0.97,
       },
       evidentiality: {
