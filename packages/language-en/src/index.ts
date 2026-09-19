@@ -1,5 +1,6 @@
 import {
   GrammarRegistry,
+  type GrammarFeatures,
   type GrammarRule,
 } from "../../grammar-core/src/index.ts";
 import {
@@ -816,6 +817,152 @@ export const tokenizeEnglish = (source: string): EnglishToken[] => {
     });
   }
   return output;
+};
+
+
+const scalarGrammarFeatures = (
+  features: MorphFeatures,
+): GrammarFeatures =>
+  Object.fromEntries(
+    Object.entries(features).filter(
+      (
+        entry,
+      ): entry is [string, string | number | boolean] =>
+        typeof entry[1] === "string" ||
+        typeof entry[1] === "number" ||
+        typeof entry[1] === "boolean",
+    ),
+  );
+
+const lexicalKeyForGrammar = (match: LexicalMatch): string =>
+  [
+    match.lexemeId,
+    match.senseId,
+    match.language,
+    match.lemma,
+    match.partOfSpeech,
+    match.semanticTag ?? "",
+  ].join("\u0000");
+
+export const englishGrammarTokens = (
+  source: string,
+): GrammarToken[] => {
+  const lexicon = createEnglishSeedLexicon();
+  const morphology = new EnglishMorphologyProvider(lexicon);
+
+  return tokenizeEnglish(source)
+    .filter(
+      (token) =>
+        token.kind !== "punctuation" ||
+        !/^[.,!?;:]$/u.test(token.surface),
+    )
+    .map((token) => {
+      const lexical = [
+        ...lexicon.lookupSurface(token.surface, "en"),
+      ];
+      const analyses = morphology.analyze(token.surface, {
+        language: "en",
+      });
+
+      for (const analysis of analyses) {
+        for (const match of lexicon.lookupSurface(
+          analysis.lemma,
+          "en",
+        )) {
+          lexical.push({
+            ...match,
+            surface: token.surface,
+          });
+        }
+      }
+
+      if (token.kind === "number") {
+        lexical.push({
+          lexemeId: "lexeme:en.synthetic-number",
+          senseId: "sense:en.synthetic-number",
+          language: "en",
+          lemma: token.normalized,
+          partOfSpeech: "numeral",
+          surface: token.surface,
+          semanticTag: "quantity.number",
+        });
+      }
+
+      const deduplicated = [
+        ...new Map(
+          lexical.map((match) => [
+            lexicalKeyForGrammar(match),
+            match,
+          ]),
+        ).values(),
+      ];
+
+      const features = analyses.reduce<GrammarFeatures>(
+        (combined, analysis) => ({
+          ...combined,
+          ...scalarGrammarFeatures(analysis.features),
+        }),
+        {},
+      );
+
+      return {
+        surface: token.surface,
+        normalized: token.normalized,
+        lexical: deduplicated,
+        ...(Object.keys(features).length === 0
+          ? {}
+          : { features }),
+      };
+    });
+};
+
+export const parseEnglishSyntaxForest = (
+  source: string,
+) =>
+  buildPackedGrammarForest(englishGrammarTokens(source), {
+    language: "en",
+    rules: createEnglishControlledGrammar().rulesFor("en"),
+    rootCategories: ["S", "QUESTION"],
+    version: "1.0.0",
+  });
+
+export interface EnglishGrammarSemanticParse {
+  forest: SyntaxForest;
+  semantic: Extract<
+    ReturnType<typeof parseControlledEnglishCorpus>,
+    { ok: true }
+  >["value"];
+}
+
+export const parseEnglishGrammarToJsg = (
+  source: string,
+):
+  | { ok: true; value: EnglishGrammarSemanticParse }
+  | {
+      ok: false;
+      error: Extract<
+        ReturnType<typeof parseControlledEnglishCorpus>,
+        { ok: false }
+      >["error"];
+    } => {
+  const syntax = parseEnglishSyntaxForest(source);
+  if (!syntax.ok) {
+    return {
+      ok: false,
+      error: syntax.error,
+    };
+  }
+
+  const semantic = parseControlledEnglishCorpus(source);
+  if (!semantic.ok) return semantic;
+
+  return {
+    ok: true,
+    value: {
+      forest: syntax.value,
+      semantic: semantic.value,
+    },
+  };
 };
 
 export const englishLanguagePackManifest: LanguagePackManifest = {
