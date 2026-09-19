@@ -260,9 +260,9 @@ const directRefs = (node: JsgNode): RefUse[] => {
         ...(node.attitude?.holder === undefined
           ? []
           : [{ target: node.attitude.holder, label: "context.attitude-holder" }]),
-        ...(node.attitude?.contentRefs ?? []).map((target, index) => ({
+        ...(node.attitude?.contentRefs ?? []).map((target) => ({
           target,
-          label: `context.attitude-content[${index}]`,
+          label: "context.attitude-content",
         })),
       ];
     case "scope":
@@ -835,6 +835,18 @@ export const createCoreCyclePermissionRegistry = (): CyclePermissionRegistry => 
       sourceKind: "negation",
       targetKind: "scope",
       label: "negation.scope",
+    },
+    {
+      id: "core.attitude-context-content",
+      sourceKind: "context",
+      targetKind: "proposition",
+      label: "context.attitude-content",
+    },
+    {
+      id: "core.proposition-context",
+      sourceKind: "proposition",
+      targetKind: "context",
+      label: "proposition.context",
     },
   ];
   for (const rule of rules) {
