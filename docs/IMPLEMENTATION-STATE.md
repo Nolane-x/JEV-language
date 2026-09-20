@@ -65,7 +65,8 @@ next_tasks:
   - report the observed M19 result even if negative or mixed
   - keep non-stable packages explicitly below stable until their own v1 evidence exists
 last_verified_main_commit: ca2a22c12e6a948fe2c688bbe0c62d772bd1c87c
-last_verified_pr_head: 57ed0806fb1613e4bdb5248e8325aa84abd27113
+last_merged_playground_transport_commit: 81099f027f88d13b21d049f5e1d0a744f981ae5e
+last_verified_pr_head: 93bd36733ced592d1fa1e08337a2e31ce13067e2
 ```
 
 ## Current state
@@ -82,7 +83,7 @@ M20 v1 stable-core conformance for the non-vacuous stable set `core-types` + `pr
 
 The experimental GitHub Pages Playground is being built as a public BYOK test surface. It is explicitly constrained to current Jev-shaped interactions (typed yes/no, bounded choices, and coverage checks), keeps keys in tab memory only, and does not upgrade the engine's free-form generation claim. Pointer-reactive NUI visuals, reduced-motion/high-contrast alternatives, browser-runtime security checks, and deterministic conformance tests are part of the same change.
 
-The GitHub Pages Playground is deployed at `https://nolane-x.github.io/JEV-language/`. The NUI inspection-light interaction, TypeSafe wire-response validation, pointer alignment fix, literal-markup regression check, and accurate network/CORS diagnostics are merged. A browser-equivalent preflight probe on 2026-09-20 proved that direct TypeSafe calls from `https://nolane-x.github.io` currently lack `Access-Control-Allow-Origin` and are therefore blocked by provider CORS. An optional locked-down self-hosted relay transport is now implemented on the active branch; it is not yet claimed as deployment-verified or authenticated-BYOK verified.\n\n## Implemented foundation
+The GitHub Pages Playground is deployed at `https://nolane-x.github.io/JEV-language/`. The NUI inspection-light interaction, TypeSafe wire-response validation, pointer alignment fix, literal-markup regression check, and accurate network/CORS diagnostics are merged. A browser-equivalent preflight probe on 2026-09-20 proved that direct TypeSafe calls from `https://nolane-x.github.io` currently lack `Access-Control-Allow-Origin` and are therefore blocked by provider CORS. The optional locked-down self-hosted relay transport was merged by PR #70 as main commit `81099f0`. Its PR head passed CI #366 with 79/79 test files and 643/643 tests, package boundaries and strict TypeScript typecheck green. The exact post-merge Pages publication and a real authenticated BYOK call through a user-controlled relay remain deliberately unverified.\n\n## Implemented foundation
 
 - Strict TypeScript / Node 20+ baseline.
 - Machine-readable package maturity/dependency DAG plus source-import boundary enforcement.
