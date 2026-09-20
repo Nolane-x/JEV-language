@@ -26,7 +26,7 @@ In GitHub, open **Settings → Secrets and variables → Actions** and create th
 - `CLOUDFLARE_ACCOUNT_ID` — your Cloudflare account ID;
 - `CLOUDFLARE_API_TOKEN` — a narrowly scoped token allowed to create/deploy this Worker.
 
-Then open **Actions → Deploy TypeSafe Relay → Run workflow**.
+Then either open **Actions → Deploy TypeSafe Relay → Run workflow**, or deliberately update `.github/relay-deploy.trigger` on `main` for a one-shot reviewed deployment. Ordinary source pushes do not deploy the Worker.
 
 The workflow:
 
@@ -34,8 +34,8 @@ The workflow:
 2. checks whether the Cloudflare account already has a `workers.dev` subdomain and creates a deterministic one if the account is new;
 3. deploys `relay/wrangler.toml` with Wrangler CLI;
 4. obtains the resulting `workers.dev` deployment URL;
-5. verifies `/health` with first-deploy propagation retries;
-6. verifies a browser-style CORS preflight from `https://nolane-x.github.io`;
+5. verifies browser-readable `/health`, its exact CORS origin, and the `X-JEV-Relay: 1` identity header with propagation retries;
+6. verifies a browser-style API CORS preflight from `https://nolane-x.github.io`;
 7. records only non-secret deployment evidence so failures can be diagnosed without exposing credentials.
 
 Cloudflare explicitly recommends storing `CLOUDFLARE_API_TOKEN` in CI/CD secrets rather than in the repository.
