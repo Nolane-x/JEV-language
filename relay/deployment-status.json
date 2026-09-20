@@ -1,9 +1,13 @@
 {
-  "schema": "jev-language-relay-deployment/v1",
-  "verified": false,
-  "relay_url": null,
-  "deploy_outcome": "failure",
-  "verify_outcome": "skipped",
-  "source_sha": "9bbb16bf91d189035ac003675ce74bf032cc2858",
-  "recorded_at": "2026-09-20T08:00:30.797Z"
+  "schema": "jev-language-relay-deployment/v2",
+  "verified": true,
+  "relay_url": "https://jev-language-typesafe-relay.nolane-file.workers.dev",
+  "workers_subdomain": "nolane-file",
+  "workers_subdomain_created": false,
+  "subdomain_outcome": "success",
+  "deploy_outcome": "success",
+  "verify_outcome": "success",
+  "failure_reason": null,
+  "source_sha": "7a0e9d8491534f0f817074c712d82c1ecd178c6d",
+  "recorded_at": "2026-09-20T08:05:54.876Z"
 }
