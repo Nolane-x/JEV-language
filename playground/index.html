@@ -1,0 +1,152 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="color-scheme" content="dark" />
+    <meta name="theme-color" content="#0b0b0a" />
+    <meta name="referrer" content="no-referrer" />
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'self'; connect-src https://api.typesafe.ai; img-src 'self' data:; style-src 'self'; script-src 'self'; object-src 'none'; base-uri 'none'; form-action 'self'"
+    />
+    <meta
+      name="description"
+      content="JEV Language Playground — a browser-side playground for TypeSafe Jev and the JEV Language experimental runtime."
+    />
+    <title>JEV Language Playground</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <div class="ambient" aria-hidden="true">
+      <div class="ambient__spotlight"></div>
+      <div class="ambient__grid"></div>
+      <div class="ambient__grain"></div>
+      <div class="ambient__vignette"></div>
+    </div>
+
+    <div class="shell">
+      <header class="topbar">
+        <a class="brand reactive" href="./" aria-label="JEV Language Playground home">
+          <span class="brand__mark" aria-hidden="true"><span></span></span>
+          <span class="brand__copy">
+            <strong>JEV Language</strong>
+            <small>Playground</small>
+          </span>
+        </a>
+
+        <div class="topbar__actions">
+          <span class="runtime-state" id="runtimeState" data-state="idle">
+            <i aria-hidden="true"></i>
+            <span>Local shell</span>
+          </span>
+          <button class="key-button reactive" id="openKeyButton" type="button">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15.5 7.5a5 5 0 1 0-3.9 4.87L14 14.77V17h2v2h2v2h3v-4.24l-6.63-6.63A5 5 0 0 0 15.5 7.5Zm-5 1.5a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3Z"/></svg>
+            <span id="keyButtonLabel">Connect key</span>
+          </button>
+        </div>
+      </header>
+
+      <main class="chat" id="chatRegion">
+        <section class="empty-state" id="emptyState" aria-labelledby="heroTitle">
+          <div class="eyebrow"><span></span> typed decisions, composed into language</div>
+          <h1 id="heroTitle">Ask it something.</h1>
+          <p>
+            A deliberately honest chat surface for JEV Language. Decision-shaped prompts run through Jev;
+            unsupported open-ended generation stays explicit instead of being disguised.
+          </p>
+          <div class="prompt-rail" aria-label="Example prompts">
+            <button class="prompt-chip reactive" data-prompt="Should I retry a failed request after a network timeout?" type="button">Should I retry after a timeout?</button>
+            <button class="prompt-chip reactive" data-prompt="For a latency-sensitive path, should I choose retry or fail-fast?" type="button">Retry or fail-fast?</button>
+            <button class="prompt-chip reactive" data-prompt="Is preserving ambiguity better than forcing a guess when evidence is weak?" type="button">Preserve ambiguity?</button>
+          </div>
+        </section>
+
+        <section class="thread" id="thread" aria-live="polite" aria-relevant="additions"></section>
+      </main>
+
+      <div class="composer-wrap">
+        <form class="composer reactive" id="composerForm">
+          <label class="sr-only" for="composerInput">Message JEV Language</label>
+          <textarea
+            id="composerInput"
+            rows="1"
+            maxlength="6000"
+            autocomplete="off"
+            spellcheck="true"
+            placeholder="Message JEV Language…"
+          ></textarea>
+          <div class="composer__footer">
+            <span class="composer__hint" id="composerHint">Enter to send · Shift+Enter for newline</span>
+            <button class="send-button" id="sendButton" type="submit" aria-label="Send message" disabled>
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12 14-7-4.8 14-2.7-5.2L5 12Zm6.95.35 1.86 3.57 2.45-7.15-7.05 3.52 2.74.06Z"/></svg>
+            </button>
+          </div>
+        </form>
+        <p class="privacy-note">Your API key is kept in this tab’s memory only. Browser-side BYOK is visible to this page and developer tools.</p>
+      </div>
+    </div>
+
+    <dialog class="key-dialog" id="keyDialog" aria-labelledby="keyDialogTitle">
+      <form method="dialog" class="key-panel reactive" id="keyForm">
+        <div class="key-panel__head">
+          <div>
+            <span class="panel-kicker">Browser-side BYOK</span>
+            <h2 id="keyDialogTitle">Connect TypeSafe</h2>
+          </div>
+          <button class="icon-button" id="closeKeyButton" value="cancel" aria-label="Close API key dialog" type="submit">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m7 7 10 10M17 7 7 17"/></svg>
+          </button>
+        </div>
+
+        <p class="key-panel__intro">
+          The key is never written to localStorage, cookies, the URL, or this repository. It disappears when this tab closes or you disconnect. Requests go directly from this page to TypeSafe.
+        </p>
+
+        <label class="field">
+          <span>TypeSafe API key</span>
+          <span class="field__control">
+            <input id="apiKeyInput" type="password" placeholder="Paste your key" autocomplete="off" autocapitalize="off" spellcheck="false" />
+            <button id="toggleKeyVisibility" class="field__icon" type="button" aria-label="Show API key">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2.5 12s3.5-6 9.5-6 9.5 6 9.5 6-3.5 6-9.5 6-9.5-6-9.5-6Z"/><circle cx="12" cy="12" r="2.5"/></svg>
+            </button>
+          </span>
+        </label>
+
+        <label class="field">
+          <span>Model</span>
+          <select id="modelSelect">
+            <option value="jev-latest">jev-latest</option>
+            <option value="jev-preview">jev-preview</option>
+            <option value="jev-1.13.0">jev-1.13.0</option>
+          </select>
+        </label>
+
+        <label class="consent-row">
+          <input id="browserConsent" type="checkbox" />
+          <span>I understand that using an API key in a browser exposes it to the page runtime and developer tools.</span>
+        </label>
+
+        <div class="key-panel__status" id="keyPanelStatus" role="status"></div>
+
+        <div class="key-panel__actions">
+          <button class="secondary-button" id="disconnectButton" type="button" hidden>Disconnect</button>
+          <button class="primary-button reactive" id="connectButton" type="button">Connect</button>
+        </div>
+      </form>
+    </dialog>
+
+    <template id="messageTemplate">
+      <article class="message">
+        <div class="message__meta"></div>
+        <div class="message__body"></div>
+        <details class="message__details" hidden>
+          <summary>Decision details</summary>
+          <pre></pre>
+        </details>
+      </article>
+    </template>
+
+    <script type="module" src="./app.js"></script>
+  </body>
+</html>
