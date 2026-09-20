@@ -1,0 +1,18 @@
+[
+  {
+    "itemId": "m19-unseen-casual",
+    "context": "User: I found a tiny board-game café called Marzipan Comet near campus.\nAssistant: That name is memorable. What are you planning to do there?\nUser: I’m going Friday with Kestrel June, and I hate awkward icebreakers. Give me one casual line I can use when we sit down."
+  },
+  {
+    "itemId": "m19-technical-followup",
+    "context": "User: I’m debugging an internal service called PebbleRPC. A client can time out after the server has already committed the operation.\nAssistant: Then an automatic retry can duplicate the side effect unless the operation is idempotent or deduplicated.\nUser: We already deduplicate request IDs for 24 hours and return the stored result when the same ID appears again.\nAssistant: That changes the retry risk because repeated delivery can be recognized as the same logical operation.\nUser: Given that setup, should the retry path reuse the original request ID, and why? Answer in one short paragraph."
+  },
+  {
+    "itemId": "m19-correction-topic-return",
+    "context": "User: I’m planning Monday around the Aurora Junction workshop. It starts at 9:30, and I thought I should leave home at 8:00.\nAssistant: I can keep those details together while we plan the rest of the morning.\nUser: Correction: the workshop starts at 10:15, not 9:30. Keep the corrected time from now on.\nAssistant: Understood; the current workshop start time is 10:15.\nUser: Separate topic: I’m meeting Mira at 13:00 for lunch after the workshop.\nAssistant: Got it. Lunch with Mira is a separate 13:00 commitment.\nUser: Back to the workshop: summarize the corrected timing advice using the new start time, and do not repeat the old one."
+  },
+  {
+    "itemId": "m19-open-world-bilingual",
+    "context": "User: Mình đang làm một thiết bị tự chế tên “Lá Kính Vân Mưa”. Tên này là tên riêng của dự án, đừng dịch nó.\nAssistant: Mình sẽ giữ nguyên chuỗi “Lá Kính Vân Mưa” khi nhắc đến thiết bị.\nUser: Nó đo các vệt nước trên kính rồi xuất một chỉ số mình tự đặt tên là rain-thread density; thuật ngữ này cũng chưa có định nghĩa chuẩn bên ngoài dự án.\nAssistant: Hiểu rồi: cả tên thiết bị và “rain-thread density” đều là thuật ngữ do dự án của bạn định nghĩa, nên không nên tự suy diễn thêm nghĩa.\nUser: Now explain in one concise Vietnamese sentence what “Lá Kính Vân Mưa” reports, but keep the English term rain-thread density exactly as written."
+  }
+]
