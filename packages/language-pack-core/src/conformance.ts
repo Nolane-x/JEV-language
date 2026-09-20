@@ -505,7 +505,7 @@ export const renderTemporalPreservingPrecision = (
   });
 };
 
-export interface MixedLanguageSegment {
+export interface MixedLanguageRealizationSegment {
   language: string;
   text: string;
   opaque?: boolean;
@@ -513,7 +513,7 @@ export interface MixedLanguageSegment {
 }
 
 export const validateMixedLanguageRealization = (
-  segments: readonly MixedLanguageSegment[],
+  segments: readonly MixedLanguageRealizationSegment[],
   policy: MixedLanguageRealizationPolicy,
 ): Result<void> => {
   if (segments.length === 0) {
