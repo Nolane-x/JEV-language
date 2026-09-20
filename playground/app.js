@@ -24,6 +24,7 @@ const REQUEST_TIMEOUT_MS = 30000;
 const RELAY_CONNECT_ATTEMPTS = 3;
 const RELAY_BROWSER_CONTRACT = "jev-relay-browser-v2";
 const RELAY_RETRY_DELAYS_MS = [280, 850];
+const RELAY_READY_TTL_MS = 30_000;
 
 const state = {
   apiKey: "",
@@ -31,6 +32,8 @@ const state = {
   relayBaseUrl: DEFAULT_RELAY_URL,
   connected: false,
   busy: false,
+  relayReadyAt: 0,
+  relayPreflightToken: 0,
   turns: [],
 };
 
@@ -190,6 +193,65 @@ async function withRelayRetry(task, {
     }
   }
   throw lastError;
+}
+
+function relayRecentlyReady() {
+  return (
+    state.relayReadyAt > 0 &&
+    Date.now() - state.relayReadyAt < RELAY_READY_TTL_MS
+  );
+}
+
+async function preflightRelayConnection() {
+  const token = ++state.relayPreflightToken;
+  els.connectButton.disabled = true;
+  els.connectButton.textContent = "Preparing…";
+  setKeyStatus("Preparing the secure JEV relay…");
+
+  try {
+    await withRelayRetry(
+      () => verifyRelayHealth(),
+      {
+        onRetry: (_error, nextAttempt, attempts) => {
+          if (token !== state.relayPreflightToken) return;
+          setKeyStatus(
+            `Secure relay is warming up. Retrying ${nextAttempt}/${attempts}…`,
+          );
+        },
+      },
+    );
+
+    if (token !== state.relayPreflightToken) return;
+    state.relayReadyAt = Date.now();
+    setKeyStatus(
+      "Secure relay ready. Paste your TypeSafe key to continue.",
+      "success",
+    );
+    els.connectButton.textContent = "Connect";
+  } catch (error) {
+    if (token !== state.relayPreflightToken) return;
+    state.relayReadyAt = 0;
+
+    if (
+      error?.code === "UNVERIFIED_RELAY_RESPONSE" ||
+      error?.code === "INVALID_RELAY_HEALTH"
+    ) {
+      setKeyStatus(
+        "Secure relay verification did not complete. Retry in a moment; your API key has not been sent.",
+        "warning",
+      );
+    } else {
+      setKeyStatus(
+        "Secure relay is taking longer than expected. You can retry when you connect; your API key has not been sent.",
+        "warning",
+      );
+    }
+    els.connectButton.textContent = "Retry & connect";
+  } finally {
+    if (token === state.relayPreflightToken) {
+      els.connectButton.disabled = false;
+    }
+  }
 }
 
 async function relayFetch(path, {
@@ -427,16 +489,19 @@ async function connectKey() {
   setKeyStatus("Checking the secure JEV relay…");
 
   try {
-    await withRelayRetry(
-      () => verifyRelayHealth(),
-      {
-        onRetry: (_error, nextAttempt, attempts) => {
-          setKeyStatus(
-            `Secure relay did not answer yet. Retrying ${nextAttempt}/${attempts}…`,
-          );
+    if (!relayRecentlyReady()) {
+      await withRelayRetry(
+        () => verifyRelayHealth(),
+        {
+          onRetry: (_error, nextAttempt, attempts) => {
+            setKeyStatus(
+              `Secure relay did not answer yet. Retrying ${nextAttempt}/${attempts}…`,
+            );
+          },
         },
-      },
-    );
+      );
+      state.relayReadyAt = Date.now();
+    }
     setKeyStatus("Relay ready. Verifying your TypeSafe key…");
 
     const { payload } = await withRelayRetry(
@@ -504,7 +569,13 @@ async function connectKey() {
       message = error?.message || "The connection check could not be completed.";
     }
 
-    setKeyStatus(message, "error");
+    const statusKind =
+      error?.status === 401 ||
+      error?.status === 403 ||
+      error?.code === "UNVERIFIED_RELAY_RESPONSE"
+        ? "error"
+        : "warning";
+    setKeyStatus(message, statusKind);
     updateConnectionUi();
   } finally {
     els.connectButton.disabled = false;
@@ -522,15 +593,26 @@ function disconnectKey() {
 els.openKeyButton.addEventListener("click", () => {
   els.modelSelect.value = state.model;
   els.browserConsent.checked = false;
-  setKeyStatus(
-    state.connected
-      ? "A TypeSafe key is connected in memory for this tab."
-      : "Your key will be sent only through the verified JEV relay and will not be stored.",
-  );
   els.keyDialog.showModal();
+
+  if (state.connected) {
+    state.relayPreflightToken += 1;
+    setKeyStatus(
+      "A TypeSafe key is connected in memory for this tab.",
+      "success",
+    );
+    els.connectButton.textContent = "Connect";
+    els.connectButton.disabled = false;
+  } else {
+    void preflightRelayConnection();
+  }
+
   window.setTimeout(() => els.apiKeyInput.focus(), 30);
 });
-els.closeKeyButton.addEventListener("click", () => setKeyStatus(""));
+els.closeKeyButton.addEventListener("click", () => {
+  state.relayPreflightToken += 1;
+  setKeyStatus("");
+});
 els.connectButton.addEventListener("click", connectKey);
 els.disconnectButton.addEventListener("click", disconnectKey);
 

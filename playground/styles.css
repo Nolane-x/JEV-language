@@ -513,6 +513,7 @@ summary:focus-visible {
 .consent-row input { margin:1px 0 0; accent-color:#c89450; }
 .key-panel__status { position:relative; z-index:1; min-height:18px; margin-top:11px; color:var(--text-dim); font-size:10px; }
 .key-panel__status[data-state="error"] { color:#d89a86; }
+.key-panel__status[data-state="warning"] { color:#d6b178; }
 .key-panel__status[data-state="success"] { color:#a4c8a0; }
 .key-panel__actions { position:relative; z-index:1; display:flex; justify-content:flex-end; gap:8px; margin-top:5px; }
 .secondary-button,

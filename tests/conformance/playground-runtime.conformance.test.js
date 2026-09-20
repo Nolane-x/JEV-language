@@ -130,6 +130,11 @@ describe("JEV Language Playground conformance", () => {
     expect(app).not.toContain("deploy the repository's locked-down self-hosted relay");
     expect(app).toContain("Checking the secure JEV relay");
     expect(app).toContain("RELAY_CONNECT_ATTEMPTS = 3");
+    expect(app).toContain("RELAY_READY_TTL_MS = 30_000");
+    expect(app).toContain("preflightRelayConnection");
+    expect(app).toContain("Secure relay ready. Paste your TypeSafe key to continue.");
+    expect(app).toContain("Retry & connect");
+    expect(app).toContain('"warning"');
     expect(app).toContain('RELAY_BROWSER_CONTRACT = "jev-relay-browser-v2"');
     expect(app.indexOf('response.headers.get("x-jev-relay")')).toBeLessThan(
       app.indexOf("if (!response.ok)"),
