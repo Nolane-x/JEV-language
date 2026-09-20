@@ -381,7 +381,8 @@ export class BoundedBooleanSolver implements ConstraintSolver {
       });
     }
 
-    if (request.timeoutMs === 0 || signal?.aborted === true) {
+    if (request.timeoutMs === 0 || Boolean(signal?.aborted)) {
+      const aborted = Boolean(signal?.aborted);
       const bounded = {
         maxVariables: request.maxVariables,
         maxAssignments: request.maxAssignments,
@@ -395,7 +396,7 @@ export class BoundedBooleanSolver implements ConstraintSolver {
           request,
           "TIMEOUT",
           bounded,
-          [signal?.aborted === true ? "ABORTED" : "ZERO_TIMEOUT"],
+          [aborted ? "ABORTED" : "ZERO_TIMEOUT"],
         ),
       });
     }
@@ -451,8 +452,9 @@ export class BoundedBooleanSolver implements ConstraintSolver {
     const startedAt = Date.now();
 
     for (let index = 0; index < assignmentBudget; index += 1) {
+      const aborted = Boolean(signal?.aborted);
       if (
-        signal?.aborted === true ||
+        aborted ||
         Date.now() - startedAt >= request.timeoutMs
       ) {
         const bounded = {
@@ -468,7 +470,7 @@ export class BoundedBooleanSolver implements ConstraintSolver {
             request,
             "TIMEOUT",
             bounded,
-            [signal?.aborted === true ? "ABORTED" : "TIME_BUDGET_EXCEEDED"],
+            [aborted ? "ABORTED" : "TIME_BUDGET_EXCEEDED"],
           ),
         });
       }
