@@ -1,0 +1,21 @@
+{
+  "schema": "jev-language-playground-relay-live-smoke/v1",
+  "ok": true,
+  "observed_at": "2026-09-20T08:57:37.587Z",
+  "source_sha": "efc94c3d28af2dcfe1be67f25101118e10e63cbd",
+  "relay": "https://jev-language-typesafe-relay.nolane-file.workers.dev",
+  "origin": "https://nolane-x.github.io",
+  "relay_header_verified": true,
+  "cors_origin_verified": true,
+  "model": "jev-1.13.0",
+  "answer_type": "noul",
+  "noul": 0.98,
+  "confidence": null,
+  "usage": {
+    "input_tokens": 372,
+    "output_tokens": 20
+  },
+  "request_id": "req_01a0be09059e76e383893ad2e140568c",
+  "requests_used": 1,
+  "credential_persisted": false
+}
