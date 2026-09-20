@@ -85,7 +85,7 @@ tasks:
   - {id: NC-10, title: deterministic conversation candidate-recall benchmark before Jev ranking, status: verified}
   - {id: NC-11, title: Jev conversational ranker confidence and margin calibration on subtle held-out pairs, status: partial}
   - {id: NC-12, title: end-to-end bounded conversation selection pipeline, status: verified}
-  - {id: NC-13, title: generate and freeze real M19 blinded study stimuli, status: todo}
+  - {id: NC-13, title: generate and freeze real M19 blinded study stimuli, status: partial}
   - {id: NC-14, title: collect preregistered M19 human ratings, status: todo}
   - {id: NC-15, title: error-driven natural-conversation iteration from observed failure clusters, status: partial}
 vertical_slices:
