@@ -83,6 +83,17 @@ Conversation text itself is not paraphrased by the freezer.
 
 Capture input order therefore cannot alter the frozen evidence identity.
 
+## Arm-neutral execution runner
+
+`runM19ObservedArm(...)` executes one anonymous arm across the fixed scenario pack.
+
+The adapter boundary exposes only:
+
+- `reset(itemId, conversationRef)`;
+- `respond(itemId, conversationRef, userText, userTurnIndex)`.
+
+Each response must return the exact observed text plus latency, cost, semantic evidence, and observation evidence. The runner resets between study items, accumulates the complete alternating transcript, and returns arm-coded captures without serializing implementation identity.
+
 ## Remaining NC-13 work
 
 This implementation does **not** mark NC-13 complete.
