@@ -63,12 +63,14 @@ tasks:
   - {id: T431-T440, title: language pack feature manifests parse generate coverage construction ownership semantic extension namespaces locale number temporal mixed language fallback policies and conformance runner, status: verified}
   - {id: T441-T450, title: synthesis problem composite specification typed grammar environment specialization G0-G3 profiles structured hole constraints environment schema typed enumeration pruning and property tests, status: verified}
   - {id: T451-T460, title: effect system error flow async task concurrency ownership lifetime parametric substitution algebraic types exhaustiveness closure capture and opaque meta boundary, status: verified}
-  - {id: T461-T470, title: search strategy best-first family ranking hierarchical expansion counterexample CEGIS shrinking held-out validation and grammar widening, status: implemented}
+  - {id: T461-T470, title: search strategy best-first family ranking hierarchical expansion counterexample CEGIS shrinking held-out validation and grammar widening, status: verified}
   - {id: T471-T480, title: solver-neutral interface SAT UNSAT UNKNOWN TIMEOUT proof obligations status lattice theories bounded evidence symbolic execution termination hooks and real adapter, status: verified}
   - {id: T481-T490, title: source pipeline stable anchors comment and formatting preservation minimal diff stale conflict multi-file transaction semantic diff completeness matrix and benchmark, status: verified}
   - {id: T491-T500, title: Logic Math Query Schema Data closure Action capability refinement ResultEnvelope evidence graph semantic equality learning lifecycle and cross-layer dashboard, status: verified}
-  - {id: EXTENDED-M11-M20, title: deep semantics discourse typology open vocabulary typed grammar CEGIS proof source repair universal formal expression and Action neutrality evidence gates, status: implemented}
-  - {id: RELEASE-GATES, title: semantic ambiguity recall open-world long-discourse multilingual translation program search solver source reproducibility extension anti-template anti-generator anti-special-case coverage unsupported-ledger gates, status: todo}
+  - {id: EXTENDED-M11-M20, title: deep semantics discourse typology open vocabulary typed grammar CEGIS proof source repair universal formal expression and Action neutrality evidence gates, status: verified}
+  - {id: RELEASE-GATES, title: semantic ambiguity recall open-world long-discourse multilingual translation program search solver source reproducibility extension anti-template anti-generator anti-special-case coverage unsupported-ledger gates, status: implemented}
+  - {id: M19-NATURAL-CONVERSATION, title: blinded natural-conversation research evaluation with semantic accuracy coherence template leakage diversity latency cost and failure taxonomy, status: todo}
+  - {id: M20-V1-CONFORMANCE, title: stable-package API docs ABI schema versions conformance migrations benchmark baseline limitations replayable demos and zero-generative audit, status: todo}
 vertical_slices:
   - {id: VS1, title: controlled English requirement parse-realize-roundtrip, status: implemented}
   - {id: VS2, title: recorded Jev Choice reference resolution with ambiguity preservation, status: implemented}
