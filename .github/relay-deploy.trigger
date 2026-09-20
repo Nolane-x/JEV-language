@@ -7,3 +7,5 @@ browser-contract-v2: 2026-09-20T12:43Z
 reason: verify all browser-readable relay responses before trusting HTTP status
 propagation-aware-verification-v3: 2026-09-20T12:48Z
 reason: wait for deployed browser contract before declaring relay verification failure
+shell-safe-authless-verification-v4: 2026-09-20T12:51Z
+reason: rerun browser contract verification with shell-safe authless probe
