@@ -1083,5 +1083,6 @@ export * from "./dashboard.ts";
 export * from "./release-gates.ts";
 
 export * from "./natural-conversation.ts";
+export * from "./m19-study-kit.ts";
 
 export * from "./v1-conformance.ts";
