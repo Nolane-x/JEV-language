@@ -23,6 +23,7 @@ function corsHeaders(origin) {
     "Access-Control-Allow-Origin": origin,
     "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
     "Access-Control-Allow-Headers": "Authorization, Content-Type, Accept",
+    "Access-Control-Expose-Headers": "X-JEV-Relay, X-TypeSafe-Request-Id, Retry-After",
     "Access-Control-Max-Age": "600",
     "Vary": "Origin",
   };
