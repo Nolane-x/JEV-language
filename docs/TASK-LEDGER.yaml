@@ -62,7 +62,8 @@ tasks:
   - {id: T421-T430, title: incremental parse state provisional committed semantics recovery diagnostics realization lattice constraints objectives ambiguity aggregation fallback and deterministic replay, status: verified}
   - {id: T431-T440, title: language pack feature manifests parse generate coverage construction ownership semantic extension namespaces locale number temporal mixed language fallback policies and conformance runner, status: implemented}
   - {id: T441-T450, title: synthesis problem composite specification typed grammar environment specialization G0-G3 profiles structured hole constraints environment schema typed enumeration pruning and property tests, status: implemented}
-  - {id: T451+, title: remaining v0.4 research-expansion semantics/synthesis/conformance tasks, status: todo}
+  - {id: T451-T460, title: effect system error flow async task concurrency ownership lifetime parametric substitution algebraic types exhaustiveness closure capture and opaque meta boundary, status: implemented}
+  - {id: T461+, title: remaining v0.4 research-expansion semantics/synthesis/conformance tasks, status: todo}
 vertical_slices:
   - {id: VS1, title: controlled English requirement parse-realize-roundtrip, status: implemented}
   - {id: VS2, title: recorded Jev Choice reference resolution with ambiguity preservation, status: implemented}
