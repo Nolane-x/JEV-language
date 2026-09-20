@@ -995,3 +995,5 @@ export const renderMathIr = (math: MathIr): Result<string> =>
 
 export const renderCommandIr = (command: CommandIr): Result<string> =>
   renderValidated(validateCommandIr(command));
+
+export * from "./solver.ts";
