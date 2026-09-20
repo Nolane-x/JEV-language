@@ -230,7 +230,7 @@ export const certifyConversationSurfaceDraftFromParser = async (
       ...(input.additionalEvidenceRefs ?? []),
     ],
   });
-  if (!certified.ok) return certified;
+  if (!certified.ok) return err(certified.error);
 
   return ok({
     ...certified.value,
