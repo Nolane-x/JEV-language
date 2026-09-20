@@ -13,7 +13,9 @@ import {
 
 const app = readFileSync("playground/app.js", "utf8");
 const html = readFileSync("playground/index.html", "utf8");
-const css = readFileSync("playground/styles.css", "utf8");\nconst fieldCss = readFileSync("playground/field.css", "utf8");\nconst fieldJs = readFileSync("playground/field.js", "utf8");
+const css = readFileSync("playground/styles.css", "utf8");
+const fieldCss = readFileSync("playground/field.css", "utf8");
+const fieldJs = readFileSync("playground/field.js", "utf8");
 const pages = readFileSync(".github/workflows/pages.yml", "utf8");
 
 describe("JEV Language Playground conformance", () => {
