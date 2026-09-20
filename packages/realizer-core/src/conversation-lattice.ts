@@ -275,7 +275,11 @@ export const buildConversationCandidateSet = (
         {
           sourceDraftCount: input.drafts.length,
           eligibleDraftCount: eligible.length,
-          rejected,
+          rejected: rejected.map((entry) => ({
+            id: entry.id,
+            reason: entry.reason,
+            detail: entry.detail ?? null,
+          })),
         },
       ),
     );
