@@ -55,7 +55,7 @@ export function resolveApiEndpoint({ transport, relayBaseUrl = "", path }) {
     return path === "/v1/models" ? DIRECT_MODELS_URL : DIRECT_SYSTEM_ONE_URL;
   }
 
-  if (transport !== "relay") {
+  if (transport !== "relay" && transport !== "public") {
     throw new TypeError("Unknown Playground transport.");
   }
 
