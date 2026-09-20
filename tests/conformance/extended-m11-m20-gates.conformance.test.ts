@@ -164,7 +164,10 @@ describe("Extended M11-M20 evidence gates", () => {
         constituentOrder: {
           id: "mock-sov.order",
           language,
-          order: () => ["subject", "object", "verb"],
+          order: (input) => {
+            void input;
+            return ["subject", "object", "verb"];
+          },
         },
         zeroRealization: {
           id: "mock-sov.pro-drop",
