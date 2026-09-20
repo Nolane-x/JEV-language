@@ -197,14 +197,7 @@ jobs:
           grep -qiF 'access-control-allow-origin: https://nolane-x.github.io' /tmp/relay-cors.headers
           grep -qiE 'access-control-expose-headers:.*x-jev-relay' /tmp/relay-cors.headers
 
-          authless_code="$(
-            curl --silent --show-error \\
-              --header "Origin: https://nolane-x.github.io" \\
-              --dump-header /tmp/relay-authless.headers \\
-              --output /tmp/relay-authless.json \\
-              --write-out '%{http_code}' \\
-              "$RELAY_URL/v1/models"
-          )"
+          authless_code="$(curl --silent --show-error --header 'Origin: https://nolane-x.github.io' --dump-header /tmp/relay-authless.headers --output /tmp/relay-authless.json --write-out '%{http_code}' "$RELAY_URL/v1/models")"
           test "$authless_code" = "401"
           grep -qiF 'x-jev-relay: 1' /tmp/relay-authless.headers
           grep -qiE 'access-control-expose-headers:.*x-jev-relay' /tmp/relay-authless.headers
