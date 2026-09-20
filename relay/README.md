@@ -31,11 +31,12 @@ Then open **Actions → Deploy TypeSafe Relay → Run workflow**.
 The workflow:
 
 1. checks that both secrets exist;
-2. deploys `relay/wrangler.toml` with the official Cloudflare Wrangler action;
-3. obtains the resulting `workers.dev` deployment URL;
-4. verifies `/health`;
-5. verifies a browser-style CORS preflight from `https://nolane-x.github.io`;
-6. prints the verified relay URL in the GitHub Actions job summary.
+2. checks whether the Cloudflare account already has a `workers.dev` subdomain and creates a deterministic one if the account is new;
+3. deploys `relay/wrangler.toml` with Wrangler CLI;
+4. obtains the resulting `workers.dev` deployment URL;
+5. verifies `/health` with first-deploy propagation retries;
+6. verifies a browser-style CORS preflight from `https://nolane-x.github.io`;
+7. records only non-secret deployment evidence so failures can be diagnosed without exposing credentials.
 
 Cloudflare explicitly recommends storing `CLOUDFLARE_API_TOKEN` in CI/CD secrets rather than in the repository.
 
@@ -62,3 +63,8 @@ Choose **Self-hosted relay** in the Playground and paste only that origin. Do no
 This is not an anonymous public CORS proxy. Requests from origins outside the allowlist are rejected, arbitrary paths are rejected, and the upstream host cannot be changed by the browser request.
 
 If TypeSafe later allows the GitHub Pages origin directly, prefer **Direct TypeSafe** mode and remove the relay from the request path.
+
+
+### First-deploy bootstrap
+
+A newly created Cloudflare account may not have a `workers.dev` account subdomain yet. Interactive Wrangler can prompt for one, but CI cannot answer that prompt. The deployment workflow therefore checks the account subdomain first and, only when none exists, creates a deterministic `nolane-<account-prefix>.workers.dev` account subdomain through the Cloudflare API. An existing account subdomain is never replaced.
