@@ -95,7 +95,7 @@ It is a static GitHub Pages BYOK surface: users supply their own TypeSafe key, w
 
 The NUI-driven interface uses an obsidian/editorial-instrument visual thesis with a warm-metal inspection-light field that follows the pointer, plus coarse-pointer and reduced-motion fallbacks. Provider success payloads are validated before rendering.
 
-Static deployment and deterministic conformance are verified. Authenticated browser CORS from the deployed origin is intentionally not claimed until observed with a real user-supplied key.
+The static Pages shell was previously deployment-verified. A browser-equivalent preflight probe on 2026-09-20 then proved that direct TypeSafe requests from the GitHub Pages origin are blocked by the provider's current CORS policy. PR #70 therefore added an explicit optional self-hosted relay transport; its code passed deterministic CI #366 with 79/79 test files and 643/643 tests, package boundaries, and strict typecheck green. A real authenticated BYOK call through a user-controlled relay remains intentionally unclaimed.
 
 ## Security
 

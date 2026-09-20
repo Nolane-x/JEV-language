@@ -1,6 +1,6 @@
 # JEV Language Playground — GitHub Pages surface
 
-Status: **deployed and deterministic-CI verified; direct TypeSafe browser transport is CORS-blocked; self-hosted relay transport implemented but not yet deployment-verified**
+Status: **base Pages deployment verified; PR #70 transport revision merged and deterministic-CI verified; direct TypeSafe browser transport CORS-blocked; self-hosted relay live deployment/BYOK still unverified**
 
 Live URL:
 
@@ -75,32 +75,36 @@ Static/runtime conformance:
 
 `tests/conformance/playground-runtime.conformance.test.js`
 
-Verified PR head:
+Latest verified transport PR head:
 
-- PR #67 head: `57ed0806fb1613e4bdb5248e8325aa84abd27113`
-- CI #356: 78/78 test files, 634/634 tests;
+- PR #70 head: `93bd36733ced592d1fa1e08337a2e31ce13067e2`;
+- CI #366: 79/79 test files, 643/643 tests;
 - package boundaries: passed;
-- strict TypeScript typecheck: passed.
+- strict TypeScript typecheck: passed;
+- PR #70 squash-merged to main as `81099f027f88d13b21d049f5e1d0a744f981ae5e`.
 
-Verified merged main:
+Last independently observed merged-main CI before the relay revision:
 
 - merge commit: `ca2a22c12e6a948fe2c688bbe0c62d772bd1c87c`;
 - CI #357: 78/78 test files, 634/634 tests;
 - package boundaries: passed;
 - strict TypeScript typecheck: passed.
 
+The PR #70 tree is deterministic-CI verified and is merged on main, but a separate post-merge main workflow result for `81099f0` has not been independently observed through the currently available connector surface.
+
 GitHub Pages:
 
-- deployment workflow #2: success;
+- previously observed deployment workflow #2: success;
 - `Configure Pages`: passed;
 - artifact upload: passed;
 - deployment: passed;
-- deployed commit: `ca2a22c12e6a948fe2c688bbe0c62d772bd1c87c`;
-- environment URL: `https://nolane-x.github.io/JEV-language/`.
+- previously observed deployed commit: `ca2a22c12e6a948fe2c688bbe0c62d772bd1c87c`;
+- environment URL: `https://nolane-x.github.io/JEV-language/`;
+- publication of the newer PR #70 transport revision has not been independently observed from the available tooling, so it is not reported as deployment-verified.
 
 ## Remaining live verification
 
-The static application, repository integration, deterministic tests, and Pages deployment are verified.
+The transport revision is repository-integrated and deterministic-CI verified. The base Pages deployment is verified, while publication of the exact PR #70 revision is still an external deployment-verification item.
 
 Direct browser transport is no longer an unknown: the provider CORS policy blocks the deployed GitHub Pages origin.
 
