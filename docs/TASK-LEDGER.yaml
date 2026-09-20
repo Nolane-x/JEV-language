@@ -69,7 +69,9 @@ tasks:
   - {id: T491-T500, title: Logic Math Query Schema Data closure Action capability refinement ResultEnvelope evidence graph semantic equality learning lifecycle and cross-layer dashboard, status: verified}
   - {id: EXTENDED-M11-M20, title: deep semantics discourse typology open vocabulary typed grammar CEGIS proof source repair universal formal expression and Action neutrality evidence gates, status: verified}
   - {id: RELEASE-GATES, title: semantic ambiguity recall open-world long-discourse multilingual translation program search solver source reproducibility extension anti-template anti-generator anti-special-case coverage unsupported-ledger gates, status: verified}
-  - {id: M19-NATURAL-CONVERSATION, title: blinded natural-conversation research evaluation with semantic accuracy coherence template leakage diversity latency cost and failure taxonomy, status: todo}
+  - {id: M19-PROTOCOL, title: preregistered blinded study manifest arm-coded stimuli human-rating import aggregation latency cost diversity and failure taxonomy, status: verified}
+  - {id: M19-NATURAL-CONVERSATION, title: blinded natural-conversation research evaluation with semantic accuracy coherence template leakage diversity latency cost and failure taxonomy, status: partial}
+  - {id: M19-HUMAN-DATA, title: collect and freeze real blinded evaluator ratings for the preregistered M19 study, status: todo}
   - {id: M20-V1-CONFORMANCE, title: stable-package API docs ABI schema versions conformance migrations benchmark baseline limitations replayable demos and zero-generative audit, status: todo}
 vertical_slices:
   - {id: VS1, title: controlled English requirement parse-realize-roundtrip, status: implemented}
