@@ -1,3 +1,10 @@
+export const PROVENANCE_PACKAGE_VERSION = "1.0.0" as const;
+export const PROVENANCE_ABI_VERSION = "1.0.0" as const;
+export const PROVENANCE_SCHEMA_VERSIONS = {
+  "jl-provenance-record": "1.0.0",
+  "jl-provenance-store-snapshot": "1.0.0",
+} as const;
+
 import {
   createSemanticId,
   type JsonValue,
