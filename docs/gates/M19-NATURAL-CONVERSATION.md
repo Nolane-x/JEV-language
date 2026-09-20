@@ -79,6 +79,18 @@ Failures are recorded independently of rating averages:
 
 This prevents a single mean score from hiding systematic failure modes.
 
+## Human-study execution kit
+
+The repository provides a no-fabrication execution path in `packages/evaluation-core/src/m19-study-kit.ts`:
+
+- `createM19RatingWorksheet(...)` builds an evaluator-facing blinded worksheet and deliberately strips latency, cost, and semantic-evidence metadata that could bias human judgment;
+- `importM19RatingWorksheets(...)` requires a pseudonymous evaluator ID, exactly one completed rating for every blinded stimulus, and then reuses the existing M19 rating validator;
+- `freezeM19HumanStudyEvidence(...)` produces a tamper-evident frozen record with canonical SHA-256 digests of the manifest, blinded bundle, sorted ratings, sorted failure records, and final report;
+- rating/failure input order does not change those evidence digests;
+- incomplete worksheets fail closed instead of becoming implicit or synthetic ratings.
+
+The freeze object records whether the measurement is complete, but it does not reinterpret a poor result as a failed protocol. Negative or mixed observed outcomes remain reportable research results.
+
 ## Current closure state
 
 M19 is **not verified** because human ratings have not been observed. The protocol, manifest, validators, aggregation, negative-result handling, and conformance tests can be verified independently without pretending the research measurement has happened.
