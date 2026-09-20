@@ -1,3 +1,4 @@
+import { readFileSync } from "node:fs";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import {
   DIRECT_MODELS_URL,
@@ -11,14 +12,29 @@ afterEach(() => {
   vi.unstubAllGlobals();
 });
 
+const playgroundApp = readFileSync("playground/app.js", "utf8");
+const playgroundHtml = readFileSync("playground/index.html", "utf8");
+
 describe("Playground transport boundary", () => {
-  it("keeps direct TypeSafe as the default fixed transport", () => {
+  it("keeps direct TypeSafe available as a fixed transport", () => {
     expect(
       resolveApiEndpoint({ transport: "direct", path: "/v1/models" }),
     ).toBe(DIRECT_MODELS_URL);
     expect(
       resolveApiEndpoint({ transport: "direct", path: "/v1/systemone" }),
     ).toBe(DIRECT_SYSTEM_ONE_URL);
+  });
+
+  it("ships the verified relay as the browser default", () => {
+    expect(playgroundApp).toContain(
+      'const DEFAULT_RELAY_URL = "https://jev-language-typesafe-relay.nolane-file.workers.dev";',
+    );
+    expect(playgroundApp).toContain('transport: "relay"');
+    expect(playgroundApp).toContain("relayBaseUrl: DEFAULT_RELAY_URL");
+    expect(playgroundHtml).toContain('<option value="relay" selected>Verified relay</option>');
+    expect(playgroundHtml).toContain(
+      'value="https://jev-language-typesafe-relay.nolane-file.workers.dev"',
+    );
   });
 
   it("accepts only workers.dev or localhost relay origins", () => {
