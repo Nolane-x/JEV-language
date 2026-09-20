@@ -187,3 +187,141 @@ export const assertNever = (value: never, context = "exhaustive switch"): never 
     String(value),
   );
 };
+
+
+export type ResultEnvelopeStatus =
+  | "ok"
+  | "error"
+  | "partial"
+  | "unknown";
+
+export interface ResultEnvelopeDiagnostic {
+  code: string;
+  message: string;
+  severity: "error" | "warning" | "info";
+}
+
+export interface ResultEnvelope<T = JsonValue> {
+  schemaVersion: "jl-result-envelope-1";
+  status: ResultEnvelopeStatus;
+  value?: T;
+  error?: {
+    code: string;
+    message: string;
+    details?: JsonValue;
+  };
+  evidenceRefs: string[];
+  diagnostics: ResultEnvelopeDiagnostic[];
+  traceId?: TraceId;
+  metadata?: Record<string, JsonValue>;
+}
+
+const validEnvelopeStringList = (values: readonly string[]): boolean =>
+  values.every((value) => value.trim() !== "") &&
+  new Set(values).size === values.length;
+
+export const validateResultEnvelope = <T>(
+  envelope: ResultEnvelope<T>,
+): Result<ResultEnvelope<T>> => {
+  if (
+    envelope.schemaVersion !== "jl-result-envelope-1" ||
+    !["ok", "error", "partial", "unknown"].includes(envelope.status) ||
+    !validEnvelopeStringList(envelope.evidenceRefs)
+  ) {
+    return err(
+      new StructuredError(
+        "CORE_RESULT_ENVELOPE_SCHEMA",
+        "Result envelope has an invalid schema version, status, or evidence list.",
+      ),
+    );
+  }
+  if (
+    envelope.diagnostics.some(
+      (diagnostic) =>
+        diagnostic.code.trim() === "" ||
+        diagnostic.message.trim() === "" ||
+        !["error", "warning", "info"].includes(diagnostic.severity),
+    )
+  ) {
+    return err(
+      new StructuredError(
+        "CORE_RESULT_ENVELOPE_DIAGNOSTIC",
+        "Result-envelope diagnostics require code, message, and valid severity.",
+      ),
+    );
+  }
+  if (envelope.status === "ok" && envelope.value === undefined) {
+    return err(
+      new StructuredError(
+        "CORE_RESULT_ENVELOPE_VALUE",
+        "Successful result envelope requires a value.",
+      ),
+    );
+  }
+  if (
+    envelope.status === "error" &&
+    (envelope.error === undefined ||
+      envelope.error.code.trim() === "" ||
+      envelope.error.message.trim() === "")
+  ) {
+    return err(
+      new StructuredError(
+        "CORE_RESULT_ENVELOPE_ERROR",
+        "Error result envelope requires structured error data.",
+      ),
+    );
+  }
+  if (envelope.status !== "error" && envelope.error !== undefined) {
+    return err(
+      new StructuredError(
+        "CORE_RESULT_ENVELOPE_ERROR_CONFLICT",
+        "Only error envelopes may contain structured error data.",
+      ),
+    );
+  }
+  return ok(structuredClone(envelope));
+};
+
+export const resultEnvelopeOk = <T>(input: {
+  value: T;
+  evidenceRefs?: string[];
+  diagnostics?: ResultEnvelopeDiagnostic[];
+  traceId?: TraceId;
+  metadata?: Record<string, JsonValue>;
+}): ResultEnvelope<T> => ({
+  schemaVersion: "jl-result-envelope-1",
+  status: "ok",
+  value: structuredClone(input.value),
+  evidenceRefs: [...(input.evidenceRefs ?? [])],
+  diagnostics: structuredClone(input.diagnostics ?? []),
+  ...(input.traceId === undefined ? {} : { traceId: input.traceId }),
+  ...(input.metadata === undefined
+    ? {}
+    : { metadata: structuredClone(input.metadata) }),
+});
+
+export const resultEnvelopeError = (input: {
+  code: string;
+  message: string;
+  details?: JsonValue;
+  evidenceRefs?: string[];
+  diagnostics?: ResultEnvelopeDiagnostic[];
+  traceId?: TraceId;
+  metadata?: Record<string, JsonValue>;
+}): ResultEnvelope<never> => ({
+  schemaVersion: "jl-result-envelope-1",
+  status: "error",
+  error: {
+    code: input.code,
+    message: input.message,
+    ...(input.details === undefined
+      ? {}
+      : { details: structuredClone(input.details) }),
+  },
+  evidenceRefs: [...(input.evidenceRefs ?? [])],
+  diagnostics: structuredClone(input.diagnostics ?? []),
+  ...(input.traceId === undefined ? {} : { traceId: input.traceId }),
+  ...(input.metadata === undefined
+    ? {}
+    : { metadata: structuredClone(input.metadata) }),
+});

@@ -12,3 +12,5 @@ export * from "./provenance-integrity.ts";
 export * from "./orchestration.ts";
 
 export * from "./translation.ts";
+
+export * from "./evidence-graph.ts";

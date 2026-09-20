@@ -11,3 +11,5 @@ export * from "./temporal-modal.ts";
 export * from "./context.ts";
 
 export * from "./comparison-space.ts";
+
+export * from "./semantic-equality.ts";
