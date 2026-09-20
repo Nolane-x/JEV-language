@@ -10,7 +10,9 @@ const relayReadme = readFileSync("relay/README.md", "utf8");
 describe("Cloudflare relay deployment workflow", () => {
   it("uses explicit/manual deployment triggers and GitHub repository secrets", () => {
     expect(workflow).toContain("workflow_dispatch:");
-    expect(workflow).not.toMatch(/\bpush:\s*$/mu);
+    expect(workflow).toContain("push:");
+    expect(workflow).toContain("- .github/relay-deploy.trigger");
+    expect(workflow).not.toContain("- relay/**");
     expect(workflow).toContain(
       "${{ secrets.CLOUDFLARE_API_TOKEN }}",
     );
