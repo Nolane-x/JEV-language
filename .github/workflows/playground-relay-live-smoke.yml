@@ -14,7 +14,7 @@ on:
       - .github/playground-relay-smoke.trigger
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   live-relay-smoke:
@@ -36,4 +36,17 @@ jobs:
           JEV_ALLOW_LIVE: "1"
           JEV_LIVE_MAX_REQUESTS: "1"
           JEV_RELAY_URL: "https://jev-language-typesafe-relay.nolane-file.workers.dev"
-        run: npm run eval:relay-live
+        run: |
+          npx tsx scripts/playground-relay-live-smoke.ts > /tmp/playground-relay-live-smoke.json
+          cat /tmp/playground-relay-live-smoke.json
+
+      - name: Freeze sanitized live evidence
+        run: |
+          set -euo pipefail
+          mkdir -p docs/evidence
+          cp /tmp/playground-relay-live-smoke.json docs/evidence/PLAYGROUND-RELAY-LIVE-SMOKE.json
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add docs/evidence/PLAYGROUND-RELAY-LIVE-SMOKE.json
+          git commit -m "chore: record authenticated relay smoke evidence [skip ci]"
+          git push origin HEAD:main
