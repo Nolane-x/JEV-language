@@ -12,6 +12,7 @@ import type {
   ConversationRanker,
   ConversationSelectionPipelineResult,
   ConversationStyleMemory,
+  ConversationSurfaceDraft,
 } from "../../realizer-core/src/index.ts";
 import {
   runConversationSelectionPipeline,
@@ -80,7 +81,7 @@ export const runVerifiedConversationTurn = async (
   );
   if (!routed.ok) return err(routed.error);
 
-  const certifiedDrafts = [];
+  const certifiedDrafts: ConversationSurfaceDraft[] = [];
   const certificationRejections: ConversationCertificationRejection[] = [];
 
   for (const draft of routed.value.drafts) {
