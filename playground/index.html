@@ -8,7 +8,7 @@
     <meta name="referrer" content="no-referrer" />
     <meta
       http-equiv="Content-Security-Policy"
-      content="default-src 'self'; connect-src https://api.typesafe.ai https://*.workers.dev http://localhost:* http://127.0.0.1:*; img-src 'self' data:; style-src 'self'; script-src 'self'; object-src 'none'; base-uri 'none'; form-action 'self'"
+      content="default-src 'self'; connect-src https://jev-language-typesafe-relay.nolane-file.workers.dev http://localhost:* http://127.0.0.1:*; img-src 'self' data:; style-src 'self'; script-src 'self'; object-src 'none'; base-uri 'none'; form-action 'self'"
     />
     <meta
       name="description"
@@ -84,7 +84,7 @@
             </button>
           </div>
         </form>
-        <p class="privacy-note">Your API key is kept in this tab’s memory only. Browser-side BYOK is visible to this page and developer tools.</p>
+        <p class="privacy-note">Your TypeSafe key stays in this tab only and is forwarded through the verified JEV relay without persistent storage.</p>
       </div>
     </div>
 
@@ -101,23 +101,15 @@
         </div>
 
         <p class="key-panel__intro" id="keyPanelIntro">
-          The key is never written to localStorage, cookies, the URL, or this repository. It disappears when this tab closes or you disconnect. Requests go directly from this page to TypeSafe.
+          Your TypeSafe key stays only in this tab's memory. The browser sends it to the verified JEV relay, which forwards it to TypeSafe only while each request is in flight. It is never written to browser storage or this repository.
         </p>
 
-        <label class="field">
-          <span>Transport</span>
-          <select id="transportSelect">
-            <option value="direct">Direct TypeSafe</option>
-            <option value="relay" selected>Verified relay</option>
-          </select>
-        </label>
-
-        <label class="field" id="relayUrlField" hidden>
-          <span>Relay origin</span>
-          <span class="field__control">
-            <input id="relayUrlInput" type="url" value="https://jev-language-typesafe-relay.nolane-file.workers.dev" placeholder="https://your-relay.workers.dev" autocomplete="off" autocapitalize="off" spellcheck="false" />
-          </span>
-        </label>
+        <div class="field" aria-label="Connection route">
+          <span>Connection</span>
+          <div class="field__control">
+            <input type="text" value="Secure JEV relay → TypeSafe" readonly aria-readonly="true" tabindex="-1" />
+          </div>
+        </div>
 
         <label class="field">
           <span>TypeSafe API key</span>
@@ -140,7 +132,7 @@
 
         <label class="consent-row">
           <input id="browserConsent" type="checkbox" />
-          <span id="browserConsentText">I understand that using an API key in a browser exposes it to the page runtime and developer tools.</span>
+          <span id="browserConsentText">I understand that this page and the verified JEV relay can see the API key only while requests are in flight, and that the key is not stored.</span>
         </label>
 
         <div class="key-panel__status" id="keyPanelStatus" role="status"></div>
