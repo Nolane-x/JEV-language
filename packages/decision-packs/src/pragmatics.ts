@@ -173,7 +173,86 @@ export const pragmaticDetailLevelPack: DecisionPackManifest = {
   traceOutput: true,
 };
 
+export const conversationalSurfaceRankerPack: DecisionPackManifest = {
+  id: "nlg.conversation.surface-ranker.v1",
+  version: "1.0.0",
+  maturity: "candidate",
+  stateProjector: "pragmatics.conversation-candidates.compact-v1",
+  questions: {
+    candidate: {
+      type: "choice",
+      instruction:
+        "Choose the best reply only from the supplied bounded candidate set. Preserve the supplied meaning exactly, fit the dialogue context and social register, sound idiomatic in the target language, avoid translationese, unnecessary repetition, canned phrasing, and awkward code-switching. If candidates are semantically equivalent, prefer the one a native speaker would most naturally send in this exact conversation.",
+      options: {
+        dynamic_candidate: {
+          description:
+            "Runtime placeholder; the response planner injects verified candidate ids and their surfaces for this request.",
+        },
+      },
+    },
+  },
+  fallback: { onLowConfidence: "preserve-ambiguity" },
+  fixtures: [
+    "conversation-ranker:vi-casual",
+    "conversation-ranker:vi-correction",
+    "conversation-ranker:vi-en-code-switch",
+    "conversation-ranker:en-casual",
+    "conversation-ranker:en-uncertainty",
+    "conversation-ranker:en-correction",
+    "conversation-ranker:zh-naturalness",
+    "conversation-ranker:ja-register",
+  ],
+  semanticPurpose:
+    "Rank already-generated and semantically verified reply candidates for conversational naturalness without asking Jev to generate strings.",
+  inputSchema: {
+    type: "object",
+    required: [
+      "targetLanguage",
+      "dialogueContext",
+      "responseSemantics",
+      "candidates",
+    ],
+  },
+  candidateSemantics: [
+    "one of the bounded candidate ids supplied by the verified surface-candidate generator",
+  ],
+  candidateSources: [
+    {
+      id: "candidate-source:conversation:verified-surfaces",
+      kind: "configured",
+      sourceRef: "realizer-core.conversation-candidate-set.v1",
+      questionIds: ["candidate"],
+    },
+  ],
+  candidateRecallReport: {
+    datasetRef: "fixtures:conversation-ranker:v1",
+    recall: 1,
+    cases: 8,
+  },
+  hardConstraints: [
+    "selected candidate must exist in the supplied bounded candidate map",
+    "selected candidate must already pass semantic-preservation verification",
+    "selected candidate must preserve polarity, modality, reference, attribution, quantity, conditions, and requested action",
+    "unknown or opaque terms must remain byte-preserved when the response semantics requires preservation",
+    "low-confidence ranking must preserve ambiguity rather than fabricate a winner",
+  ],
+  counterexamples: [
+    "prefer a fluent candidate that silently drops a negation over a slightly less fluent faithful candidate",
+    "replace an unknown project name with a familiar word because it sounds more natural",
+    "choose formal translationese for an informal Vietnamese developer chat",
+    "choose casual address forms when the dialogue context requires respectful Vietnamese address",
+  ],
+  knownFailureModes: [
+    "candidate generator did not include a genuinely natural semantic-preserving surface",
+    "dialogue-state projection omitted social relation or prior wording needed to judge register and repetition",
+    "two candidates are effectively tied but the decision margin is treated as decisive",
+    "language variety or code-switch norm is outside the calibration set",
+  ],
+  traceOutput: true,
+};
+
 export const pragmaticDecisionPacks = [
   pragmaticDiscourseStrategyPack,
   pragmaticDetailLevelPack,
+  conversationalSurfaceRankerPack,
 ] as const;

@@ -328,7 +328,13 @@ describe("M6 discourse and naturalness foundation", () => {
   });
 
   it("validates pragmatic decision packs against candidate quality gates", () => {
-    expect(pragmaticDecisionPacks).toHaveLength(2);
+    expect(pragmaticDecisionPacks.map((pack) => pack.id)).toEqual(
+      expect.arrayContaining([
+        "nlg.discourse.strategy.v1",
+        "nlg.detail.level.v1",
+        "nlg.conversation.surface-ranker.v1",
+      ]),
+    );
     for (const pack of pragmaticDecisionPacks) {
       const result = validateDecisionPack(pack);
       expect(result.ok).toBe(true);
