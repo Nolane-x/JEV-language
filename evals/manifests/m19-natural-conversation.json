@@ -1,0 +1,39 @@
+{
+  "schemaVersion": "jl-m19-natural-conversation-1",
+  "id": "m19-natural-conversation-v0.4",
+  "version": "1.0.0",
+  "blinded": true,
+  "armCodes": ["A", "B"],
+  "minRatingsPerStimulus": 2,
+  "preregistrationRef": "docs/gates/M19-NATURAL-CONVERSATION.md",
+  "items": [
+    {
+      "id": "m19-unseen-casual",
+      "conversationRef": "eval:m19:unseen-casual",
+      "phenomena": ["unseen-topic", "unseen-entity-name", "casual-language", "blinded-template-detection"],
+      "expectedTurns": 4,
+      "languageTags": ["en"]
+    },
+    {
+      "id": "m19-technical-followup",
+      "conversationRef": "eval:m19:technical-followup",
+      "phenomena": ["technical-content", "multi-turn-reference", "compositional-novel-sentence", "varied-discourse-structure"],
+      "expectedTurns": 6,
+      "languageTags": ["en"]
+    },
+    {
+      "id": "m19-correction-topic-return",
+      "conversationRef": "eval:m19:correction-topic-return",
+      "phenomena": ["correction", "multi-turn-reference", "varied-discourse-structure"],
+      "expectedTurns": 8,
+      "languageTags": ["en"]
+    },
+    {
+      "id": "m19-open-world-bilingual",
+      "conversationRef": "eval:m19:open-world-bilingual",
+      "phenomena": ["open-domain-unknown-term", "unseen-entity-name", "compositional-novel-sentence", "blinded-template-detection"],
+      "expectedTurns": 6,
+      "languageTags": ["vi", "en"]
+    }
+  ]
+}
