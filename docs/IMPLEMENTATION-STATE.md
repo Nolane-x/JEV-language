@@ -75,6 +75,8 @@ T441-T450 synthesis grammar foundation is implemented on a stacked branch with c
 
 T451-T460 advanced PIR passed deterministic CI with 69/69 test files and 562/562 tests and is merged. T461-T470 CEGIS is implemented on the active branch with search-strategy abstraction, hierarchical expansion, evidence-bearing counterexamples, shrinking, held-out partitioning, bounded grammar widening and an acceptance case where a failed first candidate is corrected on the next iteration; verification is pending CI.
 
+T471-T480 solver/proof is implemented on a stacked branch with solver-neutral ABI, SAT/UNSAT/UNKNOWN/TIMEOUT taxonomy, proof/theory registries, bounded evidence, symbolic-execution and termination hooks, a scripted mock, and a real bounded exhaustive Boolean solver; verification is pending stacked CI.
+
 ## Implemented foundation
 
 - Strict TypeScript / Node 20+ baseline.
