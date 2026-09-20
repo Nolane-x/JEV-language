@@ -1,14 +1,20 @@
-name: Deploy TypeSafe Relay
+name: Deploy Jev Gateway
 
 on:
   workflow_dispatch:
+  push:
+    branches:
+      - main
+    paths:
+      - "relay/**"
+      - ".github/workflows/deploy-relay.yml"
 
 permissions:
   contents: read
 
 jobs:
   deploy:
-    name: Deploy locked-down relay
+    name: Deploy public Jev gateway
     runs-on: ubuntu-latest
     timeout-minutes: 12
     steps:
@@ -163,19 +169,46 @@ jobs:
           fi
 
           grep -q '"ok":true' /tmp/relay-health.json
+          grep -q '"public_inference":true' /tmp/relay-health.json
           grep -q '"stores_credentials":false' /tmp/relay-health.json
 
           curl --fail --silent --show-error             --request OPTIONS             --header "Origin: https://nolane-x.github.io"             --header "Access-Control-Request-Method: GET"             --header "Access-Control-Request-Headers: Authorization,Accept"             --dump-header /tmp/relay-cors.headers             --output /dev/null             "$RELAY_URL/v1/models"
 
-          tr -d '\r' < /tmp/relay-cors.headers |             grep -i '^access-control-allow-origin: https://nolane-x.github.io$'
+          tr -d '\r' < /tmp/relay-cors.headers |             grep -i '^access-control-allow-origin: https://nolane-x.github.io
+
+
+          curl --fail --silent --show-error \
+            --request POST \
+            --header "Origin: https://nolane-x.github.io" \
+            --header "Content-Type: application/json" \
+            --dump-header /tmp/public-jev.headers \
+            --output /tmp/public-jev.json \
+            --data '{"model":"jev-latest","state":"This is a deployment health-check request.","questions":{"probe":{"type":"noul","instructions":"Is this state describing a deployment health check?"}}}' \
+            "$RELAY_URL/v1/systemone"
+
+          tr -d '\r' < /tmp/public-jev.headers | \
+            grep -i '^x-jev-provider: cloudflare-workers-ai
+
+
+          node <<'NODE'
+          const fs = require("node:fs");
+          const body = JSON.parse(fs.readFileSync("/tmp/public-jev.json", "utf8"));
+          if (!body?.answers?.probe || typeof body.answers.probe.noul !== "number") {
+            console.error("Public Jev smoke did not return a valid Noul answer");
+            process.exit(1);
+          }
+          console.log("Public Jev smoke verified:", body.model || "model-unreported");
+          NODE
 
           {
-            echo "## TypeSafe relay deployed"
+            echo "## Jev gateway deployed"
             echo
-            echo "Relay URL: $RELAY_URL"
+            echo "Gateway URL: $RELAY_URL"
             echo
             echo "- workers.dev bootstrap: verified"
-            echo "- Health endpoint: verified"
+            echo "- Health endpoint + Workers AI binding: verified"
             echo "- GitHub Pages CORS preflight: verified"
-            echo "- TypeSafe API key: not used or stored by this workflow"
+            echo "- Anonymous public Jev inference: verified"
+            echo "- Browser TypeSafe API key: not required for public mode"
+            echo "- One bounded Jev deployment probe was executed"
           } >> "$GITHUB_STEP_SUMMARY"
