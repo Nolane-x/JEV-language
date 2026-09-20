@@ -4,3 +4,5 @@ export * from "./graph.ts";
 export * from "./cfg.ts";
 export * from "./fixtures.ts";
 export * from "./serialization.ts";
+
+export * from "./advanced.ts";
