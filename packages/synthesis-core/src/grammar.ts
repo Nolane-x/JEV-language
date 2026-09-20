@@ -377,7 +377,8 @@ export const applyGrammarProfile = (
           production.baseCost <= profile.maxBaseCost &&
           (profile.allowPlugins || production.family !== "plugin"),
       )
-      .map((production) => structuredClone(production)),
+      .map((production) => structuredClone(production))
+      .sort((a, b) => a.id.localeCompare(b.id)),
   });
 };
 
