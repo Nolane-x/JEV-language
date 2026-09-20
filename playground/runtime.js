@@ -71,6 +71,128 @@ export const scoreQuestion = (instructions, criteria) => ({
   criteria,
 });
 
+const isRecord = (value) =>
+  value !== null && typeof value === "object" && !Array.isArray(value);
+
+const isProbability = (value) =>
+  Number.isFinite(value) && value >= 0 && value <= 1;
+
+export const validateModelsResponse = (payload) => {
+  if (!isRecord(payload) || !Array.isArray(payload.models)) {
+    throw new TypeError("Unexpected response shape from GET /v1/models.");
+  }
+
+  return payload.models.map((model) => {
+    if (
+      !isRecord(model) ||
+      typeof model.name !== "string" ||
+      model.name.trim() === ""
+    ) {
+      throw new TypeError("TypeSafe model list contains an invalid model card.");
+    }
+    return model;
+  });
+};
+
+const validateAnswer = (name, question, answer) => {
+  if (!isRecord(answer) || answer.type !== question.type) {
+    throw new TypeError(
+      `Answer "${name}" does not match its declared question type.`,
+    );
+  }
+
+  if (question.type === "noul") {
+    if (!isProbability(answer.noul)) {
+      throw new TypeError(
+        `Noul answer "${name}" has an invalid probability.`,
+      );
+    }
+    return;
+  }
+
+  if (question.type === "choice") {
+    const labels = Object.keys(question.criteria ?? {});
+    if (
+      labels.length === 0 ||
+      typeof answer.choice !== "string" ||
+      !labels.includes(answer.choice) ||
+      !isProbability(answer.confidence) ||
+      !isRecord(answer.probabilities)
+    ) {
+      throw new TypeError(
+        `Choice answer "${name}" has an invalid winner or confidence payload.`,
+      );
+    }
+    for (const label of labels) {
+      if (!isProbability(answer.probabilities[label])) {
+        throw new TypeError(
+          `Choice answer "${name}" has an invalid probability for "${label}".`,
+        );
+      }
+    }
+    return;
+  }
+
+  if (question.type === "score") {
+    const levels = Array.isArray(question.criteria)
+      ? question.criteria.length
+      : 0;
+    if (
+      levels < 2 ||
+      !Number.isFinite(answer.score) ||
+      answer.score < 0 ||
+      answer.score > levels - 1 ||
+      !isProbability(answer.confidence) ||
+      !isRecord(answer.probabilities)
+    ) {
+      throw new TypeError(
+        `Score answer "${name}" has an invalid score or confidence payload.`,
+      );
+    }
+    for (let index = 0; index < levels; index += 1) {
+      if (!isProbability(answer.probabilities[String(index)])) {
+        throw new TypeError(
+          `Score answer "${name}" has an invalid probability for level ${index}.`,
+        );
+      }
+    }
+    return;
+  }
+
+  throw new TypeError(
+    `Question "${name}" has an unsupported response type.`,
+  );
+};
+
+export const validateSystemOneResponse = (payload, questions) => {
+  if (
+    !isRecord(payload) ||
+    typeof payload.model !== "string" ||
+    payload.model.trim() === "" ||
+    !isRecord(payload.answers) ||
+    !isRecord(payload.usage) ||
+    !Number.isFinite(payload.usage.input_tokens) ||
+    !Number.isFinite(payload.usage.output_tokens) ||
+    payload.usage.input_tokens < 0 ||
+    payload.usage.output_tokens < 0
+  ) {
+    throw new TypeError(
+      "Unexpected response shape from POST /v1/systemone.",
+    );
+  }
+
+  for (const [name, question] of Object.entries(questions)) {
+    if (!isRecord(question)) {
+      throw new TypeError(
+        `Question "${name}" is not a valid question object.`,
+      );
+    }
+    validateAnswer(name, question, payload.answers[name]);
+  }
+
+  return payload;
+};
+
 export const answerAt = (body, key) => body?.answers?.[key] ?? null;
 
 export const renderYesNo = (answer, support) => {

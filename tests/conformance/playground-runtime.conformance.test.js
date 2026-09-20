@@ -6,12 +6,16 @@ import {
   renderChoice,
   renderMeta,
   renderYesNo,
+  validateModelsResponse,
+  validateSystemOneResponse,
   yesNoLike,
 } from "../../playground/runtime.js";
 
 const app = readFileSync("playground/app.js", "utf8");
 const html = readFileSync("playground/index.html", "utf8");
 const css = readFileSync("playground/styles.css", "utf8");
+const fieldCss = readFileSync("playground/field.css", "utf8");
+const fieldJs = readFileSync("playground/field.js", "utf8");
 const pages = readFileSync(".github/workflows/pages.yml", "utf8");
 
 describe("JEV Language Playground conformance", () => {
@@ -52,6 +56,62 @@ describe("JEV Language Playground conformance", () => {
     );
   });
 
+  it("rejects malformed TypeSafe wire responses before UI rendering", () => {
+    expect(
+      validateModelsResponse({
+        models: [
+          {
+            name: "jev-latest",
+            description: "latest",
+            release_date: "2026-09-10",
+          },
+        ],
+      }),
+    ).toHaveLength(1);
+    expect(() => validateModelsResponse({ models: {} })).toThrow(
+      "Unexpected response shape",
+    );
+
+    expect(
+      validateSystemOneResponse(
+        {
+          model: "jev-1.13.0",
+          answers: {
+            decision: {
+              type: "choice",
+              choice: "option_b",
+              confidence: 0.8,
+              probabilities: { option_a: 0.2, option_b: 0.8 },
+            },
+          },
+          usage: { input_tokens: 12, output_tokens: 0 },
+        },
+        {
+          decision: {
+            type: "choice",
+            instructions: "Choose.",
+            criteria: { option_a: null, option_b: null },
+          },
+        },
+      ).model,
+    ).toBe("jev-1.13.0");
+
+    expect(() =>
+      validateSystemOneResponse(
+        {
+          model: "jev-1.13.0",
+          answers: {
+            answer: { type: "noul", noul: 1.4 },
+          },
+          usage: { input_tokens: 2, output_tokens: 0 },
+        },
+        {
+          answer: { type: "noul", instructions: "Yes?" },
+        },
+      ),
+    ).toThrow("invalid probability");
+  });
+
   it("keeps unsupported free-form generation explicit", () => {
     expect(
       renderMeta({
@@ -76,6 +136,7 @@ describe("JEV Language Playground conformance", () => {
   it("ships a self-contained CSP-constrained static shell", () => {
     expect(html).toContain("Content-Security-Policy");
     expect(html).toContain("connect-src https://api.typesafe.ai");
+    expect(html).toContain('<script type="module" src="./field.js"></script>');
     expect(html).toContain('<script type="module" src="./app.js"></script>');
     expect(html).not.toMatch(/<script[^>]+src=["']https?:\/\//iu);
     expect(html).not.toMatch(/<link[^>]+href=["']https?:\/\//iu);
@@ -85,17 +146,29 @@ describe("JEV Language Playground conformance", () => {
   it("preserves pointer effects with accessibility fallbacks", () => {
     expect(css).toContain("--mx: 50vw");
     expect(css).toContain("--my: 48vh");
-    expect(css).toContain("radial-gradient(620px circle at var(--mx) var(--my)");
-    expect(css).toContain("@media (prefers-reduced-motion: reduce)");
+    expect(fieldCss).toContain("--trail-x: 50vw");
+    expect(fieldCss).toContain("radial-gradient(");
+    expect(fieldCss).toContain("@media (hover: none), (pointer: coarse)");
+    expect(fieldCss).toContain("@media (prefers-reduced-motion: reduce)");
     expect(css).toContain("@media (prefers-contrast: more)");
     expect(css).toContain(":focus-visible");
   });
 
+  it("uses an inertial local illumination field without touch-only dependency", () => {
+    expect(fieldJs).toContain('matchMedia("(hover: hover) and (pointer: fine)")');
+    expect(fieldJs).toContain('matchMedia("(prefers-reduced-motion: reduce)")');
+    expect(fieldJs).toContain('root.style.setProperty("--trail-x"');
+    expect(fieldJs).toContain('surface.dataset.fieldNear = "true"');
+    expect(fieldJs).toContain('event.pointerType === "touch"');
+  });
+
   it("deploys exactly the static playground directory through GitHub Pages", () => {
-    expect(pages).toContain("actions/upload-pages-artifact@v3");
-    expect(pages).toContain("actions/deploy-pages@v4");
+    expect(pages).toContain("actions/upload-pages-artifact@v4");
+    expect(pages).toContain("actions/deploy-pages@v5");
     expect(pages).toContain("path: ./playground");
     expect(pages).toContain("pages: write");
     expect(pages).toContain("id-token: write");
+    expect(pages).toContain("cancel-in-progress: false");
+    expect(pages).toContain("Pages setup diagnostic");
   });
 });

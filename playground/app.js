@@ -8,6 +8,8 @@ import {
   renderMeta,
   renderYesNo,
   scoreQuestion,
+  validateModelsResponse,
+  validateSystemOneResponse,
   yesNoLike,
 } from "./runtime.js";
 
@@ -169,8 +171,10 @@ async function callJev(questions, latest) {
       throw error;
     }
 
+    const validatedBody = validateSystemOneResponse(body, questions);
+
     return {
-      body,
+      body: validatedBody,
       latencyMs: Math.round(performance.now() - started),
       requestId: response.headers.get("x-typesafe-request-id"),
     };
@@ -323,8 +327,10 @@ async function connectKey() {
         { status: response.status },
       );
     }
-    const models = Array.isArray(payload?.models) ? payload.models : [];
-    const names = models.map((model) => model?.name).filter((name) => typeof name === "string" && name.trim());
+    const models = validateModelsResponse(payload);
+    const names = models
+      .map((model) => model.name)
+      .filter((name) => typeof name === "string" && name.trim());
     if (names.length > 0) {
       const previous = els.modelSelect.value;
       els.modelSelect.replaceChildren(...names.map((name) => {
@@ -401,29 +407,6 @@ els.promptChips.forEach((button) => {
     els.composerInput.focus();
   });
 });
-
-let pointerFrame = 0;
-let pointerX = innerWidth / 2;
-let pointerY = innerHeight / 2;
-function paintPointer() {
-  pointerFrame = 0;
-  document.documentElement.style.setProperty("--mx", `${pointerX}px`);
-  document.documentElement.style.setProperty("--my", `${pointerY}px`);
-}
-window.addEventListener("pointermove", (event) => {
-  if (event.pointerType === "touch") return;
-  pointerX = event.clientX;
-  pointerY = event.clientY;
-  if (!pointerFrame) pointerFrame = requestAnimationFrame(paintPointer);
-}, { passive: true });
-
-document.addEventListener("pointermove", (event) => {
-  const target = event.target.closest?.(".reactive");
-  if (!target) return;
-  const rect = target.getBoundingClientRect();
-  target.style.setProperty("--rx", `${event.clientX - rect.left}px`);
-  target.style.setProperty("--ry", `${event.clientY - rect.top}px`);
-}, { passive: true });
 
 els.keyDialog.addEventListener("click", (event) => {
   if (event.target === els.keyDialog) els.keyDialog.close();

@@ -1,0 +1,215 @@
+:root {
+  --trail-x: 50vw;
+  --trail-y: 48vh;
+  --pointer-speed: 0;
+  --pointer-active: 0;
+}
+
+.ambient__spotlight {
+  background:
+    radial-gradient(
+      210px circle at var(--mx) var(--my),
+      rgba(255, 223, 168, 0.17),
+      rgba(232, 181, 109, 0.095) 34%,
+      transparent 72%
+    ),
+    radial-gradient(
+      560px circle at var(--mx) var(--my),
+      rgba(205, 149, 79, 0.065),
+      transparent 72%
+    ),
+    radial-gradient(
+      980px circle at var(--trail-x) var(--trail-y),
+      rgba(125, 87, 43, 0.04),
+      transparent 72%
+    );
+  opacity: 0.44;
+}
+
+.ambient__grid {
+  mask-image:
+    radial-gradient(
+      470px circle at var(--mx) var(--my),
+      #000 0%,
+      rgba(0, 0, 0, 0.82) 34%,
+      rgba(0, 0, 0, 0.34) 59%,
+      transparent 82%
+    ),
+    radial-gradient(
+      820px circle at var(--trail-x) var(--trail-y),
+      rgba(0, 0, 0, 0.28),
+      transparent 75%
+    );
+  opacity: 0.16;
+}
+
+html[data-pointer-active="true"] .ambient__spotlight {
+  opacity: 0.94;
+}
+
+html[data-pointer-active="true"] .ambient__grid {
+  opacity: 0.42;
+}
+
+.ambient::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(
+      1.5px circle at var(--mx) var(--my),
+      rgba(255, 231, 188, 0.95),
+      rgba(255, 211, 143, 0.42) 42%,
+      transparent 100%
+    );
+  filter: drop-shadow(0 0 8px rgba(232, 181, 109, 0.32));
+  opacity: 0;
+}
+
+html[data-pointer-active="true"] .ambient::before {
+  opacity: 0.72;
+}
+
+.shell::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: -1;
+  background:
+    radial-gradient(
+      760px circle at var(--trail-x) var(--trail-y),
+      rgba(232, 181, 109, 0.018),
+      transparent 74%
+    );
+}
+
+.reactive {
+  isolation: isolate;
+}
+
+.reactive::before {
+  background:
+    radial-gradient(
+      230px circle at var(--rx) var(--ry),
+      rgba(255, 218, 158, 0.14),
+      rgba(232, 181, 109, 0.055) 39%,
+      transparent 72%
+    );
+  transition: opacity 160ms ease;
+}
+
+.reactive:hover::before,
+.reactive:focus-within::before {
+  opacity: 1;
+}
+
+.brand:hover,
+.key-button:hover,
+.prompt-chip:hover,
+.primary-button:hover {
+  box-shadow:
+    0 0 0 1px rgba(242, 207, 151, 0.035),
+    0 10px 42px rgba(0, 0, 0, 0.19),
+    0 0 28px rgba(232, 181, 109, 0.045);
+}
+
+.message {
+  --rx: 50%;
+  --ry: 50%;
+}
+
+.message::after {
+  content: "";
+  position: absolute;
+  inset: -8px -12px;
+  pointer-events: none;
+  border-radius: 18px;
+  background:
+    radial-gradient(
+      260px circle at var(--rx) var(--ry),
+      rgba(232, 181, 109, 0.048),
+      transparent 68%
+    );
+  opacity: 0;
+  transition: opacity 180ms ease;
+}
+
+.message[data-field-near="true"]::after {
+  opacity: 1;
+}
+
+.message[data-role="user"][data-field-near="true"] {
+  border-color: rgba(238, 229, 209, 0.13);
+}
+
+.composer {
+  transition:
+    border-color 180ms ease,
+    box-shadow 220ms ease,
+    transform 220ms cubic-bezier(.2,.8,.2,1);
+}
+
+.composer[data-field-near="true"] {
+  border-color: rgba(232, 181, 109, 0.18);
+  box-shadow:
+    0 18px 64px rgba(0, 0, 0, 0.38),
+    0 0 46px rgba(232, 181, 109, 0.035),
+    inset 0 1px 0 rgba(255, 255, 255, 0.03);
+}
+
+.key-panel[data-field-near="true"] {
+  border-color: rgba(239, 228, 205, 0.18);
+  box-shadow:
+    0 28px 96px rgba(0, 0, 0, 0.46),
+    0 0 52px rgba(232, 181, 109, 0.035);
+}
+
+@media (hover: none), (pointer: coarse) {
+  :root {
+    --pointer-active: 0;
+  }
+
+  .ambient__spotlight {
+    background:
+      radial-gradient(
+        920px circle at 50% 20%,
+        rgba(174, 124, 64, 0.055),
+        transparent 72%
+      );
+    opacity: 0.7;
+  }
+
+  .ambient__grid {
+    mask-image: linear-gradient(#000, #000);
+    opacity: 0.1;
+  }
+
+  .ambient::before,
+  .shell::after,
+  .message::after {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --pointer-active: 0;
+  }
+
+  .ambient::before,
+  .shell::after,
+  .message::after {
+    display: none;
+  }
+
+  .ambient__spotlight {
+    background:
+      radial-gradient(
+        920px circle at 50% 18%,
+        rgba(174, 124, 64, 0.05),
+        transparent 72%
+      );
+  }
+}

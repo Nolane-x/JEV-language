@@ -38,7 +38,7 @@ The design uses the supplied Nolane UI Intelligence principles:
 
 - obsidian/editorial instrument aesthetic rather than generic neon AI styling;
 - one warm-metal accent budget;
-- pointer-local spotlight and grid reveal;
+- pointer-local spotlight and grid reveal;\n- inertial inspection-light behavior with a fast lead and subdued trailing diffusion, disabled for coarse pointers/reduced motion;
 - localized reactive surfaces around hover/focus;
 - subtle message-entry and thinking motion;
 - no decorative orb/sparkle/AI mascot vocabulary;

@@ -25,7 +25,7 @@ The interface follows the project-local NUI design packet:
 
 - editorial/instrument aesthetic rather than generic AI neon;
 - warm-metal chroma budget on an obsidian canvas;
-- pointer-local illumination revealing grid/material detail;
+- pointer-local illumination revealing grid/material detail;\n- an inertial inspection-light field: the lead light follows the pointer while a much softer material bloom trails behind, without moving controls or hiding information behind hover;
 - effect density concentrated around pointer, composer, focus, and new-message state;
 - reduced-motion and high-contrast branches;
 - responsive re-authoring for narrow screens.
