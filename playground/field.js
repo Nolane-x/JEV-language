@@ -26,6 +26,7 @@ function writeField() {
   root.style.setProperty("--trail-y", `${trail.y.toFixed(2)}px`);
   root.style.setProperty("--pointer-speed", speed.toFixed(3));
   root.style.setProperty("--pointer-active", active ? "1" : "0");
+  root.dataset.pointerActive = active ? "true" : "false";
 }
 
 function tick() {
@@ -111,6 +112,7 @@ function onPointerLeave() {
   active = false;
   speed = 0;
   root.style.setProperty("--pointer-active", "0");
+  root.dataset.pointerActive = "false";
   document
     .querySelectorAll('[data-field-near="true"]')
     .forEach((node) => {
@@ -129,6 +131,7 @@ const refreshCapability = () => {
   if (!finePointer.matches || reducedMotion.matches) {
     active = false;
     root.style.setProperty("--pointer-active", "0");
+    root.dataset.pointerActive = "false";
   }
   ensureTick();
 };
