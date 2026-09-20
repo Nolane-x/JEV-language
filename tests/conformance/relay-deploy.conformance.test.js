@@ -25,6 +25,8 @@ describe("Cloudflare relay deployment workflow", () => {
     expect(workflow).toContain("relay/deployment-status.json");
     expect(workflow).toContain("relay_url:");
     expect(workflow).toContain("source_sha:");
+    expect(workflow).toContain("failure_reason:");
+    expect(workflow).toContain("workers_subdomain:");
     const statusStep = workflow.split("- name: Record deployment status")[1] ?? "";
     expect(statusStep).not.toContain("secrets.CLOUDFLARE_API_TOKEN");
     expect(statusStep).not.toContain("secrets.CLOUDFLARE_ACCOUNT_ID");
@@ -32,10 +34,12 @@ describe("Cloudflare relay deployment workflow", () => {
     expect(statusStep).not.toContain("process.env.CLOUDFLARE_ACCOUNT_ID");
   });
 
-  it("deploys only the checked-in relay with the official Wrangler action", () => {
-    expect(workflow).toContain("cloudflare/wrangler-action@v4");
-    expect(workflow).toContain("workingDirectory: relay");
-    expect(workflow).toContain("command: deploy");
+  it("bootstraps workers.dev and deploys only the checked-in relay", () => {
+    expect(workflow).toContain("/workers/subdomain");
+    expect(workflow).toContain("Ensure workers.dev subdomain");
+    expect(workflow).toContain("cd relay");
+    expect(workflow).toContain("npx --yes wrangler@4 deploy");
+    expect(workflow).not.toContain("cloudflare/wrangler-action@v4");
   });
 
   it("verifies health and the GitHub Pages CORS origin after deployment", () => {
