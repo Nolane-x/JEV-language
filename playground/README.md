@@ -6,21 +6,21 @@ Static GitHub Pages chat surface for the experimental JEV Language project.
 
 https://nolane-x.github.io/JEV-language/
 
-The site is published from the `playground/` directory through GitHub Pages Actions. The base Pages deployment was previously verified. The relay backend is now independently deployment-verified at `https://jev-language-typesafe-relay.nolane-file.workers.dev` with health and GitHub Pages CORS preflight checks passing. This revision makes that verified relay the browser default; Direct TypeSafe remains available as a fallback if the provider later permits the Pages origin.
+The site is published from the `playground/` directory through GitHub Pages Actions. The gateway backend lives at `https://jev-language-typesafe-relay.nolane-file.workers.dev`. The browser default is now **Public Jev**, which needs no visitor API key and invokes Jev through Cloudflare Workers AI. Direct TypeSafe and TypeSafe BYOK-through-relay remain advanced transports.
 
 ## Runtime model
 
-- users bring their own TypeSafe API key;
-- the key is kept only in JavaScript memory for the current tab;
-- **Verified relay** is the default transport and targets `https://jev-language-typesafe-relay.nolane-file.workers.dev`;
-- the relay forwards only `GET /v1/models` and `POST /v1/systemone` to the fixed TypeSafe upstream;
-- **Direct TypeSafe** remains selectable, but the deployed GitHub Pages origin is currently blocked by TypeSafe's provider-side CORS policy;
-- the checked-in relay fixes the upstream to TypeSafe, permits only the two required paths, enforces an origin allowlist, disables caching, and does not persist credentials;
-- changing transport clears the in-memory key and requires reconnecting;
+- **Public Jev** is the default transport and requires no visitor API key;
+- public inference targets the fixed Cloudflare Workers AI model `typesafe/jev`;
+- the gateway exposes only `GET /v1/models` and `POST /v1/systemone`;
+- public requests are bounded by origin, request size, question count and a Worker rate limiter;
+- **TypeSafe BYOK via verified relay** remains available and forwards a supplied Authorization header transiently without persistence;
+- **Direct TypeSafe** remains available for advanced testing, although the deployed GitHub Pages origin is currently blocked by TypeSafe's provider-side CORS policy;
+- switching back to Public Jev clears any in-memory BYOK key;
 - no API key is persisted to localStorage, sessionStorage, cookies, or URL state;
 - successful provider payloads are runtime-validated before rendering.
 
-The self-hosted relay receives the Authorization header transiently while forwarding a request. Do not use a relay deployment you do not control. Deployment and security details are in `../relay/README.md`.
+Deployment and security details are in `../relay/README.md`.
 
 The current browser surface intentionally focuses on Jev-shaped interactions:
 
