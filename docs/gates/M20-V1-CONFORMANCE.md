@@ -1,6 +1,6 @@
 # M20 — v1.0 Stable-Core Conformance
 
-Status: **implemented candidate; deterministic verification pending**
+Status: **verified on deterministic CI #340; final documentation head recheck pending**
 
 The master specification requires every stable core package to provide:
 
@@ -90,3 +90,17 @@ The replay uses fixed provenance IDs because ID-generation helpers intentionally
 ## Research-gate separation
 
 M20 stable-core conformance does **not** fabricate or substitute for M19 blinded human ratings. M19 natural-conversation research remains pending until real evaluator data is frozen and imported. A successful M20 engineering gate therefore does not imply a positive M19 research result.
+
+
+## Verification evidence
+
+Deterministic CI #340 on PR #65 head `a577cb33d6d00841f958c6f7d772b98e859a814e` passed:
+
+- package DAG/import boundaries: 31 packages, valid;
+- strict TypeScript typecheck: passed;
+- test files: 77/77 passed;
+- tests: 624/624 passed;
+- M20 stable-core replay/conformance suite: included in the full test run;
+- live/generative Jev requests used by this wave: 0.
+
+A final documentation-head CI recheck is required before merge because this evidence section and ledger status are committed after the verified implementation head.
