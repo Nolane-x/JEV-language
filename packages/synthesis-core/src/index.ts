@@ -172,3 +172,5 @@ export * from "./jev-ranker.ts";
 export * from "./search.ts";
 
 export * from "./grammar.ts";
+
+export * from "./cegis.ts";
