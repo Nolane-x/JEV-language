@@ -59,10 +59,10 @@ partial_vertical_slices:
 known_failures: []
 blocked_items: []
 next_tasks:
-  - merge the verified §§963-980 v0.4 release-gate closure
-  - prepare and verify M19 natural-conversation blinded evaluation artifacts without fabricating human ratings
+  - verify and merge the rebased M19 blinded evaluation protocol
   - collect real blinded human ratings before any M19 closure claim
-  - continue M20 v1.0 conformance only after M19 evidence is explicit
+  - report the observed M19 result even if negative or mixed
+  - continue M20 v1.0 conformance preparation while M19 human data remains pending
 last_verified_main_commit: 7110ae9c41ee20ab0f391118983a6ef1c0c03358
 last_verified_pr_head: 83609bea39812a626df58b347f9d91918e3b405d
 ```
@@ -75,7 +75,7 @@ T441-T450 synthesis grammar foundation passed deterministic CI with 68/68 test f
 
 T451-T460 advanced PIR passed deterministic CI with 69/69 test files and 562/562 tests and is merged. T461-T470 CEGIS passed deterministic CI with 70/70 test files and 573/573 tests and is verified on main; its acceptance case preserves the failed first candidate's counterexample and verifies the corrected next iteration.
 
-T471-T480 solver/proof passed deterministic CI with 71/71 test files and 583/583 tests and is merged. T481-T490 source-preserving transformation passed deterministic CI with 72/72 test files and 593/593 tests and is merged. T491-T500 formal/action/evidence closure passed deterministic CI with 73/73 test files and 603/603 tests and is merged. Extended M11-M20 evidence gates passed deterministic CI with 74/74 test files and 608/608 tests; merged main commit `7110ae9c` passed the same full gate. The §§963-980 release-gate closure passed deterministic CI #331 with 75/75 test files and 611/611 tests, with package boundaries and strict TypeScript typecheck green. It includes executable evidence aggregation, machine-readable phenomenon coverage, an unsupported-case ledger, candidate-recall accounting, search/solver honesty, source-preservation/replay/extension checks, and anti-template/anti-hidden-generator/anti-special-case audits. Original M19 natural-conversation human evaluation and M20 v1.0 conformance remain open and are not conflated with the extended M19/M20 evidence gates.
+T471-T480 solver/proof passed deterministic CI with 71/71 test files and 583/583 tests and is merged. T481-T490 source-preserving transformation passed deterministic CI with 72/72 test files and 593/593 tests and is merged. T491-T500 formal/action/evidence closure passed deterministic CI with 73/73 test files and 603/603 tests and is merged. Extended M11-M20 evidence gates passed deterministic CI with 74/74 test files and 608/608 tests; merged main commit `7110ae9c` passed the same full gate. The §§963-980 release-gate closure passed deterministic CI #331 with 75/75 test files and 611/611 tests, with package boundaries and strict TypeScript typecheck green. M19 natural-conversation protocol is implemented on the rebased active branch. Its earlier stacked CI #332 passed 76/76 test files and 617/617 tests; the rebased head still requires its own final deterministic gate. The protocol keeps the real milestone pending-human-data until actual blinded evaluator ratings are imported. It includes executable evidence aggregation, machine-readable phenomenon coverage, an unsupported-case ledger, candidate-recall accounting, search/solver honesty, source-preservation/replay/extension checks, and anti-template/anti-hidden-generator/anti-special-case audits. Original M19 natural-conversation human evaluation and M20 v1.0 conformance remain open and are not conflated with the extended M19/M20 evidence gates.
 
 ## Implemented foundation
 
