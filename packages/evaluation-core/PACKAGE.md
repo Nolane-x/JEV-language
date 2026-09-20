@@ -19,7 +19,7 @@ Implemented candidate scope:
 - T286: repair benchmark metrics plus a controlled executable compiler/test repair evaluation slice;
 - T287: zero-generative-model audit with Jev-native validity classification;
 - T288: benchmark replay-manifest generator integrated with trace-replay.
-- M19 execution kit: blinded evaluator worksheets that omit latency/cost/evidence cues, pseudonymous rating import through the existing validator, and deterministic SHA-256 evidence freezing for manifest/bundle/ratings/failures/report.
+- M19 execution kit: exact canonical evaluator contexts, blinded worksheets that omit latency/cost/evidence cues, pseudonymous rating import with context-integrity checks, and deterministic SHA-256 evidence freezing for manifest/bundle/contexts/ratings/failures/report.
 
 The package deliberately keeps human-only metrics such as naturalness optional instead of fabricating scores when no human labels exist. Domain reporters preserve separate metrics rather than collapsing all capabilities into a single unsupported quality number.
 
