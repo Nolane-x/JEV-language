@@ -83,11 +83,7 @@ export const projectUniversalFormalFact = (
         required: true,
         value: {
           kind: "string",
-          value: {
-            kind: "surface-literal",
-            value: fact.id,
-            origin: "configured",
-          },
+          value: semanticValue(fact.id),
         },
       },
       {
@@ -103,11 +99,7 @@ export const projectUniversalFormalFact = (
         required: true,
         value: {
           kind: "string",
-          value: {
-            kind: "surface-literal",
-            value: fact.predicate,
-            origin: "configured",
-          },
+          value: semanticValue(fact.predicate),
         },
       },
       {
