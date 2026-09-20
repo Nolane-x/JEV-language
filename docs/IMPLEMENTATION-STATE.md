@@ -125,7 +125,15 @@ The GitHub Pages Playground is deployed at `https://nolane-x.github.io/JEV-langu
 
 ## Natural-conversation research wave
 
-The first evidence-bound conversational layer is now merged on main. The bounded conversation candidate ABI, Jev conversational surface ranker, typed Response Semantic Plan, verified diverse candidate lattice, and bounded anti-template style memory have deterministic conformance coverage. The live multilingual baseline observed 12/12 expected judgments, and the harder conversational ranker stress v2 observed 18/18 expected judgments through the verified relay using model `jev-1.13.0`. The v2 evidence is deliberately not treated as end-to-end chat quality: 17/18 choice decisions reported confidence exactly 1, so the next experiment must use closer alternatives and mirrored option order to test calibration and position sensitivity. Candidate-generation recall, direct semantic-verifier wiring, conversational Vietnamese/English microgrammars, the bounded end-to-end selection pipeline, and real M19 human ratings remain open research work.
+The evidence-bound conversational layer now includes the bounded conversation candidate ABI, typed Response Semantic Plan, diverse verified candidate lattice, Jev conversational surface-ranker Decision Pack, bounded anti-template style memory, deterministic semantic-certification bridge, EN/VI conversational microgrammars, candidate-recall reporting, and an end-to-end bounded selection pipeline with confidence/margin abstention.
+
+Live Jev evidence through the verified relay using `jev-1.13.0` now covers 50 authenticated ranking/judgment requests across three frozen sets: multilingual baseline 12/12 expected judgments, conversational stress v2 18/18, and mirrored subtle-pair v3 20/20 agreement with preregistered linguistic hypotheses. In v3 all 10 base pairs were order-invariant after A/B reversal, option-A selection rate was exactly 0.5, mean confidence and mean probability margin were both 0.916, minimum margin was 0.4, and confidence=1 saturation fell to 0.4. These are bounded-ranker observations, not unrestricted generation or human-naturalness proof.
+
+Applying the current selection defaults (confidence 0.62, margin 0.08) to v3 accepts 19/20 cases and abstains on `ja-workplace-register:mirrored`. Because v3 contains zero observed ranking errors relative to its preregistered hypotheses, threshold calibration is explicitly marked `insufficient-errors`; the repository does not lower production thresholds merely to recover one correct abstention.
+
+Candidate generation now has a frozen EN/VI engineering recall baseline. Wave 1 deliberately records preferred-surface recall 0.8 with two known gaps. Wave 2 closes those two targeted gaps using bounded, opt-in Vietnamese topic-comment reshaping and epistemically gated English hedging while preserving the historical wave-1 result and negative guards. These remain engineering surfaces rather than human preference evidence.
+
+The major remaining natural-conversation research gates are real M19 blinded study stimuli, preregistered human ratings, and continued error-driven expansion on held-out failures. M19 therefore remains partial by design.
 
 ## Still partial by design
 
