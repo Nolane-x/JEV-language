@@ -201,8 +201,14 @@ export const createM19RatingWorksheet = (
 export const importM19RatingWorksheets = (
   manifest: M19StudyManifest,
   bundle: M19BlindedBundle,
+  contexts: readonly M19RatingContext[],
   worksheets: readonly M19RatingWorksheet[],
 ): Result<M19HumanRating[]> => {
+  const validContexts = validateM19RatingContexts(manifest, contexts);
+  if (!validContexts.ok) return err(validContexts.error);
+  const contextByItem = new Map(
+    validContexts.value.map((entry) => [entry.itemId, entry.context] as const),
+  );
   const ratings: M19HumanRating[] = [];
 
   for (const worksheet of worksheets) {
@@ -233,6 +239,7 @@ export const importM19RatingWorksheets = (
         !expectedPairs.has(pair) ||
         observedPairs.has(pair) ||
         !nonEmpty(row.context) ||
+        row.context !== contextByItem.get(row.itemId) ||
         row.naturalness === null ||
         row.semanticAccuracy === null ||
         row.multiTurnCoherence === null ||
