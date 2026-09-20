@@ -198,7 +198,7 @@ async function relayFetch(path, {
       throw makeHttpError(response, payload);
     }
 
-    if (path !== "/health" && response.headers.get("x-jev-relay") !== "1") {
+    if (response.headers.get("x-jev-relay") !== "1") {
       const error = new Error("The secure relay response could not be verified.");
       error.code = "UNVERIFIED_RELAY_RESPONSE";
       throw error;
