@@ -250,15 +250,17 @@
       "maturity": "prototype",
       "layer": 10,
       "dependencies": [
-        "core-types",
-        "semantic-graph",
-        "discourse-ir",
-        "program-ir",
         "action-ir",
+        "core-types",
+        "discourse-ir",
         "formal-ir",
-        "verifier-core",
+        "language-en",
+        "language-vi",
+        "program-ir",
+        "realizer-core",
+        "semantic-graph",
         "trace-replay",
-        "realizer-core"
+        "verifier-core"
       ]
     },
     "language-pack-core": {
