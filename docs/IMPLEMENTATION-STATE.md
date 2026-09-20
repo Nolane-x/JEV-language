@@ -1,5 +1,7 @@
 # Implementation State
 
+> **Continuation entrypoint for a new AI:** read [NEXT-AI-HANDOFF.md](NEXT-AI-HANDOFF.md) before changing code. It contains the current continuation point, explicit next actions, no-rebuild boundaries, browser/relay production state, v4 live evidence, and M19 no-fabrication rules.
+
 ```yaml
 spec_version: 0.4-master-implementation-research-expanded
 spec_digest_sha256: 9b8bc907fa0da89d4b7ea2e0be886919deffdb35e398ea7897ea77d305380f5b
@@ -59,8 +61,11 @@ partial_vertical_slices:
 known_failures: []
 blocked_items: []
 next_tasks:
-  - collect the preregistered real blinded human ratings using pseudonymous evaluator worksheets
-  - freeze the observed M19 ratings/failures/report with canonical evidence digests and report the result even if negative or mixed
+  - absorb frozen conversation-ranker boundary v4 evidence into NC-11 calibration analysis without post-hoc relabeling
+  - execute and freeze real M19 A/B stimuli through the no-fabrication observed-runner path for NC-13
+  - collect the preregistered real blinded human ratings using pseudonymous evaluator worksheets for NC-14
+  - freeze observed M19 ratings/failures/report with canonical evidence digests and report the result even if negative or mixed
+  - drive NC-15 only from observed failure clusters and regression evidence
   - keep non-stable packages explicitly below stable until their own v1 evidence exists
 last_verified_main_commit: ca2a22c12e6a948fe2c688bbe0c62d772bd1c87c
 last_merged_playground_transport_commit: 368be40a34dda3c2fcfaae33514cdc30edaebec1
@@ -124,6 +129,8 @@ The GitHub Pages Playground is deployed at `https://nolane-x.github.io/JEV-langu
 - T321-T330 event/time/modality/conditionals verified: refined event/process/transition/achievement/activity ontology, explicit event-token versus event-class semantics, temporal object registry with interval-relation constraints, language-pack tense/time separation and aspect mapping ABI, dimensioned/ordinal modality with separate calibrated probability, conditional variants and counterfactual metadata, runtime boundary validation, semantic-preservation checks, and a deterministic adversarial benchmark. After correcting a round-trip test that incorrectly assumed insertion-order preservation instead of canonical node ordering, CI passed 56/56 test files and 445/445 tests with package boundaries and strict typecheck green; live Jev requests: 0.
 
 ## Natural-conversation research wave
+
+**Latest continuation note (2026-09-20):** conversational live Jev evidence now totals 70 requests: 12 multilingual baseline + 18 stress v2 + 20 mirrored v3 + 20 boundary-calibration v4. v4 produced 10/10 clear-preference agreement, 9/10 near-tie gate abstention, 0 near-tie false-certainty rate, and 8/10 mirrored order-invariant base pairs. These observations advance NC-11 but do not replace M19 human evidence. See `docs/evidence/CONVERSATION-RANKER-BOUNDARY-v4.json` and `docs/NEXT-AI-HANDOFF.md`.
 
 The evidence-bound conversational layer now includes the bounded conversation candidate ABI, typed Response Semantic Plan, diverse verified candidate lattice, Jev conversational surface-ranker Decision Pack, bounded anti-template style memory, deterministic semantic-certification bridge, EN/VI conversational microgrammars, candidate-recall reporting, and an end-to-end bounded selection pipeline with confidence/margin abstention.
 
