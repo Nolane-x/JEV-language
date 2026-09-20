@@ -24,6 +24,8 @@ The checked-in study manifest uses anonymous arm codes (`A`, `B`). The blinded b
 
 Any mapping from arm code to implementation/baseline must be kept outside the evaluator-facing bundle until ratings are frozen.
 
+Every evaluator-facing row must also carry the exact conversation/prompt context needed to judge semantic accuracy and multi-turn coherence. That context is validated against the canonical study context set and receives its own SHA-256 digest in frozen evidence. Ratings collected against altered or missing context are rejected.
+
 ## Human-data rule
 
 No human ratings are checked into the repository at this stage.
@@ -83,11 +85,15 @@ This prevents a single mean score from hiding systematic failure modes.
 
 The repository provides a no-fabrication execution path in `packages/evaluation-core/src/m19-study-kit.ts`:
 
-- `createM19RatingWorksheet(...)` builds an evaluator-facing blinded worksheet and deliberately strips latency, cost, and semantic-evidence metadata that could bias human judgment;
-- `importM19RatingWorksheets(...)` requires a pseudonymous evaluator ID, exactly one completed rating for every blinded stimulus, and then reuses the existing M19 rating validator;
-- `freezeM19HumanStudyEvidence(...)` produces a tamper-evident frozen record with canonical SHA-256 digests of the manifest, blinded bundle, sorted ratings, sorted failure records, and final report;
-- rating/failure input order does not change those evidence digests;
-- incomplete worksheets fail closed instead of becoming implicit or synthetic ratings.
+- `validateM19RatingContexts(...)` requires exactly one non-empty canonical context for every preregistered study item;
+- `createM19RatingWorksheet(...)` binds that context to each blinded output while deliberately stripping latency, cost, and semantic-evidence metadata that could bias human judgment;
+- `importM19RatingWorksheets(...)` requires a pseudonymous evaluator ID, exact context equality, exactly one completed rating for every blinded stimulus, and then reuses the existing M19 rating validator;
+- `freezeM19HumanStudyEvidence(...)` produces a tamper-evident frozen record with canonical SHA-256 digests of the manifest, blinded bundle, canonical contexts, sorted ratings, sorted failure records, and final report;
+- context/rating/failure input order does not change those evidence digests;
+- incomplete or context-mutated worksheets fail closed instead of becoming implicit or synthetic ratings;
+- `npm run m19:prepare` and `npm run m19:freeze` provide the operator path for preparing worksheets and freezing returned ratings without custom code.
+
+The static evaluator at `playground/m19-evaluator.html` is offline by construction: its page CSP sets `connect-src 'none'`, it has no network or persistent-storage API, renders context/output as text rather than HTML, uses pseudonymous evaluator IDs, deterministically shuffles presentation order, and only exports a completed worksheet after every rating dimension is filled.
 
 The freeze object records whether the measurement is complete, but it does not reinterpret a poor result as a failed protocol. Negative or mixed observed outcomes remain reportable research results.
 
