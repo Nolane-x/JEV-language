@@ -21,9 +21,15 @@ import {
   type M19TemplateJudgment,
 } from "./natural-conversation.ts";
 
+export interface M19RatingContext {
+  itemId: string;
+  context: string;
+}
+
 export interface M19RatingWorksheetRow {
   itemId: string;
   armCode: string;
+  context: string;
   output: string;
   naturalness: number | null;
   semanticAccuracy: number | null;
@@ -50,6 +56,7 @@ export interface M19HumanStudyEvidence {
   digests: {
     manifest: Digest;
     blindedBundle: Digest;
+    contexts: Digest;
     ratings: Digest;
     failures: Digest;
     report: Digest;
@@ -61,6 +68,56 @@ const asJson = (value: unknown): JsonValue =>
   JSON.parse(JSON.stringify(value)) as JsonValue;
 
 const nonEmpty = (value: string): boolean => value.trim() !== "";
+
+export const validateM19RatingContexts = (
+  manifest: M19StudyManifest,
+  contexts: readonly M19RatingContext[],
+): Result<M19RatingContext[]> => {
+  const validManifest = validateM19StudyManifest(manifest);
+  if (!validManifest.ok) return err(validManifest.error);
+
+  const expectedIds = new Set(validManifest.value.items.map((item) => item.id));
+  const observedIds = new Set<string>();
+  const normalized: M19RatingContext[] = [];
+
+  for (const entry of contexts) {
+    if (
+      !expectedIds.has(entry.itemId) ||
+      observedIds.has(entry.itemId) ||
+      !nonEmpty(entry.context)
+    ) {
+      return err(
+        new StructuredError(
+          "EVAL_M19_WORKSHEET_CONTEXT",
+          "M19 evaluator context requires exactly one non-empty context for every preregistered study item.",
+        ),
+      );
+    }
+    observedIds.add(entry.itemId);
+    normalized.push({
+      itemId: entry.itemId,
+      context: entry.context,
+    });
+  }
+
+  if (
+    observedIds.size !== expectedIds.size ||
+    [...expectedIds].some((itemId) => !observedIds.has(itemId))
+  ) {
+    return err(
+      new StructuredError(
+        "EVAL_M19_WORKSHEET_CONTEXT",
+        "M19 evaluator context requires exactly one non-empty context for every preregistered study item.",
+      ),
+    );
+  }
+
+  return ok(
+    normalized
+      .map((entry) => structuredClone(entry))
+      .sort((a, b) => a.itemId.localeCompare(b.itemId)),
+  );
+};
 
 const sortRatings = (
   ratings: readonly M19HumanRating[],
@@ -90,6 +147,7 @@ const sortFailures = (
 export const createM19RatingWorksheet = (
   manifest: M19StudyManifest,
   bundle: M19BlindedBundle,
+  contexts: readonly M19RatingContext[],
 ): Result<M19RatingWorksheet> => {
   const validManifest = validateM19StudyManifest(manifest);
   if (!validManifest.ok) return err(validManifest.error);
@@ -113,6 +171,15 @@ export const createM19RatingWorksheet = (
   );
   if (!rebuilt.ok) return err(rebuilt.error);
 
+  const validContexts = validateM19RatingContexts(
+    validManifest.value,
+    contexts,
+  );
+  if (!validContexts.ok) return err(validContexts.error);
+  const contextByItem = new Map(
+    validContexts.value.map((entry) => [entry.itemId, entry.context] as const),
+  );
+
   return ok({
     schemaVersion: "jl-m19-rating-worksheet-1",
     studyId: validManifest.value.id,
@@ -121,6 +188,7 @@ export const createM19RatingWorksheet = (
     rows: rebuilt.value.stimuli.map((stimulus) => ({
       itemId: stimulus.itemId,
       armCode: stimulus.armCode,
+      context: contextByItem.get(stimulus.itemId)!,
       output: stimulus.output,
       naturalness: null,
       semanticAccuracy: null,
@@ -164,6 +232,7 @@ export const importM19RatingWorksheets = (
       if (
         !expectedPairs.has(pair) ||
         observedPairs.has(pair) ||
+        !nonEmpty(row.context) ||
         row.naturalness === null ||
         row.semanticAccuracy === null ||
         row.multiTurnCoherence === null ||
@@ -207,6 +276,7 @@ export const importM19RatingWorksheets = (
 export const freezeM19HumanStudyEvidence = (input: {
   manifest: M19StudyManifest;
   bundle: M19BlindedBundle;
+  contexts: readonly M19RatingContext[];
   ratings: readonly M19HumanRating[];
   failures: readonly M19FailureRecord[];
   frozenAt: string;
@@ -222,6 +292,12 @@ export const freezeM19HumanStudyEvidence = (input: {
       ),
     );
   }
+
+  const contexts = validateM19RatingContexts(
+    input.manifest,
+    input.contexts,
+  );
+  if (!contexts.ok) return err(contexts.error);
 
   const report = reportM19NaturalConversation({
     manifest: input.manifest,
@@ -245,6 +321,7 @@ export const freezeM19HumanStudyEvidence = (input: {
     digests: {
       manifest: sha256(canonicalJson(asJson(input.manifest))),
       blindedBundle: sha256(canonicalJson(asJson(input.bundle))),
+      contexts: sha256(canonicalJson(asJson(contexts.value))),
       ratings: sha256(canonicalJson(asJson(ratings))),
       failures: sha256(canonicalJson(asJson(failures))),
       report: sha256(canonicalJson(asJson(report.value))),
