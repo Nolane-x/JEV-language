@@ -62,6 +62,14 @@ export function resolveApiEndpoint({ transport, relayBaseUrl = "", path }) {
   return `${normalizeRelayBaseUrl(relayBaseUrl)}${path}`;
 }
 
+
+export function resolveRelayEndpoint({ relayBaseUrl = "", path }) {
+  if (path !== "/health" && path !== "/v1/models" && path !== "/v1/systemone") {
+    throw new TypeError("Unsupported JEV relay path.");
+  }
+  return `${normalizeRelayBaseUrl(relayBaseUrl)}${path}`;
+}
+
 export function isBrowserNetworkFailure(error) {
   return (
     error instanceof TypeError &&
