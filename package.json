@@ -20,7 +20,8 @@
     "format": "biome format --write .",
     "lint": "biome check .",
     "demo:v1-stable-core": "tsx scripts/replay-v1-stable-core.ts",
-    "test:v1-conformance": "vitest run tests/conformance/m20-v1-conformance.conformance.test.ts"
+    "test:v1-conformance": "vitest run tests/conformance/m20-v1-conformance.conformance.test.ts",
+    "eval:relay-live": "tsx scripts/playground-relay-live-smoke.ts"
   },
   "dependencies": {
     "@typesafe-ai/sdk": "0.6.0"
