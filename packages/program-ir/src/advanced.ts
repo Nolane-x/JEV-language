@@ -173,8 +173,13 @@ export const validateErrorFlow = (
       if (!effects.ok) return err(effects.error);
     }
   }
-  for (const [label, refs] of Object.entries(flow)) {
-    if (!uniqueNonEmpty(refs) || refs.some((ref) => !known.has(ref))) {
+  const flowSets = [
+    ["thrown", flow.thrown],
+    ["handled", flow.handled],
+    ["propagated", flow.propagated],
+  ] as const;
+  for (const [label, refs] of flowSets) {
+    if (!uniqueNonEmpty(refs) || refs.some((ref: string) => !known.has(ref))) {
       return err(
         new StructuredError(
           "PIR_ERROR_FLOW",
