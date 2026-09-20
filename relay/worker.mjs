@@ -1,4 +1,5 @@
 const UPSTREAM_ORIGIN = "https://api.typesafe.ai";
+const BROWSER_CONTRACT = "jev-relay-browser-v2";
 const DEFAULT_ALLOWED_ORIGINS = [
   "https://nolane-x.github.io",
   "http://localhost:8000",
@@ -29,6 +30,14 @@ function corsHeaders(origin) {
   };
 }
 
+function verifiedCorsHeaders(origin) {
+  return {
+    ...corsHeaders(origin),
+    "X-JEV-Relay": "1",
+    "Cross-Origin-Resource-Policy": "cross-origin",
+  };
+}
+
 function json(body, status, headers = {}) {
   return new Response(JSON.stringify(body), {
     status,
@@ -41,10 +50,8 @@ function json(body, status, headers = {}) {
 }
 
 function copyUpstreamHeaders(upstream, origin) {
-  const headers = new Headers(corsHeaders(origin));
+  const headers = new Headers(verifiedCorsHeaders(origin));
   headers.set("Cache-Control", "no-store");
-  headers.set("X-JEV-Relay", "1");
-  headers.set("Cross-Origin-Resource-Policy", "cross-origin");
 
   for (const name of ["content-type", "x-typesafe-request-id", "retry-after"]) {
     const value = upstream.headers.get(name);
@@ -71,11 +78,8 @@ export async function handleRequest(request, env = {}) {
       relay: "jev-language-typesafe",
       upstream: UPSTREAM_ORIGIN,
       stores_credentials: false,
-    }, 200, origin ? {
-      ...corsHeaders(origin),
-      "X-JEV-Relay": "1",
-      "Cross-Origin-Resource-Policy": "cross-origin",
-    } : {
+      browser_contract: BROWSER_CONTRACT,
+    }, 200, origin ? verifiedCorsHeaders(origin) : {
       "X-JEV-Relay": "1",
     });
   }
@@ -93,7 +97,7 @@ export async function handleRequest(request, env = {}) {
     return json(
       { error: { message: "This relay only exposes /v1/models and /v1/systemone." } },
       404,
-      corsHeaders(origin),
+      verifiedCorsHeaders(origin),
     );
   }
 
@@ -101,7 +105,7 @@ export async function handleRequest(request, env = {}) {
     return new Response(null, {
       status: 204,
       headers: {
-        ...corsHeaders(origin),
+        ...verifiedCorsHeaders(origin),
         "Cache-Control": "no-store",
       },
     });
@@ -112,7 +116,7 @@ export async function handleRequest(request, env = {}) {
       { error: { message: `Expected ${expectedMethod} for ${url.pathname}.` } },
       405,
       {
-        ...corsHeaders(origin),
+        ...verifiedCorsHeaders(origin),
         "Allow": expectedMethod,
       },
     );
@@ -123,7 +127,7 @@ export async function handleRequest(request, env = {}) {
     return json(
       { error: { message: "Authorization header is required." } },
       401,
-      corsHeaders(origin),
+      verifiedCorsHeaders(origin),
     );
   }
 
@@ -150,7 +154,7 @@ export async function handleRequest(request, env = {}) {
     return json(
       { error: { message: "Relay could not reach TypeSafe." } },
       502,
-      corsHeaders(origin),
+      verifiedCorsHeaders(origin),
     );
   }
 

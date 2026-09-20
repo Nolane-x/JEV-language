@@ -130,6 +130,10 @@ describe("JEV Language Playground conformance", () => {
     expect(app).not.toContain("deploy the repository's locked-down self-hosted relay");
     expect(app).toContain("Checking the secure JEV relay");
     expect(app).toContain("RELAY_CONNECT_ATTEMPTS = 3");
+    expect(app).toContain('RELAY_BROWSER_CONTRACT = "jev-relay-browser-v2"');
+    expect(app.indexOf('response.headers.get("x-jev-relay")')).toBeLessThan(
+      app.indexOf("if (!response.ok)"),
+    );
     expect(app).toContain("Secure relay did not answer yet. Retrying");
     expect(app).toContain(
       "The secure relay answered, but browser verification was blocked.",

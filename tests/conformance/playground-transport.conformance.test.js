@@ -108,6 +108,7 @@ describe("self-hosted TypeSafe relay", () => {
       ok: true,
       relay: "jev-language-typesafe",
       stores_credentials: false,
+      browser_contract: "jev-relay-browser-v2",
     });
   });
 
@@ -177,6 +178,28 @@ describe("self-hosted TypeSafe relay", () => {
       response.headers.get("access-control-expose-headers"),
     ).toContain("X-TypeSafe-Request-Id");
     expect(upstream).toHaveBeenCalledTimes(1);
+  });
+
+  it("keeps local error responses browser-verifiable before the client trusts their status", async () => {
+    const response = await handleRequest(
+      new Request("https://relay.example/v1/models", {
+        method: "GET",
+        headers: {
+          Origin: allowedOrigin,
+          Accept: "application/json",
+        },
+      }),
+      {},
+    );
+
+    expect(response.status).toBe(401);
+    expect(response.headers.get("x-jev-relay")).toBe("1");
+    expect(
+      response.headers.get("access-control-expose-headers"),
+    ).toContain("X-JEV-Relay");
+    await expect(response.json()).resolves.toMatchObject({
+      error: { message: "Authorization header is required." },
+    });
   });
 
   it("rejects unknown relay paths before any upstream fetch", async () => {
