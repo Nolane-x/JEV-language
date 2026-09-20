@@ -426,7 +426,9 @@ describe("v0.4 §§963-980 release gates", () => {
           incompatible: true,
           loadedPartially: false,
           failedFast: !incompatible.compatible,
-          diagnosticCode: incompatible.diagnostics[0]?.code,
+          ...(incompatible.diagnostics[0]?.code === undefined
+            ? {}
+            : { diagnosticCode: incompatible.diagnostics[0].code }),
         },
       ],
       [
@@ -517,7 +519,8 @@ describe("v0.4 §§963-980 release gates", () => {
     });
     expect(antiSpecialCase.status).toBe("pass");
 
-    const coverageEntries = coverageJson.entries as PhenomenonCoverageEntry[];
+    const coverageEntries =
+      coverageJson.entries as unknown as PhenomenonCoverageEntry[];
     const coverage = auditCoverageAccounting(coverageEntries, [
       evidence("docs/coverage-v0.4.json"),
     ]);
