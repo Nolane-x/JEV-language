@@ -8,6 +8,8 @@ import {
   renderMeta,
   renderYesNo,
   scoreQuestion,
+  validateModelsResponse,
+  validateSystemOneResponse,
   yesNoLike,
 } from "./runtime.js";
 
@@ -169,8 +171,10 @@ async function callJev(questions, latest) {
       throw error;
     }
 
+    const validatedBody = validateSystemOneResponse(body, questions);
+
     return {
-      body,
+      body: validatedBody,
       latencyMs: Math.round(performance.now() - started),
       requestId: response.headers.get("x-typesafe-request-id"),
     };
@@ -323,8 +327,10 @@ async function connectKey() {
         { status: response.status },
       );
     }
-    const models = Array.isArray(payload?.models) ? payload.models : [];
-    const names = models.map((model) => model?.name).filter((name) => typeof name === "string" && name.trim());
+    const models = validateModelsResponse(payload);
+    const names = models
+      .map((model) => model.name)
+      .filter((name) => typeof name === "string" && name.trim());
     if (names.length > 0) {
       const previous = els.modelSelect.value;
       els.modelSelect.replaceChildren(...names.map((name) => {
