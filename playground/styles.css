@@ -55,6 +55,8 @@ summary:focus-visible {
 
 ::selection { background: rgba(232, 181, 109, 0.25); color: #fff8e8; }
 
+.field[hidden] { display: none; }
+
 .sr-only {
   position: absolute !important;
   width: 1px !important;
