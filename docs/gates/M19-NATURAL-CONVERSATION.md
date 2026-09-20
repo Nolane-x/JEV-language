@@ -91,6 +91,12 @@ The repository provides a no-fabrication execution path in `packages/evaluation-
 
 The freeze object records whether the measurement is complete, but it does not reinterpret a poor result as a failed protocol. Negative or mixed observed outcomes remain reportable research results.
 
+## Observed-stimulus capture state
+
+The repository now also provides a no-fabrication stimulus capture boundary in `packages/evaluation-core/src/m19-observed-stimulus.ts` plus a fixed scenario pack at `evals/scenarios/m19-natural-conversation-v1.json`.
+
+This machinery requires exactly one observed multi-turn capture for every item/arm pair, validates turn counts and alternation, requires separate observation evidence, and freezes canonical digests before generating the evaluator worksheet. It does not contain real arm outputs yet, so NC-13 remains partial.
+
 ## Current closure state
 
 M19 is **not verified** because human ratings have not been observed. The protocol, manifest, validators, aggregation, negative-result handling, and conformance tests can be verified independently without pretending the research measurement has happened.
