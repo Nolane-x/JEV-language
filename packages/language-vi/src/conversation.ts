@@ -336,11 +336,13 @@ const topicCommentReshape = (surface: string): string | undefined => {
     /^(Mình|Tôi|Em|Anh|Chị) chưa (kiểm tra|xem|thử) phần (.+?)([.!?])$/u,
   );
   if (match === null) return undefined;
+
   const speaker = match[1];
   const verb = match[2];
   const topic = match[3]?.trim();
   const terminal = match[4] ?? ".";
   if (!speaker || !verb || !topic) return undefined;
+
   return normalize(
     `Còn phần ${topic} thì ${speaker.toLocaleLowerCase("vi")} chưa ${verb}${terminal}`,
   );
