@@ -91,11 +91,11 @@ A zero-install browser Playground is deployed at:
 
 https://nolane-x.github.io/JEV-language/
 
-It is a static GitHub Pages BYOK surface: users supply their own TypeSafe key, which stays in tab memory only. The current UI routes bounded yes/no and explicit-choice prompts through Jev and keeps unsupported free-form generation explicit rather than hiding another generator behind the chat surface.
+It is a static GitHub Pages surface backed by a public Jev gateway. The default path requires no visitor API key: the Cloudflare Worker invokes `typesafe/jev` through a Workers AI binding, while advanced TypeSafe BYOK transports remain available for debugging and provider-specific tests. The current UI routes bounded yes/no and explicit-choice prompts through Jev and keeps unsupported free-form generation explicit rather than hiding another generator behind the chat surface.
 
 The NUI-driven interface uses an obsidian/editorial-instrument visual thesis with a warm-metal inspection-light field that follows the pointer, plus coarse-pointer and reduced-motion fallbacks. Provider success payloads are validated before rendering.
 
-The static Pages shell was previously deployment-verified. A browser-equivalent preflight probe on 2026-09-20 then proved that direct TypeSafe requests from the GitHub Pages origin are blocked by the provider's current CORS policy. PR #70 therefore added an explicit self-hosted relay transport; the deployed relay is now the Playground default. The relay was subsequently live-verified with the existing `TYPESAFE_API_KEY` GitHub secret: exactly one authenticated `/v1/systemone` request traversed the verified Worker, returned `X-JEV-Relay: 1`, preserved the GitHub Pages CORS origin, and produced a valid `jev-1.13.0` Noul response. Sanitized evidence is committed at `docs/evidence/PLAYGROUND-RELAY-LIVE-SMOKE.json`; the API key itself was not printed or persisted.
+The static Pages shell was previously deployment-verified. A browser-equivalent preflight probe on 2026-09-20 proved that direct TypeSafe requests from the GitHub Pages origin are blocked by provider-side CORS. The project first added a locked-down BYOK relay, then moved the default user path one step further: the same Worker now exposes bounded anonymous public Jev inference through Cloudflare Workers AI, so ordinary visitors do not need a TypeSafe key and never hit TypeSafe CORS from the browser. The worker still preserves the old Authorization-forwarding path when an advanced BYOK request explicitly supplies a key. Public requests are origin-restricted, size/question bounded, rate-limited, non-cached, and fixed to the Jev model surface.
 
 ## Security
 
