@@ -6,6 +6,8 @@ import {
   renderChoice,
   renderMeta,
   renderYesNo,
+  validateModelsResponse,
+  validateSystemOneResponse,
   yesNoLike,
 } from "../../playground/runtime.js";
 
@@ -50,6 +52,62 @@ describe("JEV Language Playground conformance", () => {
     expect(renderYesNo({ noul: 0.8, confidence: 0.7 }, null)).toContain(
       "leans yes",
     );
+  });
+
+  it("rejects malformed TypeSafe wire responses before UI rendering", () => {
+    expect(
+      validateModelsResponse({
+        models: [
+          {
+            name: "jev-latest",
+            description: "latest",
+            release_date: "2026-09-10",
+          },
+        ],
+      }),
+    ).toHaveLength(1);
+    expect(() => validateModelsResponse({ models: {} })).toThrow(
+      "Unexpected response shape",
+    );
+
+    expect(
+      validateSystemOneResponse(
+        {
+          model: "jev-1.13.0",
+          answers: {
+            decision: {
+              type: "choice",
+              choice: "option_b",
+              confidence: 0.8,
+              probabilities: { option_a: 0.2, option_b: 0.8 },
+            },
+          },
+          usage: { input_tokens: 12, output_tokens: 0 },
+        },
+        {
+          decision: {
+            type: "choice",
+            instructions: "Choose.",
+            criteria: { option_a: null, option_b: null },
+          },
+        },
+      ).model,
+    ).toBe("jev-1.13.0");
+
+    expect(() =>
+      validateSystemOneResponse(
+        {
+          model: "jev-1.13.0",
+          answers: {
+            answer: { type: "noul", noul: 1.4 },
+          },
+          usage: { input_tokens: 2, output_tokens: 0 },
+        },
+        {
+          answer: { type: "noul", instructions: "Yes?" },
+        },
+      ),
+    ).toThrow("invalid probability");
   });
 
   it("keeps unsupported free-form generation explicit", () => {
