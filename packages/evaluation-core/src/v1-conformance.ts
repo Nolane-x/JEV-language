@@ -95,9 +95,14 @@ export interface V1ConformanceReport {
 const semver =
   /^\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?(?:\+[0-9A-Za-z.-]+)?$/u;
 
-const nonEmptyUniqueStrings = (values: readonly string[]): boolean =>
+const nonEmptyUniqueStrings = (
+  values: unknown,
+): values is string[] =>
+  Array.isArray(values) &&
   values.length > 0 &&
-  values.every((value) => value.trim() !== "") &&
+  values.every(
+    (value) => typeof value === "string" && value.trim() !== "",
+  ) &&
   new Set(values).size === values.length;
 
 const exactSet = (
@@ -145,7 +150,7 @@ export const validateStablePackageV1Evidence = (
   }
 
   for (const requirement of V1_CONFORMANCE_REQUIREMENTS) {
-    const refs = evidence.artifacts[requirement];
+    const refs = evidence.artifacts?.[requirement];
     if (!nonEmptyUniqueStrings(refs)) {
       return err(
         new StructuredError(
