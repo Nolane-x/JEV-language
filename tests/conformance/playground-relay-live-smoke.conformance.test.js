@@ -9,6 +9,12 @@ const script = readFileSync(
   "scripts/playground-relay-live-smoke.ts",
   "utf8",
 );
+const evidence = JSON.parse(
+  readFileSync(
+    "docs/evidence/PLAYGROUND-RELAY-LIVE-SMOKE.json",
+    "utf8",
+  ),
+);
 
 describe("authenticated Playground relay smoke contract", () => {
   it("uses only the existing TypeSafe secret and a one-request budget", () => {
@@ -38,8 +44,33 @@ describe("authenticated Playground relay smoke contract", () => {
     expect(script).not.toMatch(/writeFileSync|appendFileSync|localStorage|sessionStorage/u);
   });
 
-  it("keeps the automatic path narrow to the one-shot trigger file", () => {
-    expect(workflow).toContain(".github/playground-relay-smoke.trigger");
-    expect(workflow).not.toContain("paths-ignore:");
+  it("is manual-only after the one-shot verified run", () => {
+    expect(workflow).toContain("workflow_dispatch:");
+    expect(workflow).not.toMatch(/^\s*push:/mu);
+    expect(workflow).toContain("contents: read");
+    expect(workflow).not.toContain("git push");
+    expect(workflow).not.toContain(".github/playground-relay-smoke.trigger");
+  });
+
+  it("locks the sanitized authenticated relay evidence", () => {
+    expect(evidence.schema).toBe(
+      "jev-language-playground-relay-live-smoke/v1",
+    );
+    expect(evidence.ok).toBe(true);
+    expect(evidence.source_sha).toBe(
+      "efc94c3d28af2dcfe1be67f25101118e10e63cbd",
+    );
+    expect(evidence.relay).toBe(
+      "https://jev-language-typesafe-relay.nolane-file.workers.dev",
+    );
+    expect(evidence.origin).toBe("https://nolane-x.github.io");
+    expect(evidence.relay_header_verified).toBe(true);
+    expect(evidence.cors_origin_verified).toBe(true);
+    expect(evidence.model).toBe("jev-1.13.0");
+    expect(evidence.answer_type).toBe("noul");
+    expect(evidence.requests_used).toBe(1);
+    expect(evidence.credential_persisted).toBe(false);
+    expect(evidence.usage.input_tokens).toBe(372);
+    expect(evidence.usage.output_tokens).toBe(20);
   });
 });

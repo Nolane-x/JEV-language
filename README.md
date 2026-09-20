@@ -95,7 +95,7 @@ It is a static GitHub Pages BYOK surface: users supply their own TypeSafe key, w
 
 The NUI-driven interface uses an obsidian/editorial-instrument visual thesis with a warm-metal inspection-light field that follows the pointer, plus coarse-pointer and reduced-motion fallbacks. Provider success payloads are validated before rendering.
 
-The static Pages shell was previously deployment-verified. A browser-equivalent preflight probe on 2026-09-20 then proved that direct TypeSafe requests from the GitHub Pages origin are blocked by the provider's current CORS policy. PR #70 therefore added an explicit optional self-hosted relay transport; its code passed deterministic CI #366 with 79/79 test files and 643/643 tests, package boundaries, and strict typecheck green. A real authenticated BYOK call through a user-controlled relay remains intentionally unclaimed.
+The static Pages shell was previously deployment-verified. A browser-equivalent preflight probe on 2026-09-20 then proved that direct TypeSafe requests from the GitHub Pages origin are blocked by the provider's current CORS policy. PR #70 therefore added an explicit self-hosted relay transport; the deployed relay is now the Playground default. The relay was subsequently live-verified with the existing `TYPESAFE_API_KEY` GitHub secret: exactly one authenticated `/v1/systemone` request traversed the verified Worker, returned `X-JEV-Relay: 1`, preserved the GitHub Pages CORS origin, and produced a valid `jev-1.13.0` Noul response. Sanitized evidence is committed at `docs/evidence/PLAYGROUND-RELAY-LIVE-SMOKE.json`; the API key itself was not printed or persisted.
 
 ## Security
 

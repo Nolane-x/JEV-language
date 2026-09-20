@@ -59,13 +59,13 @@ partial_vertical_slices:
 known_failures: []
 blocked_items: []
 next_tasks:
-  - perform one real authenticated BYOK Playground decision through the verified relay without storing or logging the key
   - collect the preregistered real blinded human ratings using pseudonymous evaluator worksheets
   - freeze the observed M19 ratings/failures/report with canonical evidence digests and report the result even if negative or mixed
   - keep non-stable packages explicitly below stable until their own v1 evidence exists
 last_verified_main_commit: ca2a22c12e6a948fe2c688bbe0c62d772bd1c87c
 last_merged_playground_transport_commit: 368be40a34dda3c2fcfaae33514cdc30edaebec1
-last_verified_pr_head: 7b2858f1d2df5b60e9611b49f3421b2eedf4a4a9
+last_authenticated_playground_relay_smoke_commit: 553a373bbf99aa2ae7068a9d0e9ecb0536492271
+last_verified_pr_head: 6a07cd47a6ac5b00cbccde94646a5bbf68a71c6b
 ```
 
 ## Current state
@@ -82,7 +82,7 @@ M20 v1 stable-core conformance for the non-vacuous stable set `core-types` + `pr
 
 The experimental GitHub Pages Playground is being built as a public BYOK test surface. It is explicitly constrained to current Jev-shaped interactions (typed yes/no, bounded choices, and coverage checks), keeps keys in tab memory only, and does not upgrade the engine's free-form generation claim. Pointer-reactive NUI visuals, reduced-motion/high-contrast alternatives, browser-runtime security checks, and deterministic conformance tests are part of the same change.
 
-The GitHub Pages Playground is deployed at `https://nolane-x.github.io/JEV-language/`. The NUI inspection-light interaction, TypeSafe wire-response validation, pointer alignment fix, literal-markup regression check, and accurate network/CORS diagnostics are merged. A browser-equivalent preflight probe on 2026-09-20 proved that direct TypeSafe calls from `https://nolane-x.github.io` currently lack `Access-Control-Allow-Origin` and are therefore blocked by provider CORS. The locked-down self-hosted relay transport was merged by PR #70, then deployed through the secret-backed Cloudflare workflow. The deployment path is therefore closed as an engineering blocker; only authenticated BYOK use remains a live credential-bound check. Deployment evidence `jev-language-relay-deployment/v2` records `verified: true`, source SHA `7a0e9d8491534f0f817074c712d82c1ecd178c6d`, relay URL `https://jev-language-typesafe-relay.nolane-file.workers.dev`, successful deploy, successful health verification, and successful GitHub Pages CORS preflight. The production-closure revision makes this verified relay the browser default while retaining Direct TypeSafe as a fallback. A real authenticated BYOK call remains deliberately unverified until a real TypeSafe key is used.\n\n## Implemented foundation
+The GitHub Pages Playground is deployed at `https://nolane-x.github.io/JEV-language/`. The NUI inspection-light interaction, TypeSafe wire-response validation, pointer alignment fix, literal-markup regression check, and accurate network/CORS diagnostics are merged. A browser-equivalent preflight probe on 2026-09-20 proved that direct TypeSafe calls from `https://nolane-x.github.io` currently lack `Access-Control-Allow-Origin` and are therefore blocked by provider CORS. The locked-down self-hosted relay transport was merged by PR #70, then deployed through the secret-backed Cloudflare workflow. The deployment path is therefore closed as an engineering blocker; only authenticated BYOK use remains a live credential-bound check. Deployment evidence `jev-language-relay-deployment/v2` records `verified: true`, source SHA `7a0e9d8491534f0f817074c712d82c1ecd178c6d`, relay URL `https://jev-language-typesafe-relay.nolane-file.workers.dev`, successful deploy, successful health verification, and successful GitHub Pages CORS preflight. The production-closure revision makes this verified relay the browser default while retaining Direct TypeSafe as a fallback. The authenticated relay path is now live-verified. A one-request smoke on 2026-09-20 used the existing `TYPESAFE_API_KEY` GitHub secret without exposing or persisting it, traversed `https://jev-language-typesafe-relay.nolane-file.workers.dev`, required `X-JEV-Relay: 1`, verified the GitHub Pages CORS origin, and returned a valid `jev-1.13.0` Noul response. Sanitized evidence is frozen in `docs/evidence/PLAYGROUND-RELAY-LIVE-SMOKE.json` at commit `553a373`: exactly 1 request, 372 input tokens, 20 output tokens, credential_persisted=false.\n\n## Implemented foundation
 
 - Strict TypeScript / Node 20+ baseline.
 - Machine-readable package maturity/dependency DAG plus source-import boundary enforcement.
