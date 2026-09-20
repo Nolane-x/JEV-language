@@ -559,3 +559,5 @@ export const discourseRelationDefinition = (
 export * from "./naturalness.ts";
 
 export * from "./information-structure.ts";
+
+export * from "./response-plan.ts";
