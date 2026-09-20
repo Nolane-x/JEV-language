@@ -9,7 +9,7 @@ on:
       - ".github/relay-deploy.trigger"
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   deploy:
@@ -139,7 +139,15 @@ jobs:
             exit 1
           fi
 
+          version_id="$(grep -Eo 'Current Version ID: [A-Za-z0-9-]+' /tmp/wrangler-deploy.log | awk '{print $4}' | tail -n 1 || true)"
+          if [ -z "$version_id" ]; then
+            echo "failure-reason=missing_version_id" >> "$GITHUB_OUTPUT"
+            echo "::error::Wrangler deployed without a discoverable Worker version ID"
+            exit 1
+          fi
+
           echo "deployment-url=$relay_url" >> "$GITHUB_OUTPUT"
+          echo "version-id=$version_id" >> "$GITHUB_OUTPUT"
 
       - name: Verify deployed relay
         id: verify
@@ -216,3 +224,57 @@ jobs:
             echo "- GitHub Pages CORS preflight: verified"
             echo "- TypeSafe API key: not used or stored by this workflow"
           } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Freeze verified deployment status
+        if: steps.verify.outcome == 'success'
+        env:
+          RELAY_URL: ${{ steps.deploy.outputs.deployment-url }}
+          RELAY_VERSION_ID: ${{ steps.deploy.outputs.version-id }}
+          WORKERS_SUBDOMAIN: ${{ steps.subdomain.outputs.subdomain }}
+          WORKERS_SUBDOMAIN_CREATED: ${{ steps.subdomain.outputs.created }}
+        run: |
+          set -euo pipefail
+
+          export RECORDED_AT="$(date -u +'%Y-%m-%dT%H:%M:%SZ')"
+          node <<'NODE'
+          const fs = require("node:fs");
+          const status = {
+            schema: "jev-language-relay-deployment/v4",
+            verified: true,
+            relay_url: process.env.RELAY_URL,
+            workers_subdomain: process.env.WORKERS_SUBDOMAIN,
+            workers_subdomain_created: process.env.WORKERS_SUBDOMAIN_CREATED === "true",
+            subdomain_outcome: "success",
+            deploy_outcome: "success",
+            verify_outcome: "success",
+            browser_contract: "jev-relay-browser-v2",
+            browser_identity_header_exposed: true,
+            exposed_headers: [
+              "X-JEV-Relay",
+              "X-TypeSafe-Request-Id",
+              "Retry-After",
+            ],
+            verified_error_envelopes: [401],
+            relay_version_id: process.env.RELAY_VERSION_ID,
+            deployment_run_id: Number(process.env.GITHUB_RUN_ID),
+            source_sha: process.env.GITHUB_SHA,
+            failure_reason: null,
+            recorded_at: process.env.RECORDED_AT,
+          };
+          fs.writeFileSync(
+            "relay/deployment-status.json",
+            JSON.stringify(status, null, 2) + "\n",
+          );
+          NODE
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add relay/deployment-status.json
+
+          if git diff --cached --quiet; then
+            echo "Verified deployment status is already current."
+            exit 0
+          fi
+
+          git commit -m "chore: freeze verified relay deployment status [skip ci]"
+          git push origin HEAD:main
