@@ -35,12 +35,12 @@ This compatibility path is for advanced testing. Ordinary visitors should stay o
 
 Do **not** commit a Cloudflare token or account ID into repository files.
 
-Repository Actions secrets:
+In GitHub, open **Settings → Secrets and variables → Actions** and keep these repository Actions secrets configured:
 
 - `CLOUDFLARE_ACCOUNT_ID`
 - `CLOUDFLARE_API_TOKEN`
 
-The deploy workflow runs manually and also on `main` changes under `relay/**` or the deployment workflow itself. It:
+The deploy workflow is intentionally **manual-only**. Open **Actions → Deploy Jev Gateway → Run workflow** when promoting a reviewed gateway revision. It:
 
 1. validates Cloudflare deployment credentials;
 2. ensures the account has a `workers.dev` subdomain;
