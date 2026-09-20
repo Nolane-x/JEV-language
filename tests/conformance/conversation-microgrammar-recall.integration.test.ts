@@ -156,7 +156,7 @@ const engineeringCases = (): EngineeringCase[] => [
   {
     id: "en-correction-ack",
     language: "en",
-    preferredSurface: "Right — i mixed those up. I'll check staging.",
+    preferredSurface: "Right — I mixed those up. I'll check staging.",
     generated: requireEn({
       id: "en:correction-recall",
       content: "I mixed those up. I'll check staging.",
@@ -184,7 +184,7 @@ const engineeringCases = (): EngineeringCase[] => [
   {
     id: "en-peer-ack",
     language: "en",
-    preferredSurface: "Got it — i'll check that now.",
+    preferredSurface: "Got it — I'll check that now.",
     generated: requireEn({
       id: "en:ack-recall",
       content: "I'll check that now.",
