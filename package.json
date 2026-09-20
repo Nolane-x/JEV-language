@@ -20,7 +20,9 @@
     "format": "biome format --write .",
     "lint": "biome check .",
     "demo:v1-stable-core": "tsx scripts/replay-v1-stable-core.ts",
-    "test:v1-conformance": "vitest run tests/conformance/m20-v1-conformance.conformance.test.ts"
+    "test:v1-conformance": "vitest run tests/conformance/m20-v1-conformance.conformance.test.ts",
+    "m19:prepare": "tsx scripts/m19-study.ts prepare",
+    "m19:freeze": "tsx scripts/m19-study.ts freeze"
   },
   "dependencies": {
     "@typesafe-ai/sdk": "0.6.0"
