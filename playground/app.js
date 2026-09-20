@@ -353,8 +353,21 @@ async function connectKey() {
   } catch (error) {
     state.apiKey = "";
     state.connected = false;
-    const suffix = error?.status === 401 ? " Check that the key is valid." : " If the browser reports CORS, TypeSafe may not permit direct browser access for this account/origin.";
-    setKeyStatus(`${error?.message || "Connection test failed."}${suffix}`, "error");
+    const isNetworkFailure =
+      error instanceof TypeError &&
+      /failed to fetch|networkerror|load failed/i.test(error.message || "");
+    let message;
+    if (error?.status === 401) {
+      message = "TypeSafe rejected this API key. Check that the key is valid.";
+    } else if (error?.status === 403) {
+      message = "TypeSafe refused this account/request.";
+    } else if (isNetworkFailure) {
+      message =
+        "Browser connection blocked before TypeSafe returned an HTTP response. This is usually CORS or network policy for this origin, not an invalid API key.";
+    } else {
+      message = error?.message || "Connection test failed.";
+    }
+    setKeyStatus(message, "error");
     updateConnectionUi();
   } finally {
     els.connectButton.disabled = false;
