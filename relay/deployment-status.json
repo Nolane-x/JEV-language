@@ -1,5 +1,5 @@
 {
-  "schema": "jev-language-relay-deployment/v2",
+  "schema": "jev-language-relay-deployment/v3",
   "verified": true,
   "relay_url": "https://jev-language-typesafe-relay.nolane-file.workers.dev",
   "workers_subdomain": "nolane-file",
@@ -7,7 +7,17 @@
   "subdomain_outcome": "success",
   "deploy_outcome": "success",
   "verify_outcome": "success",
+  "browser_identity_header_exposed": true,
+  "exposed_headers": [
+    "X-JEV-Relay",
+    "X-TypeSafe-Request-Id",
+    "Retry-After"
+  ],
+  "relay_version_id": "735459af-a34b-4876-a933-8f9afd84d5a1",
+  "deployment_run_id": 35511196778,
+  "pages_deployment_run_id": 35511196773,
+  "pages_url": "https://nolane-x.github.io/JEV-language/",
+  "source_sha": "93b7ff5c26fc6820f69bdbfe234bb2c28d170dcb",
   "failure_reason": null,
-  "source_sha": "7a0e9d8491534f0f817074c712d82c1ecd178c6d",
-  "recorded_at": "2026-09-20T08:05:54.876Z"
+  "recorded_at": "2026-09-20T12:38:44.837Z"
 }
