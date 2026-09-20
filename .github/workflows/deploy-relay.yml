@@ -173,12 +173,19 @@ jobs:
 
           grep -q '"ok":true' /tmp/relay-health.json
           grep -q '"stores_credentials":false' /tmp/relay-health.json
-          tr -d '\r' < /tmp/relay-health.headers | \
-            grep -i '^access-control-allow-origin: https://nolane-x.github.io
+          grep -qiF 'access-control-allow-origin: https://nolane-x.github.io' /tmp/relay-health.headers
+          grep -qiF 'x-jev-relay: 1' /tmp/relay-health.headers
 
-          curl --fail --silent --show-error             --request OPTIONS             --header "Origin: https://nolane-x.github.io"             --header "Access-Control-Request-Method: GET"             --header "Access-Control-Request-Headers: Authorization,Accept"             --dump-header /tmp/relay-cors.headers             --output /dev/null             "$RELAY_URL/v1/models"
+          curl --fail --silent --show-error \
+            --request OPTIONS \
+            --header "Origin: https://nolane-x.github.io" \
+            --header "Access-Control-Request-Method: GET" \
+            --header "Access-Control-Request-Headers: Authorization,Accept" \
+            --dump-header /tmp/relay-cors.headers \
+            --output /dev/null \
+            "$RELAY_URL/v1/models"
 
-          tr -d '\r' < /tmp/relay-cors.headers |             grep -i '^access-control-allow-origin: https://nolane-x.github.io$'
+          grep -qiF 'access-control-allow-origin: https://nolane-x.github.io' /tmp/relay-cors.headers
 
           {
             echo "## TypeSafe relay deployed"
@@ -187,40 +194,6 @@ jobs:
             echo
             echo "- workers.dev bootstrap: verified"
             echo "- Browser health endpoint + relay identity: verified"
-            echo "- GitHub Pages CORS preflight: verified"
-            echo "- TypeSafe API key: not used or stored by this workflow"
-          } >> "$GITHUB_STEP_SUMMARY"
-
-          tr -d '\r' < /tmp/relay-health.headers | \
-            grep -i '^x-jev-relay: 1
-
-          curl --fail --silent --show-error             --request OPTIONS             --header "Origin: https://nolane-x.github.io"             --header "Access-Control-Request-Method: GET"             --header "Access-Control-Request-Headers: Authorization,Accept"             --dump-header /tmp/relay-cors.headers             --output /dev/null             "$RELAY_URL/v1/models"
-
-          tr -d '\r' < /tmp/relay-cors.headers |             grep -i '^access-control-allow-origin: https://nolane-x.github.io$'
-
-          {
-            echo "## TypeSafe relay deployed"
-            echo
-            echo "Relay URL: $RELAY_URL"
-            echo
-            echo "- workers.dev bootstrap: verified"
-            echo "- Health endpoint: verified"
-            echo "- GitHub Pages CORS preflight: verified"
-            echo "- TypeSafe API key: not used or stored by this workflow"
-          } >> "$GITHUB_STEP_SUMMARY"
-
-
-          curl --fail --silent --show-error             --request OPTIONS             --header "Origin: https://nolane-x.github.io"             --header "Access-Control-Request-Method: GET"             --header "Access-Control-Request-Headers: Authorization,Accept"             --dump-header /tmp/relay-cors.headers             --output /dev/null             "$RELAY_URL/v1/models"
-
-          tr -d '\r' < /tmp/relay-cors.headers |             grep -i '^access-control-allow-origin: https://nolane-x.github.io$'
-
-          {
-            echo "## TypeSafe relay deployed"
-            echo
-            echo "Relay URL: $RELAY_URL"
-            echo
-            echo "- workers.dev bootstrap: verified"
-            echo "- Health endpoint: verified"
             echo "- GitHub Pages CORS preflight: verified"
             echo "- TypeSafe API key: not used or stored by this workflow"
           } >> "$GITHUB_STEP_SUMMARY"
