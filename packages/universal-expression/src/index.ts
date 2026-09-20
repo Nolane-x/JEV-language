@@ -321,3 +321,5 @@ export * from "./formal-projection.ts";
 export * from "./conversation-verification.ts";
 
 export * from "./conversation-language-router.ts";
+
+export * from "./verified-conversation-turn.ts";
