@@ -317,3 +317,5 @@ export * from "./controlled-adapters.ts";
 export * from "./translation.ts";
 
 export * from "./formal-projection.ts";
+
+export * from "./conversation-verification.ts";
