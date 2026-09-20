@@ -72,7 +72,7 @@ tasks:
   - {id: M19-PROTOCOL, title: preregistered blinded study manifest arm-coded stimuli human-rating import aggregation latency cost diversity and failure taxonomy, status: verified}
   - {id: M19-NATURAL-CONVERSATION, title: blinded natural-conversation research evaluation with semantic accuracy coherence template leakage diversity latency cost and failure taxonomy, status: partial}
   - {id: M19-HUMAN-DATA, title: collect and freeze real blinded evaluator ratings for the preregistered M19 study, status: todo}
-  - {id: M20-V1-CONFORMANCE, title: stable-package API docs ABI schema versions conformance migrations benchmark baseline limitations replayable demos and zero-generative audit, status: todo}
+  - {id: M20-V1-CONFORMANCE, title: stable-package API docs ABI schema versions conformance migrations benchmark baseline limitations replayable demos and zero-generative audit, status: implemented}
 vertical_slices:
   - {id: VS1, title: controlled English requirement parse-realize-roundtrip, status: implemented}
   - {id: VS2, title: recorded Jev Choice reference resolution with ambiguity preservation, status: implemented}
