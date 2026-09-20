@@ -272,13 +272,13 @@ export const validateLocaleFormattingProfile = (
   if (
     !nonEmpty(profile.id) ||
     !nonEmpty(profile.locale) ||
-    !nonEmpty(profile.decimalSeparator) ||
-    !nonEmpty(profile.groupSeparator) ||
+    profile.decimalSeparator.length === 0 ||
+    profile.groupSeparator.length === 0 ||
     profile.decimalSeparator === profile.groupSeparator ||
     !Number.isSafeInteger(profile.groupSize) ||
     profile.groupSize < 1 ||
-    !nonEmpty(profile.dateSeparator) ||
-    !nonEmpty(profile.timeSeparator) ||
+    profile.dateSeparator.length === 0 ||
+    profile.timeSeparator.length === 0 ||
     !["ymd", "dmy", "mdy"].includes(profile.dateOrder) ||
     !["preserve", "omit"].includes(profile.timezoneDisplay)
   ) {
