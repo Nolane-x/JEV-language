@@ -161,10 +161,10 @@ describe("JEV Language Playground conformance", () => {
   });
 
   it("deploys exactly the static playground directory through GitHub Pages", () => {
-    expect(pages).toContain("actions/upload-pages-artifact@v3");
-    expect(pages).toContain("actions/deploy-pages@v4");
+    expect(pages).toContain("actions/upload-pages-artifact@v4");
+    expect(pages).toContain("actions/deploy-pages@v5");
     expect(pages).toContain("path: ./playground");
     expect(pages).toContain("pages: write");
-    expect(pages).toContain("id-token: write");
+    expect(pages).toContain("id-token: write");\n    expect(pages).toContain("cancel-in-progress: false");\n    expect(pages).toContain("Pages setup diagnostic");
   });
 });
