@@ -1,3 +1,10 @@
+export const CORE_TYPES_PACKAGE_VERSION = "1.0.0" as const;
+export const CORE_TYPES_ABI_VERSION = "1.0.0" as const;
+export const CORE_TYPES_SCHEMA_VERSIONS = {
+  "jl-result-envelope": "1.0.0",
+  "jl-runtime-schema": "1.0.0",
+} as const;
+
 import { createHash, randomUUID } from "node:crypto";
 
 export type Maturity = "prototype" | "experimental" | "candidate" | "stable";
