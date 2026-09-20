@@ -1,0 +1,88 @@
+{
+  "schemaVersion": "jl-v1-conformance-manifest-1",
+  "releaseId": "jev-language-stable-core-v1",
+  "releaseVersion": "1.0.0",
+  "specVersion": "0.4-master-implementation-research-expanded",
+  "expectedStablePackages": [
+    "core-types",
+    "provenance"
+  ],
+  "packages": [
+    {
+      "packageId": "core-types",
+      "packageVersion": "1.0.0",
+      "maturity": "stable",
+      "abiVersion": "1.0.0",
+      "schemaVersions": {
+        "jl-result-envelope": "1.0.0",
+        "jl-runtime-schema": "1.0.0"
+      },
+      "artifacts": {
+        "public-api-docs": [
+          "packages/core-types/PACKAGE.md",
+          "docs/api/v1/core-types.md"
+        ],
+        "abi-schema-versioning": [
+          "packages/core-types/src/index.ts"
+        ],
+        "conformance-suites": [
+          "tests/conformance/m20-v1-conformance.conformance.test.ts"
+        ],
+        "migration-policy": [
+          "docs/migrations/v1-stable-core.md"
+        ],
+        "benchmark-baseline": [
+          "evals/manifests/v1-stable-core-baseline.json"
+        ],
+        "known-limitations": [
+          "docs/known-limitations-v1.json"
+        ],
+        "replayable-demos": [
+          "examples/v1/stable-core-replay.json"
+        ],
+        "zero-generative-audit": [
+          "examples/v1/stable-core-replay.json",
+          "tests/conformance/m20-v1-conformance.conformance.test.ts"
+        ]
+      }
+    },
+    {
+      "packageId": "provenance",
+      "packageVersion": "1.0.0",
+      "maturity": "stable",
+      "abiVersion": "1.0.0",
+      "schemaVersions": {
+        "jl-provenance-record": "1.0.0",
+        "jl-provenance-store-snapshot": "1.0.0"
+      },
+      "artifacts": {
+        "public-api-docs": [
+          "packages/provenance/PACKAGE.md",
+          "docs/api/v1/provenance.md"
+        ],
+        "abi-schema-versioning": [
+          "packages/provenance/src/index.ts"
+        ],
+        "conformance-suites": [
+          "tests/conformance/m20-v1-conformance.conformance.test.ts"
+        ],
+        "migration-policy": [
+          "docs/migrations/v1-stable-core.md"
+        ],
+        "benchmark-baseline": [
+          "evals/manifests/v1-stable-core-baseline.json"
+        ],
+        "known-limitations": [
+          "docs/known-limitations-v1.json"
+        ],
+        "replayable-demos": [
+          "examples/v1/stable-core-replay.json"
+        ],
+        "zero-generative-audit": [
+          "examples/v1/stable-core-replay.json",
+          "tests/conformance/m20-v1-conformance.conformance.test.ts"
+        ]
+      }
+    }
+  ]
+}
