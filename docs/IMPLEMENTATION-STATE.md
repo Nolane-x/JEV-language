@@ -59,12 +59,12 @@ partial_vertical_slices:
 known_failures: []
 blocked_items: []
 next_tasks:
-  - verify and deploy the experimental GitHub Pages Playground without widening engine capability claims
+  - perform one real BYOK browser-origin TypeSafe connection check from the deployed Playground without storing the key
   - collect real blinded human ratings before any M19 closure claim
   - report the observed M19 result even if negative or mixed
   - keep non-stable packages explicitly below stable until their own v1 evidence exists
-last_verified_main_commit: 3dcc22699f02d83342b5c802cc6aee67bb8ea02b
-last_verified_pr_head: 8cdbd3755bccb045a8e1b1fcb26e6fae2bf4b6eb
+last_verified_main_commit: ca2a22c12e6a948fe2c688bbe0c62d772bd1c87c
+last_verified_pr_head: 57ed0806fb1613e4bdb5248e8325aa84abd27113
 ```
 
 ## Current state
@@ -81,7 +81,7 @@ M20 v1 stable-core conformance for the non-vacuous stable set `core-types` + `pr
 
 The experimental GitHub Pages Playground is being built as a public BYOK test surface. It is explicitly constrained to current Jev-shaped interactions (typed yes/no, bounded choices, and coverage checks), keeps keys in tab memory only, and does not upgrade the engine's free-form generation claim. Pointer-reactive NUI visuals, reduced-motion/high-contrast alternatives, browser-runtime security checks, and deterministic conformance tests are part of the same change.
 
-## Implemented foundation
+The GitHub Pages Playground is deployed at `https://nolane-x.github.io/JEV-language/` from main commit `ca2a22c1`. PR CI #356 and merged-main CI #357 passed 78/78 test files and 634/634 tests with package boundaries and strict TypeScript green. Pages deployment workflow #2 completed successfully. The NUI inspection-light interaction and TypeSafe wire-response validation are merged. Authenticated browser CORS from the deployed origin remains a live BYOK verification item and is not inferred from static deployment.\n\n## Implemented foundation
 
 - Strict TypeScript / Node 20+ baseline.
 - Machine-readable package maturity/dependency DAG plus source-import boundary enforcement.

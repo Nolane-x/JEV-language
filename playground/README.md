@@ -1,6 +1,6 @@
 # JEV Language Playground
 
-Static GitHub Pages chat surface for the experimental JEV Language project.
+Static GitHub Pages chat surface for the experimental JEV Language project.\n\n## Live\n\nhttps://nolane-x.github.io/JEV-language/\n\nThe site is deployed from the `playground/` directory through GitHub Pages Actions. Static deployment and deterministic conformance are verified; authenticated browser CORS against TypeSafe remains a live BYOK check.
 
 ## Runtime model
 
@@ -9,7 +9,7 @@ Static GitHub Pages chat surface for the experimental JEV Language project.
 - the key is kept only in JavaScript memory for the current tab;
 - connection is validated with `GET https://api.typesafe.ai/v1/models`;
 - decisions are sent to `POST https://api.typesafe.ai/v1/systemone`;
-- no API key is persisted to localStorage, sessionStorage, cookies, or URL state.
+- no API key is persisted to localStorage, sessionStorage, cookies, or URL state;\n- successful provider payloads are runtime-validated before rendering.
 
 The current browser-safe surface intentionally focuses on Jev-shaped interactions:
 
@@ -25,7 +25,8 @@ The interface follows the project-local NUI design packet:
 
 - editorial/instrument aesthetic rather than generic AI neon;
 - warm-metal chroma budget on an obsidian canvas;
-- pointer-local illumination revealing grid/material detail;\n- an inertial inspection-light field: the lead light follows the pointer while a much softer material bloom trails behind, without moving controls or hiding information behind hover;
+- pointer-local illumination revealing grid/material detail;
+- an inertial inspection-light field: the lead light follows the pointer while a much softer material bloom trails behind, without moving controls or hiding information behind hover;
 - effect density concentrated around pointer, composer, focus, and new-message state;
 - reduced-motion and high-contrast branches;
 - responsive re-authoring for narrow screens.
