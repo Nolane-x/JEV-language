@@ -3,12 +3,12 @@
   "release": "1.0.0",
   "profile": "stable-core",
   "sourceCi": {
-    "runNumber": 339,
-    "commit": "1089d6a82e205cab861d382f0823576295be25b0",
-    "testFilesPassed": 76,
-    "testFilesTotal": 76,
-    "testsPassed": 617,
-    "testsTotal": 617,
+    "runNumber": 340,
+    "commit": "a577cb33d6d00841f958c6f7d772b98e859a814e",
+    "testFilesPassed": 77,
+    "testFilesTotal": 77,
+    "testsPassed": 624,
+    "testsTotal": 624,
     "boundariesPassed": true,
     "typecheckPassed": true
   },
