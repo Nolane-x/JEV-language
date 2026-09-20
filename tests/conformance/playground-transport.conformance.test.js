@@ -5,6 +5,7 @@ import {
   DIRECT_SYSTEM_ONE_URL,
   normalizeRelayBaseUrl,
   resolveApiEndpoint,
+  resolveRelayEndpoint,
 } from "../../playground/transport.js";
 import relay, { handleRequest } from "../../relay/worker.mjs";
 
@@ -25,16 +26,36 @@ describe("Playground transport boundary", () => {
     ).toBe(DIRECT_SYSTEM_ONE_URL);
   });
 
-  it("ships the verified relay as the browser default", () => {
+  it("ships one verified BYOK relay route without exposing fragile transport choice", () => {
     expect(playgroundApp).toContain(
       'const DEFAULT_RELAY_URL = "https://jev-language-typesafe-relay.nolane-file.workers.dev";',
     );
-    expect(playgroundApp).toContain('transport: "relay"');
     expect(playgroundApp).toContain("relayBaseUrl: DEFAULT_RELAY_URL");
-    expect(playgroundHtml).toContain('<option value="relay" selected>Verified relay</option>');
-    expect(playgroundHtml).toContain(
-      'value="https://jev-language-typesafe-relay.nolane-file.workers.dev"',
-    );
+    expect(playgroundApp).toContain('resolveRelayEndpoint({');
+    expect(playgroundHtml).not.toContain('id="transportSelect"');
+    expect(playgroundHtml).not.toContain("Direct TypeSafe");
+    expect(playgroundHtml).toContain("Secure JEV relay → TypeSafe");
+  });
+
+  it("resolves only the fixed health and TypeSafe relay paths", () => {
+    expect(
+      resolveRelayEndpoint({
+        relayBaseUrl: "https://x.workers.dev",
+        path: "/health",
+      }),
+    ).toBe("https://x.workers.dev/health");
+    expect(
+      resolveRelayEndpoint({
+        relayBaseUrl: "https://x.workers.dev",
+        path: "/v1/models",
+      }),
+    ).toBe("https://x.workers.dev/v1/models");
+    expect(() =>
+      resolveRelayEndpoint({
+        relayBaseUrl: "https://x.workers.dev",
+        path: "/https://evil.example",
+      }),
+    ).toThrow("Unsupported JEV relay path");
   });
 
   it("accepts only workers.dev or localhost relay origins", () => {
@@ -65,6 +86,27 @@ describe("Playground transport boundary", () => {
 
 describe("self-hosted TypeSafe relay", () => {
   const allowedOrigin = "https://nolane-x.github.io";
+
+  it("exposes browser-verifiable health only to an allowed origin", async () => {
+    const response = await handleRequest(
+      new Request("https://relay.example/health", {
+        method: "GET",
+        headers: { Origin: allowedOrigin },
+      }),
+      {},
+    );
+    expect(response.status).toBe(200);
+    expect(response.headers.get("access-control-allow-origin")).toBe(
+      allowedOrigin,
+    );
+    expect(response.headers.get("x-jev-relay")).toBe("1");
+    const body = await response.json();
+    expect(body).toMatchObject({
+      ok: true,
+      relay: "jev-language-typesafe",
+      stores_credentials: false,
+    });
+  });
 
   it("answers browser preflight only for an allowed origin", async () => {
     const allowed = await handleRequest(
