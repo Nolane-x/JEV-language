@@ -4,3 +4,14 @@ compatibility_date = "2026-09-20"
 
 [vars]
 ALLOWED_ORIGINS = "https://nolane-x.github.io,http://localhost:8000,http://127.0.0.1:8000"
+
+[ai]
+binding = "AI"
+
+[[ratelimits]]
+name = "PUBLIC_JEV_RATE_LIMITER"
+namespace_id = "1376586589"
+
+  [ratelimits.simple]
+  limit = 60
+  period = 60
