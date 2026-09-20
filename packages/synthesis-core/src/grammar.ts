@@ -277,6 +277,17 @@ export const validateSynthesisProblemSchema = (
       ),
     );
   }
+  if (
+    problem.requirements.length === 0 &&
+    problem.specification === undefined
+  ) {
+    return err(
+      new StructuredError(
+        "SYNTH_PROBLEM_SPECIFICATION_MISSING",
+        "Synthesis problem requires legacy requirements or a typed ProgramSpecification.",
+      ),
+    );
+  }
   if (problem.specification !== undefined) {
     const specification = validateProgramSpecification(problem.specification);
     if (!specification.ok) return specification;
@@ -301,6 +312,23 @@ export const validateSynthesisGrammar = (
     );
   }
 
+  if (grammar.productions.length === 0) {
+    return err(
+      new StructuredError(
+        "SYNTH_GRAMMAR_EMPTY",
+        "Synthesis grammar requires at least one production.",
+      ),
+    );
+  }
+  const knownFamilies = new Set<SynthesisProductionFamily>([
+    "literal",
+    "in-scope-symbol",
+    "function-call",
+    "branch",
+    "collection-pattern",
+    "return",
+    "plugin",
+  ]);
   const ids = grammar.productions.map((production) => production.id);
   if (!uniqueNonEmpty(ids)) {
     return err(
@@ -312,6 +340,7 @@ export const validateSynthesisGrammar = (
   }
   for (const production of grammar.productions) {
     if (
+      !knownFamilies.has(production.family) ||
       !validCost(production.baseCost) ||
       !uniqueNonEmpty(production.requiredCapabilities) ||
       !uniqueNonEmpty(production.requiredLibraries ?? []) ||
