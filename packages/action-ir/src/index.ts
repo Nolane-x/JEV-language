@@ -31,12 +31,24 @@ export type ActionSchema =
       additionalProperties?: boolean;
     };
 
+export type CapabilityExecutionMode =
+  | "deterministic"
+  | "external-tool"
+  | "human-mediated";
+
+export type CapabilityRiskLevel = "low" | "medium" | "high";
+
 export interface CapabilityDefinition {
   id: CapabilityActionId;
+  version?: string;
   description?: SemanticValue;
   input: ActionSchema;
   output: ActionSchema;
   sideEffect?: "none" | "read" | "write" | "external";
+  executionMode?: CapabilityExecutionMode;
+  riskLevel?: CapabilityRiskLevel;
+  requiresCapabilities?: CapabilityActionId[];
+  evidenceRefs?: string[];
   annotations?: Record<string, JsonValue>;
 }
 
@@ -98,6 +110,69 @@ export const validateCapabilityDefinition = (
       new StructuredError(
         "ACTION_CAPABILITY_ID",
         "Capability id must be non-empty.",
+      ),
+    );
+  }
+  if (
+    capability.version !== undefined &&
+    !/^\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?$/u.test(capability.version)
+  ) {
+    return err(
+      new StructuredError(
+        "ACTION_CAPABILITY_VERSION",
+        "Capability version must be semver when supplied.",
+      ),
+    );
+  }
+  if (
+    capability.executionMode !== undefined &&
+    !["deterministic", "external-tool", "human-mediated"].includes(
+      capability.executionMode,
+    )
+  ) {
+    return err(
+      new StructuredError(
+        "ACTION_CAPABILITY_EXECUTION_MODE",
+        "Capability execution mode is invalid.",
+      ),
+    );
+  }
+  if (
+    capability.riskLevel !== undefined &&
+    !["low", "medium", "high"].includes(capability.riskLevel)
+  ) {
+    return err(
+      new StructuredError(
+        "ACTION_CAPABILITY_RISK",
+        "Capability risk level is invalid.",
+      ),
+    );
+  }
+  for (const values of [
+    capability.requiresCapabilities ?? [],
+    capability.evidenceRefs ?? [],
+  ]) {
+    if (
+      values.some((value) => value.trim() === "") ||
+      new Set(values).size !== values.length
+    ) {
+      return err(
+        new StructuredError(
+          "ACTION_CAPABILITY_LIST",
+          "Capability requirement/evidence lists require unique non-empty ids.",
+        ),
+      );
+    }
+  }
+  if (
+    (capability.executionMode === "external-tool" ||
+      capability.executionMode === "human-mediated") &&
+    (capability.evidenceRefs?.length ?? 0) === 0
+  ) {
+    return err(
+      new StructuredError(
+        "ACTION_CAPABILITY_EVIDENCE",
+        "External/human-mediated capabilities require at least one evidence reference.",
       ),
     );
   }
@@ -398,4 +473,42 @@ export const renderActionIr = (
       ),
     );
   }
+};
+
+
+export const validateCapabilityRegistry = (
+  capabilities: readonly CapabilityDefinition[],
+): Result<CapabilityDefinition[]> => {
+  const ids = capabilities.map((capability) => capability.id);
+  if (
+    ids.some((id) => id.trim() === "") ||
+    new Set(ids).size !== ids.length
+  ) {
+    return err(
+      new StructuredError(
+        "ACTION_CAPABILITY_REGISTRY_ID",
+        "Capability registry requires unique non-empty ids.",
+      ),
+    );
+  }
+  const known = new Set(ids);
+  for (const capability of capabilities) {
+    const valid = validateCapabilityDefinition(capability);
+    if (!valid.ok) return err(valid.error);
+    for (const dependency of capability.requiresCapabilities ?? []) {
+      if (!known.has(dependency) || dependency === capability.id) {
+        return err(
+          new StructuredError(
+            "ACTION_CAPABILITY_DEPENDENCY",
+            `Capability ${capability.id} references an unknown or self dependency ${dependency}.`,
+          ),
+        );
+      }
+    }
+  }
+  return ok(
+    [...capabilities]
+      .sort((a, b) => a.id.localeCompare(b.id))
+      .map((item) => structuredClone(item)),
+  );
 };
