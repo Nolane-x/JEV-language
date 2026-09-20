@@ -1,0 +1,56 @@
+{
+  "schemaVersion": "jl-m19-scenario-pack-1",
+  "studyId": "m19-natural-conversation-v0.4",
+  "version": "1.0.0",
+  "items": [
+    {
+      "id": "m19-unseen-casual",
+      "conversationRef": "eval:m19:unseen-casual",
+      "languageTags": [
+        "en"
+      ],
+      "userTurns": [
+        "I picked up a tiny desk gadget at a flea market called a Brindlepin. It has one brass dial and no manual. I’m not asking you to identify it for sure—just help me think through what the dial might plausibly control.",
+        "Cool. If I wanted to test the safest possibility first without opening it, what would you try?"
+      ]
+    },
+    {
+      "id": "m19-technical-followup",
+      "conversationRef": "eval:m19:technical-followup",
+      "languageTags": [
+        "en"
+      ],
+      "userTurns": [
+        "I’m debugging a service called OrioleCache. A request can be retried at most 3 times, and the timeout is 800 ms. A timeout may trigger a retry, but a validation error must not. Can you summarize the rule precisely?",
+        "Now suppose request R17 times out twice and then succeeds. What state should I record after the success?",
+        "And if I later say “that request” in this thread, what should you treat it as referring to?"
+      ]
+    },
+    {
+      "id": "m19-correction-topic-return",
+      "conversationRef": "eval:m19:correction-topic-return",
+      "languageTags": [
+        "en"
+      ],
+      "userTurns": [
+        "I’m planning a small trip. For now remember: the museum is on Friday and the river walk is on Saturday. Start with a simple packing suggestion for Friday.",
+        "Actually, correction: I swapped them—the river walk is Friday and the museum is Saturday.",
+        "Before we return to packing, what did I just change?",
+        "Okay, go back to Friday packing now. What would you change based on the corrected plan?"
+      ]
+    },
+    {
+      "id": "m19-open-world-bilingual",
+      "conversationRef": "eval:m19:open-world-bilingual",
+      "languageTags": [
+        "vi",
+        "en"
+      ],
+      "userTurns": [
+        "Mình đang viết tài liệu cho module tên chính xác là Qavari-X9. Trong nhóm, bọn mình gọi thao tác `dustflip` là bước kiểm tra checksum nội bộ. Đừng dịch hoặc sửa hai tên này nhé. Bạn hiểu thế nào?",
+        "Now explain in English what I should preserve exactly if I hand this note to another developer.",
+        "Quay lại tiếng Việt nhé: viết một câu ngắn nhắc người khác chạy `dustflip` trên Qavari-X9 trước khi deploy."
+      ]
+    }
+  ]
+}
