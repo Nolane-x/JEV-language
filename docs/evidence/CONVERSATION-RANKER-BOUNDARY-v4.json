@@ -1,0 +1,768 @@
+{
+  "schema": "jev-language-conversation-ranker-boundary-v4",
+  "observed_at": "2026-09-20T13:17:00.025Z",
+  "source_sha": "3f8805d30b5499861e0964a5c968080adf7ab493",
+  "relay": "https://jev-language-typesafe-relay.nolane-file.workers.dev",
+  "origin": "https://nolane-x.github.io",
+  "request_budget": 20,
+  "requests_used": 20,
+  "credential_persisted": false,
+  "error_bodies_persisted": false,
+  "design": {
+    "base_pairs": 10,
+    "mirrored_requests_per_pair": 2,
+    "clear_preference_pairs": 5,
+    "near_tie_pairs": 5,
+    "current_gate": {
+      "min_confidence": 0.62,
+      "min_margin": 0.08
+    },
+    "near_tie_rule": "Near-tie pairs have no preregistered winner. The desired calibration behavior is low confidence/margin or gate abstention, not agreement with an invented gold label."
+  },
+  "summary": {
+    "successful_requests": 20,
+    "clear_preference_agreements": 10,
+    "clear_preference_requests": 10,
+    "clear_preference_agreement_rate": 1,
+    "clear_gate_accept_rate": 1,
+    "near_tie_gate_abstentions": 9,
+    "near_tie_requests": 10,
+    "near_tie_gate_abstention_rate": 0.9,
+    "near_tie_false_certainty_rate": 0,
+    "order_invariant_pairs": 8,
+    "complete_base_pairs": 10,
+    "order_invariance_rate": 0.8,
+    "option_a_selection_rate": 0.6,
+    "mean_clear_confidence": 0.977,
+    "mean_clear_margin": 0.98,
+    "mean_near_tie_confidence": 0.284,
+    "mean_near_tie_margin": 0.282,
+    "input_tokens": 9230,
+    "output_tokens": 680
+  },
+  "pair_summaries": [
+    {
+      "base_id": "vi-correction-clear",
+      "language": "vi",
+      "category": "clear-preference",
+      "complete": true,
+      "order_invariant": true,
+      "normal_selected_candidate": "candidate_a",
+      "mirrored_selected_candidate": "candidate_a",
+      "normal_margin": 0.96,
+      "mirrored_margin": 1,
+      "normal_confidence": 0.96,
+      "mirrored_confidence": 0.99
+    },
+    {
+      "base_id": "en-uncertainty-clear",
+      "language": "en",
+      "category": "clear-preference",
+      "complete": true,
+      "order_invariant": true,
+      "normal_selected_candidate": "candidate_a",
+      "mirrored_selected_candidate": "candidate_a",
+      "normal_margin": 1,
+      "mirrored_margin": 1,
+      "normal_confidence": 1,
+      "mirrored_confidence": 1
+    },
+    {
+      "base_id": "zh-register-clear",
+      "language": "zh-Hans",
+      "category": "clear-preference",
+      "complete": true,
+      "order_invariant": true,
+      "normal_selected_candidate": "candidate_a",
+      "mirrored_selected_candidate": "candidate_a",
+      "normal_margin": 1,
+      "mirrored_margin": 1,
+      "normal_confidence": 1,
+      "mirrored_confidence": 1
+    },
+    {
+      "base_id": "ja-workplace-clear",
+      "language": "ja",
+      "category": "clear-preference",
+      "complete": true,
+      "order_invariant": true,
+      "normal_selected_candidate": "candidate_a",
+      "mirrored_selected_candidate": "candidate_a",
+      "normal_margin": 1,
+      "mirrored_margin": 0.98,
+      "normal_confidence": 0.99,
+      "mirrored_confidence": 0.98
+    },
+    {
+      "base_id": "vi-en-code-switch-clear",
+      "language": "vi-en",
+      "category": "clear-preference",
+      "complete": true,
+      "order_invariant": true,
+      "normal_selected_candidate": "candidate_a",
+      "mirrored_selected_candidate": "candidate_a",
+      "normal_margin": 0.96,
+      "mirrored_margin": 0.9,
+      "normal_confidence": 0.96,
+      "mirrored_confidence": 0.89
+    },
+    {
+      "base_id": "vi-peer-near-tie",
+      "language": "vi",
+      "category": "near-tie",
+      "complete": true,
+      "order_invariant": true,
+      "normal_selected_candidate": "candidate_a",
+      "mirrored_selected_candidate": "candidate_a",
+      "normal_margin": 0,
+      "mirrored_margin": 0.18,
+      "normal_confidence": 0.01,
+      "mirrored_confidence": 0.19
+    },
+    {
+      "base_id": "en-punctuation-near-tie",
+      "language": "en",
+      "category": "near-tie",
+      "complete": true,
+      "order_invariant": false,
+      "normal_selected_candidate": "candidate_a",
+      "mirrored_selected_candidate": "candidate_b",
+      "normal_margin": 0.38,
+      "mirrored_margin": 0.46,
+      "normal_confidence": 0.38,
+      "mirrored_confidence": 0.46
+    },
+    {
+      "base_id": "zh-temporal-near-tie",
+      "language": "zh-Hans",
+      "category": "near-tie",
+      "complete": true,
+      "order_invariant": true,
+      "normal_selected_candidate": "candidate_a",
+      "mirrored_selected_candidate": "candidate_a",
+      "normal_margin": 0.76,
+      "mirrored_margin": 0.12,
+      "normal_confidence": 0.76,
+      "mirrored_confidence": 0.12
+    },
+    {
+      "base_id": "es-temporal-near-tie",
+      "language": "es",
+      "category": "near-tie",
+      "complete": true,
+      "order_invariant": false,
+      "normal_selected_candidate": "candidate_a",
+      "mirrored_selected_candidate": "candidate_b",
+      "normal_margin": 0.2,
+      "mirrored_margin": 0.02,
+      "normal_confidence": 0.19,
+      "mirrored_confidence": 0.02
+    },
+    {
+      "base_id": "ja-result-near-tie",
+      "language": "ja",
+      "category": "near-tie",
+      "complete": true,
+      "order_invariant": true,
+      "normal_selected_candidate": "candidate_a",
+      "mirrored_selected_candidate": "candidate_a",
+      "normal_margin": 0.52,
+      "mirrored_margin": 0.18,
+      "normal_confidence": 0.53,
+      "mirrored_confidence": 0.18
+    }
+  ],
+  "cases": [
+    {
+      "id": "vi-correction-clear:normal",
+      "base_id": "vi-correction-clear",
+      "mirrored": false,
+      "language": "vi",
+      "category": "clear-preference",
+      "ok": true,
+      "expected_option": "option_a",
+      "selected_option": "option_a",
+      "selected_candidate": "candidate_a",
+      "clear_preference_agreement": true,
+      "gate_accepts": true,
+      "observed": {
+        "confidence": 0.96,
+        "probabilities": {
+          "option_a": 0.98,
+          "option_b": 0.02
+        },
+        "margin": 0.96
+      },
+      "model": "jev-1.13.0",
+      "usage": {
+        "input_tokens": 482,
+        "output_tokens": 34
+      },
+      "latency_ms": 414,
+      "request_id": "req_01a0bef6702076f1b0c0c1823202b9bd",
+      "relay_header_verified": true,
+      "cors_origin_verified": true
+    },
+    {
+      "id": "vi-correction-clear:mirrored",
+      "base_id": "vi-correction-clear",
+      "mirrored": true,
+      "language": "vi",
+      "category": "clear-preference",
+      "ok": true,
+      "expected_option": "option_b",
+      "selected_option": "option_b",
+      "selected_candidate": "candidate_a",
+      "clear_preference_agreement": true,
+      "gate_accepts": true,
+      "observed": {
+        "confidence": 0.99,
+        "probabilities": {
+          "option_a": 0,
+          "option_b": 1
+        },
+        "margin": 1
+      },
+      "model": "jev-1.13.0",
+      "usage": {
+        "input_tokens": 482,
+        "output_tokens": 34
+      },
+      "latency_ms": 242,
+      "request_id": "req_01a0bef671297a18bf00b7e692f70482",
+      "relay_header_verified": true,
+      "cors_origin_verified": true
+    },
+    {
+      "id": "en-uncertainty-clear:normal",
+      "base_id": "en-uncertainty-clear",
+      "mirrored": false,
+      "language": "en",
+      "category": "clear-preference",
+      "ok": true,
+      "expected_option": "option_a",
+      "selected_option": "option_a",
+      "selected_candidate": "candidate_a",
+      "clear_preference_agreement": true,
+      "gate_accepts": true,
+      "observed": {
+        "confidence": 1,
+        "probabilities": {
+          "option_b": 0,
+          "option_a": 1
+        },
+        "margin": 1
+      },
+      "model": "jev-1.13.0",
+      "usage": {
+        "input_tokens": 430,
+        "output_tokens": 34
+      },
+      "latency_ms": 158,
+      "request_id": "req_01a0bef671d37e0291fc803b489762c4",
+      "relay_header_verified": true,
+      "cors_origin_verified": true
+    },
+    {
+      "id": "en-uncertainty-clear:mirrored",
+      "base_id": "en-uncertainty-clear",
+      "mirrored": true,
+      "language": "en",
+      "category": "clear-preference",
+      "ok": true,
+      "expected_option": "option_b",
+      "selected_option": "option_b",
+      "selected_candidate": "candidate_a",
+      "clear_preference_agreement": true,
+      "gate_accepts": true,
+      "observed": {
+        "confidence": 1,
+        "probabilities": {
+          "option_b": 1,
+          "option_a": 0
+        },
+        "margin": 1
+      },
+      "model": "jev-1.13.0",
+      "usage": {
+        "input_tokens": 430,
+        "output_tokens": 34
+      },
+      "latency_ms": 200,
+      "request_id": "req_01a0bef672b37f5abc69ee7bd3e4f7f6",
+      "relay_header_verified": true,
+      "cors_origin_verified": true
+    },
+    {
+      "id": "zh-register-clear:normal",
+      "base_id": "zh-register-clear",
+      "mirrored": false,
+      "language": "zh-Hans",
+      "category": "clear-preference",
+      "ok": true,
+      "expected_option": "option_a",
+      "selected_option": "option_a",
+      "selected_candidate": "candidate_a",
+      "clear_preference_agreement": true,
+      "gate_accepts": true,
+      "observed": {
+        "confidence": 1,
+        "probabilities": {
+          "option_b": 0,
+          "option_a": 1
+        },
+        "margin": 1
+      },
+      "model": "jev-1.13.0",
+      "usage": {
+        "input_tokens": 467,
+        "output_tokens": 34
+      },
+      "latency_ms": 139,
+      "request_id": "req_01a0bef6733b7002ba05f7780d4a7c8f",
+      "relay_header_verified": true,
+      "cors_origin_verified": true
+    },
+    {
+      "id": "zh-register-clear:mirrored",
+      "base_id": "zh-register-clear",
+      "mirrored": true,
+      "language": "zh-Hans",
+      "category": "clear-preference",
+      "ok": true,
+      "expected_option": "option_b",
+      "selected_option": "option_b",
+      "selected_candidate": "candidate_a",
+      "clear_preference_agreement": true,
+      "gate_accepts": true,
+      "observed": {
+        "confidence": 1,
+        "probabilities": {
+          "option_b": 1,
+          "option_a": 0
+        },
+        "margin": 1
+      },
+      "model": "jev-1.13.0",
+      "usage": {
+        "input_tokens": 467,
+        "output_tokens": 34
+      },
+      "latency_ms": 151,
+      "request_id": "req_01a0bef673c77a7b8ab6dc7c49815dfa",
+      "relay_header_verified": true,
+      "cors_origin_verified": true
+    },
+    {
+      "id": "ja-workplace-clear:normal",
+      "base_id": "ja-workplace-clear",
+      "mirrored": false,
+      "language": "ja",
+      "category": "clear-preference",
+      "ok": true,
+      "expected_option": "option_a",
+      "selected_option": "option_a",
+      "selected_candidate": "candidate_a",
+      "clear_preference_agreement": true,
+      "gate_accepts": true,
+      "observed": {
+        "confidence": 0.99,
+        "probabilities": {
+          "option_b": 0,
+          "option_a": 1
+        },
+        "margin": 1
+      },
+      "model": "jev-1.13.0",
+      "usage": {
+        "input_tokens": 489,
+        "output_tokens": 34
+      },
+      "latency_ms": 192,
+      "request_id": "req_01a0bef6746079a7bfbc3cc070c9db96",
+      "relay_header_verified": true,
+      "cors_origin_verified": true
+    },
+    {
+      "id": "ja-workplace-clear:mirrored",
+      "base_id": "ja-workplace-clear",
+      "mirrored": true,
+      "language": "ja",
+      "category": "clear-preference",
+      "ok": true,
+      "expected_option": "option_b",
+      "selected_option": "option_b",
+      "selected_candidate": "candidate_a",
+      "clear_preference_agreement": true,
+      "gate_accepts": true,
+      "observed": {
+        "confidence": 0.98,
+        "probabilities": {
+          "option_a": 0.01,
+          "option_b": 0.99
+        },
+        "margin": 0.98
+      },
+      "model": "jev-1.13.0",
+      "usage": {
+        "input_tokens": 489,
+        "output_tokens": 34
+      },
+      "latency_ms": 140,
+      "request_id": "req_01a0bef6752175feaa651169adc88259",
+      "relay_header_verified": true,
+      "cors_origin_verified": true
+    },
+    {
+      "id": "vi-en-code-switch-clear:normal",
+      "base_id": "vi-en-code-switch-clear",
+      "mirrored": false,
+      "language": "vi-en",
+      "category": "clear-preference",
+      "ok": true,
+      "expected_option": "option_a",
+      "selected_option": "option_a",
+      "selected_candidate": "candidate_a",
+      "clear_preference_agreement": true,
+      "gate_accepts": true,
+      "observed": {
+        "confidence": 0.96,
+        "probabilities": {
+          "option_a": 0.98,
+          "option_b": 0.02
+        },
+        "margin": 0.96
+      },
+      "model": "jev-1.13.0",
+      "usage": {
+        "input_tokens": 435,
+        "output_tokens": 34
+      },
+      "latency_ms": 204,
+      "request_id": "req_01a0bef675f07bffb6867df776c31f35",
+      "relay_header_verified": true,
+      "cors_origin_verified": true
+    },
+    {
+      "id": "vi-en-code-switch-clear:mirrored",
+      "base_id": "vi-en-code-switch-clear",
+      "mirrored": true,
+      "language": "vi-en",
+      "category": "clear-preference",
+      "ok": true,
+      "expected_option": "option_b",
+      "selected_option": "option_b",
+      "selected_candidate": "candidate_a",
+      "clear_preference_agreement": true,
+      "gate_accepts": true,
+      "observed": {
+        "confidence": 0.89,
+        "probabilities": {
+          "option_b": 0.95,
+          "option_a": 0.05
+        },
+        "margin": 0.9
+      },
+      "model": "jev-1.13.0",
+      "usage": {
+        "input_tokens": 435,
+        "output_tokens": 34
+      },
+      "latency_ms": 147,
+      "request_id": "req_01a0bef6767b7e769e86a50e6a57bc7d",
+      "relay_header_verified": true,
+      "cors_origin_verified": true
+    },
+    {
+      "id": "vi-peer-near-tie:normal",
+      "base_id": "vi-peer-near-tie",
+      "mirrored": false,
+      "language": "vi",
+      "category": "near-tie",
+      "ok": true,
+      "selected_option": "option_a",
+      "selected_candidate": "candidate_a",
+      "clear_preference_agreement": null,
+      "gate_accepts": false,
+      "observed": {
+        "confidence": 0.01,
+        "probabilities": {
+          "option_b": 0.5,
+          "option_a": 0.5
+        },
+        "margin": 0
+      },
+      "model": "jev-1.13.0",
+      "usage": {
+        "input_tokens": 461,
+        "output_tokens": 34
+      },
+      "latency_ms": 120,
+      "request_id": "req_01a0bef6770e772d93c52f51bee6a46f",
+      "relay_header_verified": true,
+      "cors_origin_verified": true
+    },
+    {
+      "id": "vi-peer-near-tie:mirrored",
+      "base_id": "vi-peer-near-tie",
+      "mirrored": true,
+      "language": "vi",
+      "category": "near-tie",
+      "ok": true,
+      "selected_option": "option_b",
+      "selected_candidate": "candidate_a",
+      "clear_preference_agreement": null,
+      "gate_accepts": false,
+      "observed": {
+        "confidence": 0.19,
+        "probabilities": {
+          "option_b": 0.59,
+          "option_a": 0.41
+        },
+        "margin": 0.18
+      },
+      "model": "jev-1.13.0",
+      "usage": {
+        "input_tokens": 461,
+        "output_tokens": 34
+      },
+      "latency_ms": 189,
+      "request_id": "req_01a0bef6778776a698a4880ac838950e",
+      "relay_header_verified": true,
+      "cors_origin_verified": true
+    },
+    {
+      "id": "en-punctuation-near-tie:normal",
+      "base_id": "en-punctuation-near-tie",
+      "mirrored": false,
+      "language": "en",
+      "category": "near-tie",
+      "ok": true,
+      "selected_option": "option_a",
+      "selected_candidate": "candidate_a",
+      "clear_preference_agreement": null,
+      "gate_accepts": false,
+      "observed": {
+        "confidence": 0.38,
+        "probabilities": {
+          "option_a": 0.69,
+          "option_b": 0.31
+        },
+        "margin": 0.38
+      },
+      "model": "jev-1.13.0",
+      "usage": {
+        "input_tokens": 432,
+        "output_tokens": 34
+      },
+      "latency_ms": 178,
+      "request_id": "req_01a0bef6784270ab931b1951426e2358",
+      "relay_header_verified": true,
+      "cors_origin_verified": true
+    },
+    {
+      "id": "en-punctuation-near-tie:mirrored",
+      "base_id": "en-punctuation-near-tie",
+      "mirrored": true,
+      "language": "en",
+      "category": "near-tie",
+      "ok": true,
+      "selected_option": "option_a",
+      "selected_candidate": "candidate_b",
+      "clear_preference_agreement": null,
+      "gate_accepts": false,
+      "observed": {
+        "confidence": 0.46,
+        "probabilities": {
+          "option_b": 0.27,
+          "option_a": 0.73
+        },
+        "margin": 0.46
+      },
+      "model": "jev-1.13.0",
+      "usage": {
+        "input_tokens": 432,
+        "output_tokens": 34
+      },
+      "latency_ms": 108,
+      "request_id": "req_01a0bef678f677abbd4dff5d45aca052",
+      "relay_header_verified": true,
+      "cors_origin_verified": true
+    },
+    {
+      "id": "zh-temporal-near-tie:normal",
+      "base_id": "zh-temporal-near-tie",
+      "mirrored": false,
+      "language": "zh-Hans",
+      "category": "near-tie",
+      "ok": true,
+      "selected_option": "option_a",
+      "selected_candidate": "candidate_a",
+      "clear_preference_agreement": null,
+      "gate_accepts": true,
+      "observed": {
+        "confidence": 0.76,
+        "probabilities": {
+          "option_a": 0.88,
+          "option_b": 0.12
+        },
+        "margin": 0.76
+      },
+      "model": "jev-1.13.0",
+      "usage": {
+        "input_tokens": 467,
+        "output_tokens": 34
+      },
+      "latency_ms": 135,
+      "request_id": "req_01a0bef67966733aa60ef4f72ebb953f",
+      "relay_header_verified": true,
+      "cors_origin_verified": true
+    },
+    {
+      "id": "zh-temporal-near-tie:mirrored",
+      "base_id": "zh-temporal-near-tie",
+      "mirrored": true,
+      "language": "zh-Hans",
+      "category": "near-tie",
+      "ok": true,
+      "selected_option": "option_b",
+      "selected_candidate": "candidate_a",
+      "clear_preference_agreement": null,
+      "gate_accepts": false,
+      "observed": {
+        "confidence": 0.12,
+        "probabilities": {
+          "option_b": 0.56,
+          "option_a": 0.44
+        },
+        "margin": 0.12
+      },
+      "model": "jev-1.13.0",
+      "usage": {
+        "input_tokens": 467,
+        "output_tokens": 34
+      },
+      "latency_ms": 149,
+      "request_id": "req_01a0bef679ea7d649682b6a76c60817d",
+      "relay_header_verified": true,
+      "cors_origin_verified": true
+    },
+    {
+      "id": "es-temporal-near-tie:normal",
+      "base_id": "es-temporal-near-tie",
+      "mirrored": false,
+      "language": "es",
+      "category": "near-tie",
+      "ok": true,
+      "selected_option": "option_a",
+      "selected_candidate": "candidate_a",
+      "clear_preference_agreement": null,
+      "gate_accepts": false,
+      "observed": {
+        "confidence": 0.19,
+        "probabilities": {
+          "option_a": 0.6,
+          "option_b": 0.4
+        },
+        "margin": 0.2
+      },
+      "model": "jev-1.13.0",
+      "usage": {
+        "input_tokens": 446,
+        "output_tokens": 34
+      },
+      "latency_ms": 144,
+      "request_id": "req_01a0bef67a8d767ca61c09fb4263f713",
+      "relay_header_verified": true,
+      "cors_origin_verified": true
+    },
+    {
+      "id": "es-temporal-near-tie:mirrored",
+      "base_id": "es-temporal-near-tie",
+      "mirrored": true,
+      "language": "es",
+      "category": "near-tie",
+      "ok": true,
+      "selected_option": "option_a",
+      "selected_candidate": "candidate_b",
+      "clear_preference_agreement": null,
+      "gate_accepts": false,
+      "observed": {
+        "confidence": 0.02,
+        "probabilities": {
+          "option_b": 0.49,
+          "option_a": 0.51
+        },
+        "margin": 0.02
+      },
+      "model": "jev-1.13.0",
+      "usage": {
+        "input_tokens": 446,
+        "output_tokens": 34
+      },
+      "latency_ms": 146,
+      "request_id": "req_01a0bef67b187fef9422d2909499e639",
+      "relay_header_verified": true,
+      "cors_origin_verified": true
+    },
+    {
+      "id": "ja-result-near-tie:normal",
+      "base_id": "ja-result-near-tie",
+      "mirrored": false,
+      "language": "ja",
+      "category": "near-tie",
+      "ok": true,
+      "selected_option": "option_a",
+      "selected_candidate": "candidate_a",
+      "clear_preference_agreement": null,
+      "gate_accepts": false,
+      "observed": {
+        "confidence": 0.53,
+        "probabilities": {
+          "option_a": 0.76,
+          "option_b": 0.24
+        },
+        "margin": 0.52
+      },
+      "model": "jev-1.13.0",
+      "usage": {
+        "input_tokens": 506,
+        "output_tokens": 34
+      },
+      "latency_ms": 146,
+      "request_id": "req_01a0bef67ba47c4e9468919115febbc3",
+      "relay_header_verified": true,
+      "cors_origin_verified": true
+    },
+    {
+      "id": "ja-result-near-tie:mirrored",
+      "base_id": "ja-result-near-tie",
+      "mirrored": true,
+      "language": "ja",
+      "category": "near-tie",
+      "ok": true,
+      "selected_option": "option_b",
+      "selected_candidate": "candidate_a",
+      "clear_preference_agreement": null,
+      "gate_accepts": false,
+      "observed": {
+        "confidence": 0.18,
+        "probabilities": {
+          "option_b": 0.59,
+          "option_a": 0.41
+        },
+        "margin": 0.18
+      },
+      "model": "jev-1.13.0",
+      "usage": {
+        "input_tokens": 506,
+        "output_tokens": 34
+      },
+      "latency_ms": 226,
+      "request_id": "req_01a0bef67c3b7435addd2e2598ab5950",
+      "relay_header_verified": true,
+      "cors_origin_verified": true
+    }
+  ],
+  "interpretation": "This v4 experiment probes calibration at the preference boundary. Clear pairs test contextual ranking; near-tie pairs intentionally have no gold winner and test whether confidence/margin gating avoids false certainty. It does not substitute for blinded human naturalness ratings."
+}
