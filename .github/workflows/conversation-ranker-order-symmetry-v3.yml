@@ -1,0 +1,61 @@
+name: Conversation Ranker Order Symmetry v3
+
+on:
+  workflow_dispatch:
+    inputs:
+      confirm:
+        description: "Type YES to spend exactly 20 TypeSafe/Jev requests for the mirrored subtle conversation-ranker evaluation"
+        required: true
+        default: "NO"
+  push:
+    branches:
+      - main
+    paths:
+      - .github/conversation-ranker-order-symmetry-v3.trigger
+
+permissions:
+  contents: write
+
+jobs:
+  conversation-ranker-order-symmetry-v3:
+    if: ${{ github.event_name == 'push' || inputs.confirm == 'YES' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install
+        run: |
+          set -euo pipefail
+          for attempt in 1 2 3; do
+            if npm install --ignore-scripts --no-audit --no-fund; then
+              exit 0
+            fi
+            npm cache clean --force || true
+            sleep $((attempt * 2))
+          done
+          exit 1
+
+      - name: Run mirrored subtle conversation-ranker evaluation
+        env:
+          TYPESAFE_API_KEY: ${{ secrets.TYPESAFE_API_KEY }}
+          JEV_ALLOW_LIVE: "1"
+          JEV_LIVE_MAX_REQUESTS: "20"
+          JEV_RELAY_URL: "https://jev-language-typesafe-relay.nolane-file.workers.dev"
+        run: |
+          npx tsx scripts/conversation-ranker-order-symmetry-v3.ts > /tmp/conversation-ranker-order-symmetry-v3.json
+          cat /tmp/conversation-ranker-order-symmetry-v3.json
+
+      - name: Freeze sanitized evidence
+        run: |
+          set -euo pipefail
+          mkdir -p docs/evidence
+          cp /tmp/conversation-ranker-order-symmetry-v3.json docs/evidence/CONVERSATION-RANKER-ORDER-SYMMETRY-v3.json
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add docs/evidence/CONVERSATION-RANKER-ORDER-SYMMETRY-v3.json
+          git commit -m "chore: record conversation-ranker order-symmetry evidence [skip ci]"
+          git push origin HEAD:main
