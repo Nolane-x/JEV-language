@@ -159,6 +159,20 @@ export const validateErrorFlow = (
     );
   }
   const known = new Set(descriptorIds);
+  for (const descriptor of descriptors) {
+    if (descriptor.retryable && !descriptor.recoverable) {
+      return err(
+        new StructuredError(
+          "PIR_ERROR_RETRYABILITY",
+          `Retryable error ${descriptor.id} must also be recoverable.`,
+        ),
+      );
+    }
+    if (descriptor.effects !== undefined) {
+      const effects = normalizeEffectSet(descriptor.effects);
+      if (!effects.ok) return err(effects.error);
+    }
+  }
   for (const [label, refs] of Object.entries(flow)) {
     if (!uniqueNonEmpty(refs) || refs.some((ref) => !known.has(ref))) {
       return err(
@@ -168,6 +182,18 @@ export const validateErrorFlow = (
         ),
       );
     }
+  }
+  const thrown = new Set(flow.thrown);
+  if (
+    flow.handled.some((id) => !thrown.has(id)) ||
+    flow.propagated.some((id) => !thrown.has(id))
+  ) {
+    return err(
+      new StructuredError(
+        "PIR_ERROR_FLOW_SOURCE",
+        "Handled and propagated errors must originate in the thrown set.",
+      ),
+    );
   }
   if (
     flow.handled.some((id) => flow.propagated.includes(id))
@@ -216,8 +242,25 @@ export const validateTaskGraph = (
     );
   }
   const known = new Set(ids);
+  const states = new Set<PirTaskState>([
+    "declared",
+    "scheduled",
+    "running",
+    "completed",
+    "failed",
+    "cancelled",
+  ]);
+  const cancellationModes = new Set([
+    "unsupported",
+    "cooperative",
+    "preemptive",
+  ]);
   for (const task of tasks) {
+    const effects = normalizeEffectSet(task.effects);
     if (
+      !states.has(task.state) ||
+      !cancellationModes.has(task.cancellation) ||
+      !effects.ok ||
       !uniqueNonEmpty(task.dependencies) ||
       task.dependencies.some((dependency) => !known.has(dependency)) ||
       task.dependencies.includes(task.id)
@@ -689,8 +732,10 @@ export const validateClosureDescriptor = (
   closure: PirClosureDescriptor,
   visibleSymbols: readonly ProgramRef[],
 ): Result<void> => {
+  const closureEffects = normalizeEffectSet(closure.effects);
   if (
     closure.id.trim() === "" ||
+    !closureEffects.ok ||
     !uniqueNonEmpty(closure.parameters) ||
     !uniqueNonEmpty(visibleSymbols)
   ) {
@@ -739,6 +784,7 @@ export const validateOpaqueMetaOperation = (
   if (
     operation.id.trim() === "" ||
     operation.backend.trim() === "" ||
+    !["reflection", "metaprogramming"].includes(operation.kind) ||
     operation.executable !== false ||
     !uniqueNonEmpty(operation.evidenceRefs)
   ) {
