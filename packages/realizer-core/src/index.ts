@@ -6,6 +6,7 @@ export * from "./naturalness.ts";
 export * from "./conversation-candidates.ts";
 export * from "./conversation-lattice.ts";
 export * from "./conversation-style-memory.ts";
+export * from "./conversation-selection-pipeline.ts";
 export * from "./expanded-en.ts";
 export * from "./expanded-document-en.ts";
 export * from "./controlled-corpus-vi.ts";
