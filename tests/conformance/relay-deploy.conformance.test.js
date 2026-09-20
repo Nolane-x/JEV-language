@@ -53,6 +53,11 @@ describe("Cloudflare relay deployment workflow", () => {
     expect(workflow).toContain(
       "access-control-allow-origin: https://nolane-x.github.io",
     );
+    expect(workflow).toContain("access-control-expose-headers:");
+    expect(workflow).toContain("x-jev-relay");
+    expect(workflow).toContain(
+      "Browser-readable X-JEV-Relay exposure: verified",
+    );
   });
 
   it("documents the secret-safe setup instead of repository plaintext credentials", () => {
