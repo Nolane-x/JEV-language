@@ -1,3 +1,4 @@
+import type { LanguagePackFeatureManifest } from "./conformance.ts";
 import { assertTypologyProviderLanguages, type TypologyProviderBundle } from "./typology.ts";
 import type { SemanticId } from "../../core-types/src/index.ts";
 import type { GrammarCoverageMatrix, GrammarRegistry } from "../../grammar-core/src/index.ts";
@@ -171,6 +172,7 @@ export interface HumanLanguagePack<
   TDiscourseChoice,
 > {
   manifest: LanguagePackManifest;
+  featureManifest: LanguagePackFeatureManifest;
   tokenizer: TokenizerProvider<TToken>;
   morphology: MorphologyProvider;
   lexicon: LexiconProvider;
@@ -193,6 +195,7 @@ export interface HumanLanguagePack<
 
 export interface LanguagePackIdentityView {
   manifest: Pick<LanguagePackManifest, "id" | "languageTag">;
+  featureManifest?: Pick<LanguagePackFeatureManifest, "language">;
   tokenizer: Pick<TokenizerProvider<unknown>, "language">;
   morphology: Pick<MorphologyProvider, "language">;
   lexicon: Pick<LexiconProvider, "language">;
@@ -211,6 +214,7 @@ export const assertLanguagePackIdentity = (
 ): void => {
   const language = pack.manifest.languageTag;
   const providerLanguages = [
+    ...(pack.featureManifest === undefined ? [] : [pack.featureManifest.language]),
     pack.tokenizer.language,
     pack.morphology.language,
     pack.lexicon.language,
@@ -239,3 +243,5 @@ export const assertLanguagePackIdentity = (
 export * from "./open-world-lexicon.ts";
 
 export * from "./typology.ts";
+
+export * from "./conformance.ts";

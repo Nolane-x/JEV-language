@@ -21,3 +21,18 @@ T342 adds an optional presupposition-trigger registry provider to the shared lan
 
 
 T402-T410 typology expansion adds optional zero-realization/pro-drop, classifier-selection, social-deixis/honorific, constituent-order, morphological-construction and code-switch metadata contracts. Conformance mock packs exercise contrasting SOV/VSO/non-projective profiles without moving language-specific surfaces into the shared core.
+
+
+T431-T440 language-pack conformance candidate adds:
+
+- a versioned feature manifest with explicit parse/generate coverage and evidence refs;
+- shared versus language-specific construction ownership;
+- language-scoped semantic-extension namespaces;
+- locale-formatting profiles independent from language identity;
+- deterministic number rendering strategies;
+- date/time realization that preserves declared precision and source timezone evidence;
+- enforceable mixed-language realization policies;
+- ordered preserve/borrow/transliterate fallback with explicit provenance requirements;
+- a deterministic conformance runner used by the real English and Vietnamese packs.
+
+Coverage declarations are evidence-bearing claims, not capability inference. A language pack may declare unsupported or partial coverage without failing conformance; claiming supported coverage without evidence fails validation.

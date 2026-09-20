@@ -59,8 +59,9 @@ tasks:
   - {id: T391-T400, title: lexeme sense separation selectional preferences multiwords entity aliases unknown lexemes proposals Unicode graphemes transliteration and held-out benchmark, status: verified}
   - {id: T401-T410, title: extensible morphology zero realization classifiers social deixis free order discontinuity nonprojectivity constructions code switch and typology mock packs, status: verified}
   - {id: T411-T420, title: semantic transfer translation invariant verification forced disambiguation lexical lattice packed forests typed composition holes pruning ranking and parser profiles, status: verified}
-  - {id: T421-T430, title: incremental parse state provisional committed semantics recovery diagnostics realization lattice constraints objectives ambiguity aggregation fallback and deterministic replay, status: implemented}
-  - {id: T431+, title: remaining v0.4 research-expansion semantics/synthesis/conformance tasks, status: todo}
+  - {id: T421-T430, title: incremental parse state provisional committed semantics recovery diagnostics realization lattice constraints objectives ambiguity aggregation fallback and deterministic replay, status: verified}
+  - {id: T431-T440, title: language pack feature manifests parse generate coverage construction ownership semantic extension namespaces locale number temporal mixed language fallback policies and conformance runner, status: implemented}
+  - {id: T441+, title: remaining v0.4 research-expansion semantics/synthesis/conformance tasks, status: todo}
 vertical_slices:
   - {id: VS1, title: controlled English requirement parse-realize-roundtrip, status: implemented}
   - {id: VS2, title: recorded Jev Choice reference resolution with ambiguity preservation, status: implemented}
