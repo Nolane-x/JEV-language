@@ -252,6 +252,7 @@
       "dependencies": [
         "action-ir",
         "core-types",
+        "dialogue-state",
         "discourse-ir",
         "formal-ir",
         "language-en",
