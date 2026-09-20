@@ -1,0 +1,30 @@
+{
+  "schemaVersion": "jl-known-limitations-1",
+  "release": "1.0.0",
+  "stablePackages": {
+    "core-types": [
+      {
+        "id": "core.ids.nondeterministic",
+        "description": "createSemanticId() and createTraceId() use time/UUID sources and are not deterministic replay primitives.",
+        "workaround": "Capture generated IDs in replay evidence or supply fixed IDs in deterministic fixtures."
+      },
+      {
+        "id": "core.runtime-schema.guard-only",
+        "description": "runtimeSchema() wraps a caller-supplied type guard; it does not derive schemas automatically.",
+        "workaround": "Provide explicit guards and conformance tests for external inputs."
+      }
+    ],
+    "provenance": [
+      {
+        "id": "provenance.store.in-memory",
+        "description": "InMemoryProvenanceStore has no durable persistence or transaction log.",
+        "workaround": "Persist snapshots in a downstream storage adapter with independent integrity controls."
+      },
+      {
+        "id": "provenance.base-store.no-trust-verification",
+        "description": "The base store records trust metadata but does not itself prove ancestry or prevent trust escalation.",
+        "workaround": "Use verifier-core provenance/trust checks before treating provenance as authoritative evidence."
+      }
+    ]
+  }
+}
