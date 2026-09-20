@@ -64,7 +64,7 @@ const engineeringCases = (): EngineeringCase[] => [
   {
     id: "vi-teacher-respectful-ack",
     language: "vi",
-    preferredSurface: "Dạ, em hiểu rồi. em sẽ sửa phần đó.",
+    preferredSurface: "Dạ, em hiểu rồi. Em sẽ sửa phần đó.",
     generated: requireVi({
       id: "vi:teacher-recall",
       content: "{{speaker}} hiểu rồi. {{speaker}} sẽ sửa phần đó.",
@@ -97,7 +97,7 @@ const engineeringCases = (): EngineeringCase[] => [
   {
     id: "vi-peer-softener",
     language: "vi",
-    preferredSurface: "mình kiểm tra rồi, hiện chưa thấy lỗi nào nhé.",
+    preferredSurface: "Mình kiểm tra rồi, hiện chưa thấy lỗi nào nhé.",
     generated: requireVi({
       id: "vi:peer-softener-recall",
       content: "{{speaker}} kiểm tra rồi, hiện chưa thấy lỗi nào.",
@@ -223,13 +223,13 @@ describe("conversation microgrammar preferred-variant recall integration", () =>
     expect(report.value.preferredHitRate).toBe(0.8);
     expect(report.value.misses).toEqual([
       {
-        id: "en-hedging-unsupported",
-        language: "en",
+        id: "vi-topic-comment-unsupported",
+        language: "vi",
         kind: "no-preferred-candidate",
       },
       {
-        id: "vi-topic-comment-unsupported",
-        language: "vi",
+        id: "en-hedging-unsupported",
+        language: "en",
         kind: "no-preferred-candidate",
       },
     ]);
