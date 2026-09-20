@@ -73,6 +73,21 @@ tasks:
   - {id: M19-NATURAL-CONVERSATION, title: blinded natural-conversation research evaluation with semantic accuracy coherence template leakage diversity latency cost and failure taxonomy, status: partial}
   - {id: M19-HUMAN-DATA, title: collect and freeze real blinded evaluator ratings for the preregistered M19 study, status: todo}
   - {id: M20-V1-CONFORMANCE, title: stable-package API docs ABI schema versions conformance migrations benchmark baseline limitations replayable demos and zero-generative audit, status: verified}
+  - {id: NC-01, title: bounded conversation candidate ABI, status: verified}
+  - {id: NC-02, title: Jev conversational surface-ranker Decision Pack, status: verified}
+  - {id: NC-03, title: bounded multilingual conversational live-ranker stress evidence, status: verified}
+  - {id: NC-04, title: typed response semantic plan for dialogue act epistemic social register reference correction and code-switch context, status: verified}
+  - {id: NC-05, title: verified diverse conversation candidate lattice, status: verified}
+  - {id: NC-06, title: wire semantic-preservation verifier evidence directly into conversation candidate promotion, status: partial}
+  - {id: NC-07, title: bounded anti-template conversation style memory, status: verified}
+  - {id: NC-08, title: Vietnamese conversational microgrammar with explicit social-address and particle rules, status: todo}
+  - {id: NC-09, title: English conversational microgrammar with contractions correction acknowledgement and compact follow-ups, status: todo}
+  - {id: NC-10, title: deterministic conversation candidate-recall benchmark before Jev ranking, status: todo}
+  - {id: NC-11, title: Jev conversational ranker confidence and margin calibration on subtle held-out pairs, status: todo}
+  - {id: NC-12, title: end-to-end bounded conversation selection pipeline, status: todo}
+  - {id: NC-13, title: generate and freeze real M19 blinded study stimuli, status: todo}
+  - {id: NC-14, title: collect preregistered M19 human ratings, status: todo}
+  - {id: NC-15, title: error-driven natural-conversation iteration from observed failure clusters, status: todo}
 vertical_slices:
   - {id: VS1, title: controlled English requirement parse-realize-roundtrip, status: implemented}
   - {id: VS2, title: recorded Jev Choice reference resolution with ambiguity preservation, status: implemented}
