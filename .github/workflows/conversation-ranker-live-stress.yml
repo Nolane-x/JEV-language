@@ -1,0 +1,52 @@
+name: Conversation Ranker Live Stress
+
+on:
+  workflow_dispatch:
+    inputs:
+      confirm:
+        description: "Type YES to spend exactly 18 TypeSafe/Jev requests for the conversation-ranker stress"
+        required: true
+        default: "NO"
+  push:
+    branches:
+      - main
+    paths:
+      - .github/conversation-ranker-live-stress.trigger
+
+permissions:
+  contents: write
+
+jobs:
+  conversation-ranker-live-stress:
+    if: ${{ github.event_name == 'push' || inputs.confirm == 'YES' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Install
+        run: npm install --ignore-scripts --no-audit --no-fund
+
+      - name: Run bounded conversation-ranker live stress
+        env:
+          TYPESAFE_API_KEY: ${{ secrets.TYPESAFE_API_KEY }}
+          JEV_ALLOW_LIVE: "1"
+          JEV_LIVE_MAX_REQUESTS: "18"
+          JEV_RELAY_URL: "https://jev-language-typesafe-relay.nolane-file.workers.dev"
+        run: |
+          npx tsx scripts/conversation-ranker-live-stress.ts > /tmp/conversation-ranker-live-stress.json
+          cat /tmp/conversation-ranker-live-stress.json
+
+      - name: Freeze sanitized evidence
+        run: |
+          set -euo pipefail
+          mkdir -p docs/evidence
+          cp /tmp/conversation-ranker-live-stress.json docs/evidence/CONVERSATION-RANKER-LIVE-STRESS-v2.json
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add docs/evidence/CONVERSATION-RANKER-LIVE-STRESS-v2.json
+          git commit -m "chore: record conversation-ranker live stress evidence [skip ci]"
+          git push origin HEAD:main
