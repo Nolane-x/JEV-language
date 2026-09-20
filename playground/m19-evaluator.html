@@ -1,0 +1,197 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="color-scheme" content="dark" />
+    <meta name="theme-color" content="#0b0b0a" />
+    <meta name="referrer" content="no-referrer" />
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'self'; connect-src 'none'; img-src 'self' data:; style-src 'self'; script-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'"
+    />
+    <meta
+      name="description"
+      content="Offline blinded M19 human evaluator for JEV Language natural-conversation research."
+    />
+    <title>M19 Blinded Evaluator · JEV Language</title>
+    <link rel="stylesheet" href="./styles.css" />
+    <link rel="stylesheet" href="./m19-evaluator.css" />
+  </head>
+  <body class="evaluator-page">
+    <div class="ambient" aria-hidden="true">
+      <div class="ambient__grid"></div>
+      <div class="ambient__grain"></div>
+      <div class="ambient__vignette"></div>
+    </div>
+
+    <div class="evaluator-shell">
+      <header class="evaluator-topbar">
+        <a class="brand" href="./" aria-label="Back to JEV Language Playground">
+          <span class="brand__mark" aria-hidden="true"><span></span></span>
+          <span class="brand__copy">
+            <strong>JEV Language</strong>
+            <small>M19 blinded evaluator</small>
+          </span>
+        </a>
+        <div class="evaluator-badge" aria-label="Network disabled">
+          <i aria-hidden="true"></i>
+          offline by design
+        </div>
+      </header>
+
+      <main class="evaluator-main">
+        <section class="evaluator-intro" id="setupPanel" aria-labelledby="evaluatorTitle">
+          <span class="panel-kicker">Natural-conversation research</span>
+          <h1 id="evaluatorTitle">Judge the output, not the system.</h1>
+          <p>
+            Load a blinded M19 worksheet. This page never sends the worksheet or your ratings
+            anywhere. It keeps the study in this tab only and exports a completed JSON file when
+            every stimulus has been rated.
+          </p>
+
+          <div class="research-notice">
+            <strong>Blinding rule</strong>
+            <span>
+              Do not try to infer which implementation produced an output. Judge only what is
+              visible: the supplied conversation context and the blinded response.
+            </span>
+          </div>
+
+          <div class="setup-grid">
+            <label class="evaluator-field">
+              <span>Blinded worksheet JSON</span>
+              <input id="worksheetFile" type="file" accept="application/json,.json" />
+              <small>Expected schema: jl-m19-rating-worksheet-1 · maximum 2 MB</small>
+            </label>
+
+            <label class="evaluator-field">
+              <span>Pseudonymous evaluator ID</span>
+              <input
+                id="evaluatorId"
+                type="text"
+                maxlength="80"
+                autocomplete="off"
+                spellcheck="false"
+                placeholder="evaluator-07"
+              />
+              <small>Use a study pseudonym, not your name, email, or other personal information.</small>
+            </label>
+          </div>
+
+          <div class="setup-status" id="setupStatus" role="status" aria-live="polite"></div>
+
+          <div class="setup-actions">
+            <button class="secondary-button" id="clearStudyButton" type="button" disabled>Clear</button>
+            <button class="primary-button" id="startStudyButton" type="button" disabled>Start blinded review</button>
+          </div>
+        </section>
+
+        <section class="rating-stage" id="ratingStage" hidden aria-labelledby="ratingHeading">
+          <div class="rating-progress">
+            <div>
+              <span class="panel-kicker">Blinded stimulus</span>
+              <h2 id="ratingHeading">Human evaluation</h2>
+            </div>
+            <div class="progress-copy">
+              <strong id="progressText">0 / 0</strong>
+              <span id="completionText">0 rated</span>
+            </div>
+          </div>
+
+          <div class="progress-track" aria-hidden="true">
+            <span id="progressBar"></span>
+          </div>
+
+          <article class="stimulus-card">
+            <section class="stimulus-section">
+              <span class="stimulus-label">Conversation context</span>
+              <pre id="stimulusContext" class="stimulus-text"></pre>
+            </section>
+
+            <div class="stimulus-divider" aria-hidden="true"></div>
+
+            <section class="stimulus-section">
+              <span class="stimulus-label">Blinded response</span>
+              <div id="stimulusOutput" class="stimulus-output"></div>
+            </section>
+          </article>
+
+          <div class="rubric-grid">
+            <fieldset class="rubric" data-metric="naturalness">
+              <legend>Naturalness <small>How natural and human-readable is this response?</small></legend>
+              <div class="score-row" role="radiogroup" aria-label="Naturalness score">
+                <button type="button" data-score="1">1</button>
+                <button type="button" data-score="2">2</button>
+                <button type="button" data-score="3">3</button>
+                <button type="button" data-score="4">4</button>
+                <button type="button" data-score="5">5</button>
+              </div>
+              <div class="score-anchors"><span>poor</span><span>excellent</span></div>
+            </fieldset>
+
+            <fieldset class="rubric" data-metric="semanticAccuracy">
+              <legend>Semantic accuracy <small>Does the response preserve and answer the supplied meaning?</small></legend>
+              <div class="score-row" role="radiogroup" aria-label="Semantic accuracy score">
+                <button type="button" data-score="1">1</button>
+                <button type="button" data-score="2">2</button>
+                <button type="button" data-score="3">3</button>
+                <button type="button" data-score="4">4</button>
+                <button type="button" data-score="5">5</button>
+              </div>
+              <div class="score-anchors"><span>wrong</span><span>fully accurate</span></div>
+            </fieldset>
+
+            <fieldset class="rubric" data-metric="multiTurnCoherence">
+              <legend>Multi-turn coherence <small>Does it stay consistent with references and prior turns?</small></legend>
+              <div class="score-row" role="radiogroup" aria-label="Multi-turn coherence score">
+                <button type="button" data-score="1">1</button>
+                <button type="button" data-score="2">2</button>
+                <button type="button" data-score="3">3</button>
+                <button type="button" data-score="4">4</button>
+                <button type="button" data-score="5">5</button>
+              </div>
+              <div class="score-anchors"><span>incoherent</span><span>fully coherent</span></div>
+            </fieldset>
+
+            <fieldset class="rubric rubric--template" data-metric="templateJudgment">
+              <legend>Template judgment <small>Does the wording look like a reused/fixed template?</small></legend>
+              <div class="judgment-row">
+                <button type="button" data-judgment="template">Template-like</button>
+                <button type="button" data-judgment="not-template">Not template-like</button>
+                <button type="button" data-judgment="unsure">Unsure</button>
+              </div>
+            </fieldset>
+          </div>
+
+          <div class="rating-actions">
+            <button class="secondary-button" id="previousButton" type="button">Previous</button>
+            <div class="rating-actions__right">
+              <button class="secondary-button" id="exitButton" type="button">Back to setup</button>
+              <button class="primary-button" id="nextButton" type="button">Next stimulus</button>
+            </div>
+          </div>
+
+          <div class="export-panel" id="exportPanel" hidden>
+            <div>
+              <span class="panel-kicker">Measurement complete</span>
+              <h3>All blinded stimuli are rated.</h3>
+              <p>
+                Export the completed worksheet and return that JSON file to the study operator.
+                Nothing is uploaded automatically.
+              </p>
+            </div>
+            <button class="primary-button" id="exportButton" type="button">Export completed JSON</button>
+          </div>
+        </section>
+      </main>
+
+      <footer class="evaluator-footer">
+        <span>No network · no analytics · no persistent browser storage</span>
+        <a href="./">Return to Playground</a>
+      </footer>
+    </div>
+
+    <script type="module" src="./m19-evaluator.js"></script>
+  </body>
+</html>
