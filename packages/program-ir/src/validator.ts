@@ -1274,6 +1274,79 @@ const validateHole = (hole: ProgramHole): Result<void> => {
       );
     }
   }
+  if (hole.scope !== undefined) {
+    if (
+      new Set(hole.scope.visibleSymbols).size !==
+        hole.scope.visibleSymbols.length ||
+      hole.scope.visibleSymbols.some((symbol) => symbol.trim() === "") ||
+      (hole.scope.functionRef !== undefined &&
+        hole.scope.functionRef.trim() === "")
+    ) {
+      return err(
+        new StructuredError(
+          "PIR_HOLE_SCOPE",
+          "Structured hole scope requires unique non-empty symbol refs.",
+        ),
+      );
+    }
+  }
+  if (hole.effectConstraints !== undefined) {
+    const allowed = new Set(hole.effectConstraints.allowed);
+    const forbidden = new Set(hole.effectConstraints.forbidden);
+    if (
+      allowed.size !== hole.effectConstraints.allowed.length ||
+      forbidden.size !== hole.effectConstraints.forbidden.length ||
+      [...allowed].some((effect) => forbidden.has(effect))
+    ) {
+      return err(
+        new StructuredError(
+          "PIR_HOLE_EFFECT_CONSTRAINT",
+          "Hole effect constraints must be duplicate-free and non-overlapping.",
+        ),
+      );
+    }
+    const expected = Array.isArray(hole.expectedEffect)
+      ? hole.expectedEffect
+      : hole.expectedEffect === undefined
+        ? []
+        : [hole.expectedEffect];
+    if (
+      allowed.size > 0 &&
+      expected.some((effect) => !allowed.has(effect))
+    ) {
+      return err(
+        new StructuredError(
+          "PIR_HOLE_EFFECT_EXPECTATION",
+          "Hole expected effects must be permitted by structured effect constraints.",
+        ),
+      );
+    }
+  }
+  if (hole.constraints !== undefined) {
+    const allowedFamilies = hole.constraints.allowedCandidateFamilies ?? [];
+    const forbiddenFamilies =
+      hole.constraints.forbiddenCandidateFamilies ?? [];
+    const capabilities = hole.constraints.requiredCapabilities ?? [];
+    if (
+      new Set(allowedFamilies).size !== allowedFamilies.length ||
+      new Set(forbiddenFamilies).size !== forbiddenFamilies.length ||
+      new Set(capabilities).size !== capabilities.length ||
+      [...allowedFamilies, ...forbiddenFamilies, ...capabilities].some(
+        (value) => value.trim() === "",
+      ) ||
+      allowedFamilies.some((family) => forbiddenFamilies.includes(family)) ||
+      (hole.constraints.maxCandidateCost !== undefined &&
+        (!Number.isFinite(hole.constraints.maxCandidateCost) ||
+          hole.constraints.maxCandidateCost < 0))
+    ) {
+      return err(
+        new StructuredError(
+          "PIR_HOLE_CONSTRAINT_SET",
+          "Hole synthesis constraints require unique non-empty values, disjoint family policy, and a non-negative cost bound.",
+        ),
+      );
+    }
+  }
   return hole.sourceBinding === undefined
     ? ok(undefined)
     : validateSourceBinding(hole.sourceBinding);

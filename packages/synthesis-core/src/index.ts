@@ -170,3 +170,5 @@ export * from "./frontier.ts";
 export * from "./hashing.ts";
 export * from "./jev-ranker.ts";
 export * from "./search.ts";
+
+export * from "./grammar.ts";
