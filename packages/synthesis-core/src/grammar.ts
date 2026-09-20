@@ -9,11 +9,15 @@ import {
   validatePirProgram,
   type EffectSpec,
   type PirEffectKind,
+  type PirExpression,
   type PirType,
   type ProgramHole,
 } from "../../program-ir/src/index.ts";
 import type {
+  CandidateGenerationContext,
+  CandidateGenerator,
   CandidateSource,
+  ExpansionCandidate,
   ProgramEnvironment,
   ProgramSpecification,
   SynthesisGrammarProfileName,
@@ -735,3 +739,189 @@ export const pruneCandidatesByConstraints = (input: {
     ),
   };
 };
+
+
+export interface GrammarBackedGenerationReport {
+  grammarId: string;
+  profile: SynthesisGrammarProfileName;
+  acceptedCandidateIds: string[];
+  rejectedCandidateIds: string[];
+  unsupportedCandidateIds: string[];
+  evidenceRefs: string[];
+}
+
+const typedGrammarCandidateExpression = (
+  candidate: TypedGrammarCandidate,
+  environment: ProgramEnvironment,
+): PirExpression | undefined => {
+  switch (candidate.family) {
+    case "literal": {
+      const literal = environment.literals.find(
+        (item) => item.id === candidate.sourceRef,
+      );
+      return literal === undefined
+        ? undefined
+        : {
+            kind: "literal",
+            value: structuredClone(literal.value),
+            type: structuredClone(literal.type),
+          };
+    }
+    case "in-scope-symbol":
+      return {
+        kind: "variable",
+        symbolId: candidate.sourceRef,
+      };
+    case "function-call": {
+      const callable = environment.callables.find(
+        (item) => item.id === candidate.sourceRef,
+      );
+      if (callable === undefined || callable.parameterTypes.length !== 0) {
+        return undefined;
+      }
+      return {
+        kind: "call",
+        callee: {
+          kind: "symbol-ref",
+          symbolId: callable.id,
+        },
+        arguments: [],
+      };
+    }
+    case "branch":
+    case "collection-pattern":
+    case "return":
+    case "plugin":
+      return undefined;
+  }
+};
+
+export class GrammarBackedCandidateGenerator implements CandidateGenerator {
+  readonly id: string;
+
+  constructor(readonly grammar: SynthesisGrammar) {
+    const valid = validateSynthesisGrammar(grammar);
+    if (!valid.ok) throw valid.error;
+    this.id = `generator.grammar-backed.${grammar.id}.v1`;
+  }
+
+  supports(context: CandidateGenerationContext): boolean {
+    return (
+      context.location === "expression" &&
+      context.hole.expectedType !== undefined
+    );
+  }
+
+  inspect(
+    context: CandidateGenerationContext,
+  ): Result<{
+    candidates: ExpansionCandidate[];
+    report: GrammarBackedGenerationReport;
+  }> {
+    if (!this.supports(context)) {
+      return err(
+        new StructuredError(
+          "SYNTH_GRAMMAR_GENERATOR_CONTEXT",
+          "Grammar-backed generation currently requires a typed expression hole.",
+        ),
+      );
+    }
+
+    const profileName =
+      context.problem.grammarProfile ?? this.grammar.profile;
+    const profiled = applyGrammarProfile(this.grammar, profileName);
+    if (!profiled.ok) return err(profiled.error);
+
+    const specialized = specializeGrammarForEnvironment(
+      profiled.value,
+      context.problem.environment,
+    );
+    if (!specialized.ok) return err(specialized.error);
+
+    const enumerated = enumerateTypeDirectedCandidates({
+      grammar: specialized.value.grammar,
+      environment: context.problem.environment,
+      hole: context.hole,
+      expectedType: context.expectedType,
+    });
+    if (!enumerated.ok) return err(enumerated.error);
+
+    const pruned = pruneCandidatesByConstraints({
+      candidates: enumerated.value,
+      hole: context.hole,
+      environment: context.problem.environment,
+    });
+
+    const unsupportedCandidateIds: string[] = [];
+    const candidates: ExpansionCandidate[] = [];
+    for (const candidate of pruned.accepted) {
+      const expression = typedGrammarCandidateExpression(
+        candidate,
+        context.problem.environment,
+      );
+      if (expression === undefined) {
+        unsupportedCandidateIds.push(candidate.id);
+        continue;
+      }
+      candidates.push({
+        id: `candidate:grammar:${candidate.productionId}:${candidate.sourceRef}`,
+        replacement: {
+          kind: "expression",
+          value: expression,
+        },
+        newHoles: [],
+        proofObligations: [
+          {
+            id: `obligation:grammar:type:${candidate.id}`,
+            kind: "type-safety",
+            description:
+              "Grammar-backed candidate result type must equal the typed hole expectation.",
+          },
+          {
+            id: `obligation:grammar:constraints:${candidate.id}`,
+            kind: "effect-safety",
+            description:
+              "Grammar-backed candidate must satisfy environment and hole effect/capability constraints.",
+          },
+        ],
+        heuristicCost: candidate.cost,
+        provenance: {
+          kind: candidate.family,
+          generatorId: this.id,
+          evidenceRefs: [
+            `grammar:${this.grammar.id}@${this.grammar.version}`,
+            `grammar-profile:${profileName}`,
+            `grammar-production:${candidate.productionId}`,
+          ],
+        },
+        resultType: structuredClone(candidate.resultType),
+        effects: structuredClone(candidate.effects),
+      });
+    }
+
+    return ok({
+      candidates: candidates.sort(
+        (a, b) =>
+          a.heuristicCost - b.heuristicCost || a.id.localeCompare(b.id),
+      ),
+      report: {
+        grammarId: this.grammar.id,
+        profile: profileName,
+        acceptedCandidateIds: candidates.map((item) => item.id),
+        rejectedCandidateIds: pruned.rejected
+          .map((item) => item.candidate.id)
+          .sort(),
+        unsupportedCandidateIds: unsupportedCandidateIds.sort(),
+        evidenceRefs: [
+          `grammar:${this.grammar.id}@${this.grammar.version}`,
+          `grammar-profile:${profileName}`,
+        ],
+      },
+    });
+  }
+
+  generate(context: CandidateGenerationContext): ExpansionCandidate[] {
+    const result = this.inspect(context);
+    return result.ok ? result.value.candidates : [];
+  }
+}

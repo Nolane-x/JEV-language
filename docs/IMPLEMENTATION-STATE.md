@@ -63,7 +63,7 @@ next_tasks:
   - continue T431-T440 language-pack conformance after incremental realization verification
   - continue M18 language expansion beyond the verified grammar/parser wave
   - expand M16 multi-target adapters beyond the controlled delete-limit semantic subset
-last_verified_main_commit: 4149084ea32f98c0e6174ab49a61598bbdd7e16a
+last_verified_main_commit: fa1c5a3e7f0751f36b92ddbc406ced3c0dc1adce
 last_verified_pr_head: c9f62afa28791ffc6ad0dbb1902267163b759ddd
 ```
 
@@ -75,7 +75,7 @@ T441-T450 synthesis grammar foundation is implemented on a stacked branch with c
 
 T451-T460 advanced PIR passed deterministic CI with 69/69 test files and 562/562 tests and is merged. T461-T470 CEGIS is implemented on the active branch with search-strategy abstraction, hierarchical expansion, evidence-bearing counterexamples, shrinking, held-out partitioning, bounded grammar widening and an acceptance case where a failed first candidate is corrected on the next iteration; verification is pending CI.
 
-T471-T480 solver/proof passed deterministic CI with 71/71 test files and 583/583 tests and is merged. T481-T490 source-preserving transformation passed deterministic CI with 72/72 test files and 593/593 tests and is merged. T491-T500 formal/action/evidence closure is implemented on the active branch: T491-T494 directly close existing Logic/Math/Query/Schema-Data IR validators, while T495-T500 add capability refinement, ResultEnvelope, evidence graph, semantic equality modes, evidence-gated learning lifecycle and a cross-layer dashboard; verification is pending CI.
+T471-T480 solver/proof passed deterministic CI with 71/71 test files and 583/583 tests and is merged. T481-T490 source-preserving transformation passed deterministic CI with 72/72 test files and 593/593 tests and is merged. T491-T500 formal/action/evidence closure passed deterministic CI with 73/73 test files and 603/603 tests and is merged. Extended M11-M20 evidence gates are implemented on the active branch: M13 adds a full synthetic SOV/pro-drop HumanLanguagePack, M15 bridges typed grammar into core synthesis search with zero Jev calls, M18 composes source-preserving repair with compiler/test/diff evidence, M19 projects one fact into logic and structured-data forms, and M20 validates external capabilities without execution; verification is pending branch CI.
 
 ## Implemented foundation
 
