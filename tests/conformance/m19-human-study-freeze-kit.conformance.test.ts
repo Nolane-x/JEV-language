@@ -12,6 +12,12 @@ import {
 
 const manifest = manifestJson as unknown as M19StudyManifest;
 
+const contexts = () =>
+  manifest.items.map((item) => ({
+    itemId: item.id,
+    context: `Conversation context for ${item.id}. The evaluator must judge the blinded output against this exact prompt/transcript.`,
+  }));
+
 const makeBundle = () => {
   const stimuli: M19Stimulus[] = manifest.items.flatMap((item, itemIndex) =>
     manifest.armCodes.map((armCode, armIndex) => ({
@@ -32,7 +38,7 @@ const completedWorksheet = (
   evaluatorId: string,
   score: number,
 ): M19RatingWorksheet => {
-  const worksheet = createM19RatingWorksheet(manifest, makeBundle());
+  const worksheet = createM19RatingWorksheet(manifest, makeBundle(), contexts());
   if (!worksheet.ok) throw worksheet.error;
   worksheet.value.evaluatorId = evaluatorId;
   worksheet.value.rows = worksheet.value.rows.map((row) => ({
@@ -47,7 +53,7 @@ const completedWorksheet = (
 
 describe("M19 real human-study freeze kit", () => {
   it("creates an evaluator worksheet without latency, cost, or semantic-evidence leakage", () => {
-    const worksheet = createM19RatingWorksheet(manifest, makeBundle());
+    const worksheet = createM19RatingWorksheet(manifest, makeBundle(), contexts());
     expect(worksheet.ok).toBe(true);
     if (!worksheet.ok) return;
 
@@ -60,11 +66,12 @@ describe("M19 real human-study freeze kit", () => {
     expect(serialized).not.toContain("latencyMs");
     expect(serialized).not.toContain("costUnits");
     expect(serialized).not.toContain("semanticEvidenceRefs");
+    expect(worksheet.value.rows.every((row) => row.context.length > 0)).toBe(true);
   });
 
   it("imports complete pseudonymous worksheets through the existing rating validator", () => {
     const bundle = makeBundle();
-    const imported = importM19RatingWorksheets(manifest, bundle, [
+    const imported = importM19RatingWorksheets(manifest, bundle, contexts(), [
       completedWorksheet("evaluator-a", 4),
       completedWorksheet("evaluator-b", 3),
     ]);
@@ -79,6 +86,36 @@ describe("M19 real human-study freeze kit", () => {
     );
   });
 
+  it("rejects missing or altered evaluator context before ratings can be imported", () => {
+    const bundle = makeBundle();
+
+    const missingContext = createM19RatingWorksheet(
+      manifest,
+      bundle,
+      contexts().slice(1),
+    );
+    expect(missingContext.ok).toBe(false);
+    if (!missingContext.ok) {
+      expect(missingContext.error.code).toBe("EVAL_M19_WORKSHEET_CONTEXT");
+    }
+
+    const worksheet = completedWorksheet("evaluator-a", 4);
+    worksheet.rows[0] = {
+      ...worksheet.rows[0]!,
+      context: "Altered after blinding.",
+    };
+    const imported = importM19RatingWorksheets(
+      manifest,
+      bundle,
+      contexts(),
+      [worksheet],
+    );
+    expect(imported.ok).toBe(false);
+    if (!imported.ok) {
+      expect(imported.error.code).toBe("EVAL_M19_WORKSHEET_ROW");
+    }
+  });
+
   it("rejects incomplete worksheets instead of silently treating blanks as human data", () => {
     const bundle = makeBundle();
     const worksheet = completedWorksheet("evaluator-a", 4);
@@ -87,7 +124,7 @@ describe("M19 real human-study freeze kit", () => {
       naturalness: null,
     };
 
-    const imported = importM19RatingWorksheets(manifest, bundle, [worksheet]);
+    const imported = importM19RatingWorksheets(manifest, bundle, contexts(), [worksheet]);
     expect(imported.ok).toBe(false);
     if (!imported.ok) {
       expect(imported.error.code).toBe("EVAL_M19_WORKSHEET_ROW");
@@ -96,7 +133,7 @@ describe("M19 real human-study freeze kit", () => {
 
   it("freezes a complete study into order-independent content digests without changing negative results", () => {
     const bundle = makeBundle();
-    const imported = importM19RatingWorksheets(manifest, bundle, [
+    const imported = importM19RatingWorksheets(manifest, bundle, contexts(), [
       completedWorksheet("evaluator-a", 1),
       completedWorksheet("evaluator-b", 1),
     ]);
@@ -114,6 +151,7 @@ describe("M19 real human-study freeze kit", () => {
     const frozen = freezeM19HumanStudyEvidence({
       manifest,
       bundle,
+      contexts: contexts(),
       ratings: imported.value,
       failures,
       frozenAt: "2026-09-20T08:30:00.000Z",
@@ -121,6 +159,7 @@ describe("M19 real human-study freeze kit", () => {
     const reordered = freezeM19HumanStudyEvidence({
       manifest,
       bundle,
+      contexts: [...contexts()].reverse(),
       ratings: [...imported.value].reverse(),
       failures: [...failures].reverse(),
       frozenAt: "2026-09-20T08:30:00.000Z",
@@ -138,5 +177,25 @@ describe("M19 real human-study freeze kit", () => {
       true,
     );
     expect(frozen.value.digests).toEqual(reordered.value.digests);
+
+    const changedContexts = contexts();
+    changedContexts[0] = {
+      ...changedContexts[0]!,
+      context: `${changedContexts[0]!.context} Materially changed.`,
+    };
+    const changed = freezeM19HumanStudyEvidence({
+      manifest,
+      bundle,
+      contexts: changedContexts,
+      ratings: imported.value,
+      failures,
+      frozenAt: "2026-09-20T08:30:00.000Z",
+    });
+    expect(changed.ok).toBe(true);
+    if (changed.ok) {
+      expect(changed.value.digests.contexts).not.toBe(
+        frozen.value.digests.contexts,
+      );
+    }
   });
 });
