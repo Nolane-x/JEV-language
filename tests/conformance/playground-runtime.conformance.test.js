@@ -125,9 +125,13 @@ describe("JEV Language Playground conformance", () => {
     ).toContain("needs a yes/no proposition or explicit alternatives");
   });
 
-  it("distinguishes browser network/CORS failure from invalid API keys", () => {
-    expect(app).toContain("Browser connection blocked before TypeSafe returned an HTTP response");
-    expect(app).toContain("not an invalid API key");
+  it("keeps provider CORS and direct-browser transport out of the user-facing flow", () => {
+    expect(app).not.toContain("Browser connection blocked before TypeSafe returned an HTTP response");
+    expect(app).not.toContain("deploy the repository's locked-down self-hosted relay");
+    expect(app).toContain("Checking the secure JEV relay");
+    expect(app).toContain("The secure connection service is temporarily unavailable");
+    expect(html).not.toContain("Direct TypeSafe");
+    expect(html).not.toContain('id="transportSelect"');
   });
 
   it("keeps BYOK credentials out of persistent browser storage", () => {
@@ -138,10 +142,12 @@ describe("JEV Language Playground conformance", () => {
     expect(transportJs).toContain("https://api.typesafe.ai/v1/models");
     expect(transportJs).toContain("https://api.typesafe.ai/v1/systemone");
     expect(app).toContain('state.apiKey = ""');
-    expect(app).toContain("resolveApiEndpoint");
-    expect(html).toContain('<option value="relay" selected>Verified relay</option>');
-    expect(html).toContain('value="https://jev-language-typesafe-relay.nolane-file.workers.dev"');
-    expect(html).toContain("https://*.workers.dev");
+    expect(app).toContain("resolveRelayEndpoint");
+    expect(app).toContain('path: "/health"');
+    expect(html).toContain("Secure JEV relay → TypeSafe");
+    expect(html).toContain("https://jev-language-typesafe-relay.nolane-file.workers.dev");
+    expect(html).not.toContain("https://*.workers.dev");
+    expect(html).not.toContain("https://api.typesafe.ai");
   });
 
   it("does not ship literal backslash-n text in HTML", () => {
@@ -150,7 +156,9 @@ describe("JEV Language Playground conformance", () => {
 
   it("ships a self-contained CSP-constrained static shell", () => {
     expect(html).toContain("Content-Security-Policy");
-    expect(html).toContain("connect-src https://api.typesafe.ai");
+    expect(html).toContain(
+      "connect-src https://jev-language-typesafe-relay.nolane-file.workers.dev",
+    );
     expect(html).toContain('<script type="module" src="./field.js"></script>');
     expect(html).toContain('<script type="module" src="./app.js"></script>');
     expect(html).not.toMatch(/<script[^>]+src=["']https?:\/\//iu);
