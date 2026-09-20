@@ -7,18 +7,13 @@ on:
         description: "Type YES to spend exactly one TypeSafe/Jev request through the verified relay"
         required: true
         default: "NO"
-  push:
-    branches:
-      - main
-    paths:
-      - .github/playground-relay-smoke.trigger
 
 permissions:
-  contents: write
+  contents: read
 
 jobs:
   live-relay-smoke:
-    if: ${{ github.event_name == 'push' || inputs.confirm == 'YES' }}
+    if: ${{ inputs.confirm == 'YES' }}
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
@@ -36,17 +31,4 @@ jobs:
           JEV_ALLOW_LIVE: "1"
           JEV_LIVE_MAX_REQUESTS: "1"
           JEV_RELAY_URL: "https://jev-language-typesafe-relay.nolane-file.workers.dev"
-        run: |
-          npx tsx scripts/playground-relay-live-smoke.ts > /tmp/playground-relay-live-smoke.json
-          cat /tmp/playground-relay-live-smoke.json
-
-      - name: Freeze sanitized live evidence
-        run: |
-          set -euo pipefail
-          mkdir -p docs/evidence
-          cp /tmp/playground-relay-live-smoke.json docs/evidence/PLAYGROUND-RELAY-LIVE-SMOKE.json
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add docs/evidence/PLAYGROUND-RELAY-LIVE-SMOKE.json
-          git commit -m "chore: record authenticated relay smoke evidence [skip ci]"
-          git push origin HEAD:main
+        run: npx tsx scripts/playground-relay-live-smoke.ts
