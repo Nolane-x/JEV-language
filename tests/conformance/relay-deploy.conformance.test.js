@@ -74,6 +74,10 @@ describe("Cloudflare relay deployment workflow", () => {
     expect(workflow).toContain(
       "expected browser contract did not propagate",
     );
+    expect(workflow).toContain(
+      "authless_code=\"$(curl --silent --show-error --header 'Origin: https://nolane-x.github.io'",
+    );
+    expect(workflow).not.toContain("curl --silent --show-error \\\\");
   });
 
   it("documents the secret-safe setup instead of repository plaintext credentials", () => {
