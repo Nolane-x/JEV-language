@@ -1079,3 +1079,5 @@ export * from "./release.ts";
 
 export * from "./learning.ts";
 export * from "./dashboard.ts";
+
+export * from "./release-gates.ts";

@@ -1,0 +1,76 @@
+{
+  "schemaVersion": "jl-unsupported-cases-1",
+  "version": "0.4.0",
+  "entries": [
+    {
+      "featureId": "language.open-domain-broad-nlu-nlg",
+      "description": "Unrestricted open-domain natural-language understanding and generation remain outside the currently verified controlled and research-expanded coverage subsets.",
+      "affectedModules": ["grounding", "realizer-core", "language-en"],
+      "severity": "high",
+      "workaround": "Use declared controlled grammar/realization profiles and surface UNKNOWN or unsupported coverage rather than inventing semantics.",
+      "targetMilestone": "future-research:open-domain-language",
+      "relatedRegressionFixtures": [
+        "tests/conformance/m4-controlled-corpus.conformance.test.ts",
+        "tests/conformance/m6-expanded-documents.conformance.test.ts",
+        "tests/conformance/m6-template-leakage.benchmark.test.ts"
+      ]
+    },
+    {
+      "featureId": "language.vi-full-grammar",
+      "description": "Vietnamese support is verified for the declared language-pack subset but not as complete coverage of unrestricted Vietnamese grammar and pragmatics.",
+      "affectedModules": ["language-vi", "language-pack-core"],
+      "severity": "medium",
+      "workaround": "Constrain requests to the language-pack feature manifest and preserve unknown or unsupported constructions without forced normalization.",
+      "targetMilestone": "future-research:vietnamese-coverage-expansion",
+      "relatedRegressionFixtures": [
+        "tests/conformance/m8-vietnamese-language-pack.conformance.test.ts",
+        "tests/conformance/m8-cross-lingual-equivalence.conformance.test.ts"
+      ]
+    },
+    {
+      "featureId": "repair.unbounded-program-repair",
+      "description": "Program repair is bounded to registered repair families and explicit compile/test budgets; arbitrary whole-program autonomous repair is not a verified capability.",
+      "affectedModules": ["repair-core", "code-backend-core"],
+      "severity": "medium",
+      "workaround": "Return a structured partial/failure result when no registered repair candidate satisfies compile, test, regression, and budget constraints.",
+      "targetMilestone": "future-research:repair-family-expansion",
+      "relatedRegressionFixtures": [
+        "tests/conformance/m14-repair-loop.conformance.test.ts"
+      ]
+    },
+    {
+      "featureId": "universal-expression.program-adapters-broad",
+      "description": "Universal Expression program realization is verified for the declared PIR/backend subsets rather than every programming-language feature or backend.",
+      "affectedModules": ["universal-expression", "program-ir", "code-backend-core"],
+      "severity": "medium",
+      "workaround": "Use capability discovery and backend completeness matrices; reject unsupported lowering instead of emitting guessed source.",
+      "targetMilestone": "future-research:backend-expansion",
+      "relatedRegressionFixtures": [
+        "tests/conformance/m16-multitarget.conformance.test.ts",
+        "tests/conformance/m10-program-ir.conformance.test.ts"
+      ]
+    },
+    {
+      "featureId": "formal.solver-theories-beyond-bounded-boolean",
+      "description": "The real in-tree solver adapter proves only its declared bounded propositional Boolean fragment; unsupported theories return UNKNOWN and timeouts remain TIMEOUT.",
+      "affectedModules": ["formal-ir", "verifier-core"],
+      "severity": "medium",
+      "workaround": "Use an externally registered compatible solver for richer theories while preserving SAT/UNSAT/UNKNOWN/TIMEOUT evidence boundaries.",
+      "targetMilestone": "future-research:solver-theory-expansion",
+      "relatedRegressionFixtures": [
+        "tests/conformance/t471-t480-solver-proof.conformance.test.ts"
+      ]
+    },
+    {
+      "featureId": "multimodal.sign-gesture-visual-semantics",
+      "description": "Sign-language, gesture, visual-scene, and broader multimodal semantic grounding are explicitly future-research items and are not current native-core capabilities.",
+      "affectedModules": ["semantic-graph", "grounding", "universal-expression"],
+      "severity": "low",
+      "workaround": "Represent externally supplied multimodal facts only through declared structured adapters and do not claim native multimodal understanding.",
+      "targetMilestone": "future-research:multimodal-grounding",
+      "relatedRegressionFixtures": [
+        "tests/conformance/formal-action-universal.conformance.test.ts"
+      ]
+    }
+  ]
+}

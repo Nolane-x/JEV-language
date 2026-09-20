@@ -3,8 +3,8 @@
 ```yaml
 spec_version: 0.4-master-implementation-research-expanded
 spec_digest_sha256: 9b8bc907fa0da89d4b7ea2e0be886919deffdb35e398ea7897ea77d305380f5b
-last_completed_gate: M18.2-grammar-parser-expansion
-active_milestone: M18-open-world-language-expansion
+last_completed_gate: v0.4-release-gates
+active_milestone: M19-natural-conversation-research
 stable_packages: []
 candidate_packages:
   - core-types
@@ -55,27 +55,27 @@ partial_vertical_slices:
   - t391-t400-lexicon-open-vocabulary
   - t401-t410-language-typology
   - t411-t420-translation-parser-architecture
-  - t421-t430-incremental-realization-candidate
+  - t421-t430-incremental-realization
 known_failures: []
 blocked_items: []
 next_tasks:
-  - verify and merge T421-T430 incremental parsing/realization
-  - continue T431-T440 language-pack conformance after incremental realization verification
-  - continue M18 language expansion beyond the verified grammar/parser wave
-  - expand M16 multi-target adapters beyond the controlled delete-limit semantic subset
-last_verified_main_commit: fa1c5a3e7f0751f36b92ddbc406ced3c0dc1adce
-last_verified_pr_head: c9f62afa28791ffc6ad0dbb1902267163b759ddd
+  - merge the verified §§963-980 v0.4 release-gate closure
+  - prepare and verify M19 natural-conversation blinded evaluation artifacts without fabricating human ratings
+  - collect real blinded human ratings before any M19 closure claim
+  - continue M20 v1.0 conformance only after M19 evidence is explicit
+last_verified_main_commit: 7110ae9c41ee20ab0f391118983a6ef1c0c03358
+last_verified_pr_head: 83609bea39812a626df58b347f9d91918e3b405d
 ```
 
 ## Current state
 
 M0–M9 are verified at their milestone gates. M3 includes the required one-request live Jev acceptance run; M4–M9 use deterministic/recorded language-engine evidence. M9 passed CI #136 with 36/36 test files and 280/280 tests. M10 Program IR and M11 Synthesis Core are verified. M12 TypeScript Backend passed CI #155 with 39/39 test files and 312/312 tests. M13 Python Backend passed CI #167 with 40/40 test files and 319/319 tests. M14 Compiler/Test Repair Loop passed CI #182 with 41/41 test files and 325/325 tests. M15 Formal/Data/Action IR passed CI #191 with 42/42 test files and 334/334 tests. M16 Universal Expression API is verified. M17 Verification Hardening passed CI #202 and is verified. M18.1 is verified, and M18.2 grammar/parser expansion passed CI #218 with 45/45 test files and 368/368 tests before merge commit `d6d7c19`; M18 Open-world Language Expansion remains the active milestone. The cross-cutting T268-T275 extension foundation passed CI #235 with 47/47 test files and 386/386 tests; package boundaries and strict TypeScript typecheck also passed, with zero live Jev requests. T276-T288 evaluation foundation passed CI #246 with 48/48 test files and 404/404 tests after a real T286 repair-loop benchmark exposed and fixed an inline-return patch-boundary bug; merged main then passed CI #247. T289-T296 hardening passed CI with 51/51 test files and 413/413 tests and merged to main. T297-T300 performance/cache/cancellation/crash/release hardening then passed CI with 52/52 test files and 417/417 tests; merged main commit `153986e` passed the same deterministic gate. Both waves used zero live Jev requests. T301-T310 graph topology passed CI with 54/54 test files and 427/427 tests, with boundaries/typecheck green and zero live Jev requests. T311-T320 scope/quantification and T321-T330 event/time/modality are verified on main. T331-T340 deixis/attitudes/evidence passed deterministic CI with 57/57 test files and 453/453 tests and merged to main commit `852fdaff`; merged main also passed. T341-T350 presupposition/pragmatics passed deterministic CI with 58/58 test files and 461/461 tests and merged as `1472e87`; merged main also passed its deterministic gate. T351-T360 comparison/quantity/space passed deterministic CI with 59/59 test files and 471/471 tests and merged. T361-T370 questions/dialogue acts passed with 60/60 files and 477/477 tests and merged. T371-T380 reference/ellipsis passed with 61/61 files and 484/484 tests and merged. T381-T390 discourse/information structure passed with 62/62 files and 493/493 tests and merged. T391-T400 lexicon/open vocabulary passed with 63/63 files and 503/503 tests, merged as `cdebadc0`, and merged main passed. T401-T410 language typology passed with 64/64 files and 513/513 tests and merged as `89c6b894`; its main push gate is pending while the next wave is built. T411-T420 translation/parser architecture passed deterministic CI with 65/65 test files and 522/522 tests and merged as `f05a5d3b`; merged-main verification is pending while the next wave is built. T421-T430 incremental parsing/realization passed deterministic CI with 66/66 test files and 532/532 tests, merged as `a4edee2c`, and merged-main CI passed. T431-T440 language-pack conformance passed deterministic CI with 67/67 test files and 542/542 tests and is merged. T441-T450 synthesis grammar passed deterministic CI with 68/68 test files and 552/552 tests and is merged.
 
-T441-T450 synthesis grammar foundation is implemented on a stacked branch with composite specification validation, environment specialization, G0-G3 hard grammar profiles, structured hole constraints, type-directed enumeration, constraint-directed pruning and deterministic property tests; verification is pending stacked-branch CI.
+T441-T450 synthesis grammar foundation passed deterministic CI with 68/68 test files and 552/552 tests and is verified on main.
 
-T451-T460 advanced PIR passed deterministic CI with 69/69 test files and 562/562 tests and is merged. T461-T470 CEGIS is implemented on the active branch with search-strategy abstraction, hierarchical expansion, evidence-bearing counterexamples, shrinking, held-out partitioning, bounded grammar widening and an acceptance case where a failed first candidate is corrected on the next iteration; verification is pending CI.
+T451-T460 advanced PIR passed deterministic CI with 69/69 test files and 562/562 tests and is merged. T461-T470 CEGIS passed deterministic CI with 70/70 test files and 573/573 tests and is verified on main; its acceptance case preserves the failed first candidate's counterexample and verifies the corrected next iteration.
 
-T471-T480 solver/proof passed deterministic CI with 71/71 test files and 583/583 tests and is merged. T481-T490 source-preserving transformation passed deterministic CI with 72/72 test files and 593/593 tests and is merged. T491-T500 formal/action/evidence closure passed deterministic CI with 73/73 test files and 603/603 tests and is merged. Extended M11-M20 evidence gates are implemented on the active branch: M13 adds a full synthetic SOV/pro-drop HumanLanguagePack, M15 bridges typed grammar into core synthesis search with zero Jev calls, M18 composes source-preserving repair with compiler/test/diff evidence, M19 projects one fact into logic and structured-data forms, and M20 validates external capabilities without execution; verification is pending branch CI.
+T471-T480 solver/proof passed deterministic CI with 71/71 test files and 583/583 tests and is merged. T481-T490 source-preserving transformation passed deterministic CI with 72/72 test files and 593/593 tests and is merged. T491-T500 formal/action/evidence closure passed deterministic CI with 73/73 test files and 603/603 tests and is merged. Extended M11-M20 evidence gates passed deterministic CI with 74/74 test files and 608/608 tests; merged main commit `7110ae9c` passed the same full gate. The §§963-980 release-gate closure passed deterministic CI #331 with 75/75 test files and 611/611 tests, with package boundaries and strict TypeScript typecheck green. It includes executable evidence aggregation, machine-readable phenomenon coverage, an unsupported-case ledger, candidate-recall accounting, search/solver honesty, source-preservation/replay/extension checks, and anti-template/anti-hidden-generator/anti-special-case audits. Original M19 natural-conversation human evaluation and M20 v1.0 conformance remain open and are not conflated with the extended M19/M20 evidence gates.
 
 ## Implemented foundation
 
