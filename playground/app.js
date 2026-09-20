@@ -402,29 +402,6 @@ els.promptChips.forEach((button) => {
   });
 });
 
-let pointerFrame = 0;
-let pointerX = innerWidth / 2;
-let pointerY = innerHeight / 2;
-function paintPointer() {
-  pointerFrame = 0;
-  document.documentElement.style.setProperty("--mx", `${pointerX}px`);
-  document.documentElement.style.setProperty("--my", `${pointerY}px`);
-}
-window.addEventListener("pointermove", (event) => {
-  if (event.pointerType === "touch") return;
-  pointerX = event.clientX;
-  pointerY = event.clientY;
-  if (!pointerFrame) pointerFrame = requestAnimationFrame(paintPointer);
-}, { passive: true });
-
-document.addEventListener("pointermove", (event) => {
-  const target = event.target.closest?.(".reactive");
-  if (!target) return;
-  const rect = target.getBoundingClientRect();
-  target.style.setProperty("--rx", `${event.clientX - rect.left}px`);
-  target.style.setProperty("--ry", `${event.clientY - rect.top}px`);
-}, { passive: true });
-
 els.keyDialog.addEventListener("click", (event) => {
   if (event.target === els.keyDialog) els.keyDialog.close();
 });
