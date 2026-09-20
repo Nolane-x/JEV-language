@@ -116,10 +116,11 @@ const contractEnglish = (surface: string): string => {
   return normalize(output);
 };
 
-const lowerInitial = (surface: string): string =>
-  surface.length === 0
-    ? surface
-    : surface.charAt(0).toLocaleLowerCase("en") + surface.slice(1);
+const lowerInitial = (surface: string): string => {
+  if (surface.length === 0) return surface;
+  if (/^I(?:\s|['’])/u.test(surface)) return surface;
+  return surface.charAt(0).toLocaleLowerCase("en") + surface.slice(1);
+};
 
 const correctionPrefix = (surface: string): string =>
   normalize(`Right — ${lowerInitial(surface)}`);

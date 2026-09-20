@@ -52,7 +52,7 @@ describe("English conversational microgrammar", () => {
       correction.value.some(
         (item) =>
           item.sourceFamily === "correction-ack" &&
-          item.surface.startsWith("Right —"),
+          item.surface === "Right — I mixed those up. I'll check staging.",
       ),
     ).toBe(true);
 
