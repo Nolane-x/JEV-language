@@ -104,4 +104,4 @@ This stable-core profile does not imply that every package is stable. Language, 
 
 ## Status
 
-The T001–T500 engineering task sequence and v0.4 release gates are verified. M19 blinded natural-conversation protocol tooling is implemented, but the research milestone still requires real human ratings. M20 v1 stable-core conformance is being verified independently; no synthetic human ratings are used to close M19.
+The T001–T500 engineering task sequence and v0.4 release gates are verified. M19 blinded natural-conversation protocol tooling is implemented, but the research milestone still requires real human ratings. M20 v1 stable-core conformance passed deterministic CI with 77/77 test files and 624/624 tests; no synthetic human ratings are used to close M19.
