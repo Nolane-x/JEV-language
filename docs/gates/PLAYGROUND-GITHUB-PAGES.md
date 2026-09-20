@@ -1,6 +1,6 @@
 # JEV Language Playground — GitHub Pages surface
 
-Status: **base Pages deployment verified; PR #70 transport revision merged and deterministic-CI verified; direct TypeSafe browser transport CORS-blocked; self-hosted relay live deployment/BYOK still unverified**
+Status: **base Pages deployment verified; direct TypeSafe browser transport CORS-blocked; self-hosted relay backend deployment verified; authenticated BYOK request still unverified**
 
 Live URL:
 
@@ -34,9 +34,9 @@ The API key:
 - is not written to localStorage, sessionStorage, cookies, URL state, repository files, or analytics;
 - is cleared on disconnect or tab close.
 
-The default transport sends requests directly from the browser to `https://api.typesafe.ai`. The 2026-09-20 preflight probe established that this GitHub Pages origin is not currently allowed by the production API's CORS policy.
+The default transport is now the verified self-hosted relay at `https://jev-language-typesafe-relay.nolane-file.workers.dev`. Direct TypeSafe remains selectable, but the 2026-09-20 preflight probe established that this GitHub Pages origin is not currently allowed by the production API's CORS policy.
 
-The Playground now also exposes an explicit **Self-hosted relay** mode. The repository contains a Cloudflare Worker implementation in `relay/` with a fixed TypeSafe upstream, only `/v1/models` and `/v1/systemone`, an origin allowlist, no cache, and no credential persistence. The relay is not an anonymous public proxy and the browser accepts only HTTPS `*.workers.dev` relay origins or localhost.
+The repository relay in `relay/` has a fixed TypeSafe upstream, only `/v1/models` and `/v1/systemone`, an origin allowlist, no cache, and no credential persistence. It is not an anonymous public proxy and the browser accepts only HTTPS `*.workers.dev` relay origins or localhost.
 
 A relay deployment still sees the Authorization header transiently while forwarding it. The UI therefore requires the user to choose relay mode explicitly and warns that only a relay they control should be used. Changing transport clears the in-memory key and requires reconnecting.
 
@@ -108,7 +108,9 @@ The transport revision is repository-integrated and deterministic-CI verified. T
 
 Direct browser transport is no longer an unknown: the provider CORS policy blocks the deployed GitHub Pages origin.
 
-The remaining live item is one authenticated BYOK request through a relay deployment controlled by the user, or a later provider-side CORS change that makes direct mode work. No credential will be committed, logged, or simulated to close this item.
+The relay backend itself is no longer an unverified live item. Deployment status `jev-language-relay-deployment/v2` recorded `verified: true` for source SHA `7a0e9d8491534f0f817074c712d82c1ecd178c6d`, with health and GitHub Pages CORS preflight checks passing at `https://jev-language-typesafe-relay.nolane-file.workers.dev`.
+
+The remaining live item is one authenticated BYOK request using a real TypeSafe API key. No credential will be committed, logged, or simulated to close this item.
 
 
 ## CORS preflight probe — 2026-09-20
@@ -148,4 +150,4 @@ Security properties enforced in source and conformance tests:
 - unknown paths rejected before upstream fetch;
 - no cookies, credential persistence, cache, or analytics;
 - CORS emitted only for approved origins;
-- direct transport remains the default and is still available if TypeSafe changes its CORS policy.
+- the verified relay is the browser default; direct transport remains available if TypeSafe changes its CORS policy.
