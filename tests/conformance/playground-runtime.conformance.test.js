@@ -129,7 +129,14 @@ describe("JEV Language Playground conformance", () => {
     expect(app).not.toContain("Browser connection blocked before TypeSafe returned an HTTP response");
     expect(app).not.toContain("deploy the repository's locked-down self-hosted relay");
     expect(app).toContain("Checking the secure JEV relay");
-    expect(app).toContain("The secure connection service is temporarily unavailable");
+    expect(app).toContain("RELAY_CONNECT_ATTEMPTS = 3");
+    expect(app).toContain("Secure relay did not answer yet. Retrying");
+    expect(app).toContain(
+      "The secure relay answered, but browser verification was blocked.",
+    );
+    expect(app).not.toContain(
+      "The secure connection service is temporarily unavailable. Your key was not stored; please retry.",
+    );
     expect(html).not.toContain("Direct TypeSafe");
     expect(html).not.toContain('id="transportSelect"');
   });
