@@ -14,17 +14,17 @@ import {
 } from "./runtime.js";
 import {
   isBrowserNetworkFailure,
-  normalizeRelayBaseUrl,
-  resolveApiEndpoint,
+  resolveRelayEndpoint,
 } from "./transport.js";
 
 const MAX_CONTEXT_TURNS = 10;
 const DEFAULT_RELAY_URL = "https://jev-language-typesafe-relay.nolane-file.workers.dev";
+const CONNECT_TIMEOUT_MS = 12000;
+const REQUEST_TIMEOUT_MS = 30000;
 
 const state = {
   apiKey: "",
   model: "jev-latest",
-  transport: "relay",
   relayBaseUrl: DEFAULT_RELAY_URL,
   connected: false,
   busy: false,
@@ -39,9 +39,6 @@ const els = {
   closeKeyButton: document.querySelector("#closeKeyButton"),
   apiKeyInput: document.querySelector("#apiKeyInput"),
   modelSelect: document.querySelector("#modelSelect"),
-  transportSelect: document.querySelector("#transportSelect"),
-  relayUrlField: document.querySelector("#relayUrlField"),
-  relayUrlInput: document.querySelector("#relayUrlInput"),
   keyPanelIntro: document.querySelector("#keyPanelIntro"),
   browserConsent: document.querySelector("#browserConsent"),
   browserConsentText: document.querySelector("#browserConsentText"),
@@ -69,24 +66,14 @@ function setKeyStatus(message = "", kind = "") {
   els.keyPanelStatus.dataset.state = kind;
 }
 
-function updateTransportUi() {
-  const relay = els.transportSelect.value === "relay";
-  els.relayUrlField.hidden = !relay;
-  els.keyPanelIntro.textContent = relay
-    ? "The key stays in this tab's JavaScript memory, but your self-hosted relay receives the Authorization header transiently while forwarding to TypeSafe. Use only a relay you control."
-    : "The key is never written to localStorage, cookies, the URL, or this repository. It disappears when this tab closes or you disconnect. Requests go directly from this page to TypeSafe.";
-  els.browserConsentText.textContent = relay
-    ? "I understand that the page runtime and the self-hosted relay I chose can see this API key while requests are in flight."
-    : "I understand that using an API key in a browser exposes it to the page runtime and developer tools.";
-}
-
 function updateConnectionUi() {
   els.keyButtonLabel.textContent = state.connected ? "Connected" : "Connect key";
   els.disconnectButton.hidden = !state.connected;
-  const connectedLabel = state.transport === "relay"
-    ? `${state.model} · relay`
-    : state.model;
-  setRuntime(state.connected ? "connected" : "idle", state.connected ? connectedLabel : "Local shell");
+  const connectedLabel = `${state.model} · secure relay`;
+  setRuntime(
+    state.connected ? "connected" : "idle",
+    state.connected ? connectedLabel : "Local shell",
+  );
 }
 
 function updateSendState() {
@@ -160,57 +147,108 @@ function buildState(latest) {
   };
 }
 
+function makeHttpError(response, body, fallback) {
+  const message =
+    body?.error?.message ||
+    body?.message ||
+    fallback ||
+    `Request returned HTTP ${response.status}.`;
+  const error = new Error(message);
+  error.status = response.status;
+  error.body = body;
+  return error;
+}
+
+async function relayFetch(path, {
+  apiKey = "",
+  method = "GET",
+  body = undefined,
+  timeoutMs = CONNECT_TIMEOUT_MS,
+} = {}) {
+  const controller = new AbortController();
+  const timeout = window.setTimeout(() => controller.abort(), timeoutMs);
+  try {
+    const response = await fetch(resolveRelayEndpoint({
+      relayBaseUrl: state.relayBaseUrl,
+      path,
+    }), {
+      method,
+      mode: "cors",
+      cache: "no-store",
+      credentials: "omit",
+      referrerPolicy: "no-referrer",
+      headers: {
+        ...(apiKey ? { Authorization: `Bearer ${apiKey}` } : {}),
+        Accept: "application/json",
+        ...(body === undefined ? {} : { "Content-Type": "application/json" }),
+      },
+      body: body === undefined ? undefined : JSON.stringify(body),
+      signal: controller.signal,
+    });
+
+    const bodyText = await response.text();
+    let payload;
+    try {
+      payload = bodyText ? JSON.parse(bodyText) : {};
+    } catch {
+      payload = { raw: bodyText };
+    }
+
+    if (!response.ok) {
+      throw makeHttpError(response, payload);
+    }
+
+    if (path !== "/health" && response.headers.get("x-jev-relay") !== "1") {
+      const error = new Error("The secure relay response could not be verified.");
+      error.code = "UNVERIFIED_RELAY_RESPONSE";
+      throw error;
+    }
+
+    return { response, payload };
+  } finally {
+    window.clearTimeout(timeout);
+  }
+}
+
+async function verifyRelayHealth() {
+  const { payload } = await relayFetch("/health", {
+    timeoutMs: CONNECT_TIMEOUT_MS,
+  });
+  if (
+    payload?.ok !== true ||
+    payload?.relay !== "jev-language-typesafe" ||
+    payload?.stores_credentials !== false
+  ) {
+    const error = new Error("The secure relay health response was not valid.");
+    error.code = "INVALID_RELAY_HEALTH";
+    throw error;
+  }
+}
+
 async function callJev(questions, latest) {
   if (!state.connected || !state.apiKey) {
     throw new Error("Connect a TypeSafe API key before sending a decision-shaped prompt.");
   }
 
-  const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), 15000);
   const started = performance.now();
-  try {
-    const response = await fetch(resolveApiEndpoint({
-      transport: state.transport,
-      relayBaseUrl: state.relayBaseUrl,
-      path: "/v1/systemone",
-    }), {
-      method: "POST",
-      mode: "cors",
-      headers: {
-        Authorization: `Bearer ${state.apiKey}`,
-        Accept: "application/json",
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        model: state.model,
-        state: buildState(latest),
-        questions,
-      }),
-      signal: controller.signal,
-    });
+  const { response, payload } = await relayFetch("/v1/systemone", {
+    apiKey: state.apiKey,
+    method: "POST",
+    body: {
+      model: state.model,
+      state: buildState(latest),
+      questions,
+    },
+    timeoutMs: REQUEST_TIMEOUT_MS,
+  });
 
-    const bodyText = await response.text();
-    let body;
-    try { body = bodyText ? JSON.parse(bodyText) : {}; } catch { body = { raw: bodyText }; }
+  const validatedBody = validateSystemOneResponse(payload, questions);
 
-    if (!response.ok) {
-      const message = body?.error?.message || body?.message || `TypeSafe returned HTTP ${response.status}.`;
-      const error = new Error(message);
-      error.status = response.status;
-      error.body = body;
-      throw error;
-    }
-
-    const validatedBody = validateSystemOneResponse(body, questions);
-
-    return {
-      body: validatedBody,
-      latencyMs: Math.round(performance.now() - started),
-      requestId: response.headers.get("x-typesafe-request-id"),
-    };
-  } finally {
-    clearTimeout(timeout);
-  }
+  return {
+    body: validatedBody,
+    latencyMs: Math.round(performance.now() - started),
+    requestId: response.headers.get("x-typesafe-request-id"),
+  };
 }
 
 async function resolvePrompt(text) {
@@ -307,11 +345,21 @@ async function submitMessage(text) {
   } catch (error) {
     const status = error?.status;
     let message = "The request failed without a trustworthy result.";
-    if (error?.name === "AbortError") message = "The TypeSafe request timed out. Nothing was inferred from the failed call.";
-    else if (status === 401) message = "That API key was rejected by TypeSafe. Reconnect with a valid key.";
-    else if (status === 403) message = "TypeSafe refused this request for the connected account.";
-    else if (status === 429) message = "TypeSafe rate-limited this request. Try again after the account limit resets.";
-    else if (error?.message) message = error.message;
+    if (error?.name === "AbortError") {
+      message = "Jev is taking longer than expected. Your key is still connected; please retry.";
+    } else if (status === 401) {
+      message = "This API key is no longer accepted. Reconnect with a valid TypeSafe key.";
+      state.apiKey = "";
+      state.connected = false;
+    } else if (status === 403) {
+      message = "This TypeSafe account does not have permission for the requested Jev operation.";
+    } else if (status === 429) {
+      message = "TypeSafe has rate-limited this key. Please wait briefly and retry.";
+    } else if (isBrowserNetworkFailure(error)) {
+      message = "The connection was interrupted before Jev replied. Your key is still connected; please retry.";
+    } else if (error?.message) {
+      message = error.message;
+    }
 
     replaceLoadingMessage(loading, message, {
       error: true,
@@ -329,57 +377,32 @@ async function submitMessage(text) {
 async function connectKey() {
   const key = els.apiKeyInput.value.trim();
   if (!key) {
-    setKeyStatus("Paste an API key first.", "error");
+    setKeyStatus("Paste a TypeSafe API key first.", "error");
     return;
   }
   if (!els.browserConsent.checked) {
-    setKeyStatus("Acknowledge the browser-side key exposure before connecting.", "error");
+    setKeyStatus("Confirm the in-flight key handling before connecting.", "error");
     return;
-  }
-
-  const transport = els.transportSelect.value;
-  let relayBaseUrl = "";
-  if (transport === "relay") {
-    try {
-      relayBaseUrl = normalizeRelayBaseUrl(els.relayUrlInput.value);
-    } catch (error) {
-      setKeyStatus(error?.message || "Invalid relay URL.", "error");
-      return;
-    }
   }
 
   els.connectButton.disabled = true;
   els.connectButton.textContent = "Checking…";
-  setKeyStatus(
-    transport === "relay"
-      ? "Checking the key through your self-hosted relay…"
-      : "Checking the key directly with TypeSafe…",
-  );
+  setKeyStatus("Checking the secure JEV relay…");
 
   try {
-    const response = await fetch(resolveApiEndpoint({
-      transport,
-      relayBaseUrl,
-      path: "/v1/models",
-    }), {
-      method: "GET",
-      mode: "cors",
-      headers: {
-        Authorization: `Bearer ${key}`,
-        Accept: "application/json",
-      },
+    await verifyRelayHealth();
+    setKeyStatus("Relay ready. Verifying your TypeSafe key…");
+
+    const { payload } = await relayFetch("/v1/models", {
+      apiKey: key,
+      timeoutMs: CONNECT_TIMEOUT_MS,
     });
-    const payload = await response.json().catch(() => ({}));
-    if (!response.ok) {
-      throw Object.assign(
-        new Error(payload?.error?.message || payload?.message || `TypeSafe returned HTTP ${response.status}.`),
-        { status: response.status },
-      );
-    }
+
     const models = validateModelsResponse(payload);
     const names = models
       .map((model) => model.name)
       .filter((name) => typeof name === "string" && name.trim());
+
     if (names.length > 0) {
       const previous = els.modelSelect.value;
       els.modelSelect.replaceChildren(...names.map((name) => {
@@ -388,35 +411,41 @@ async function connectKey() {
         option.textContent = name;
         return option;
       }));
-      els.modelSelect.value = names.includes(previous) ? previous : (names.includes("jev-latest") ? "jev-latest" : names[0]);
+      els.modelSelect.value = names.includes(previous)
+        ? previous
+        : (names.includes("jev-latest") ? "jev-latest" : names[0]);
     }
 
     state.apiKey = key;
     state.model = els.modelSelect.value;
-    state.transport = transport;
-    state.relayBaseUrl = relayBaseUrl;
     state.connected = true;
     els.apiKeyInput.value = "";
-    setKeyStatus("Connected in memory. No browser storage was written.", "success");
+    setKeyStatus("Connected securely for this tab. The key was not stored.", "success");
     updateConnectionUi();
     window.setTimeout(() => els.keyDialog.close(), 320);
     els.composerInput.focus();
   } catch (error) {
     state.apiKey = "";
     state.connected = false;
-    const networkFailure = isBrowserNetworkFailure(error);
+
     let message;
     if (error?.status === 401) {
-      message = "TypeSafe rejected this API key. Check that the key is valid.";
+      message = "TypeSafe rejected this API key. Check the key and try again.";
     } else if (error?.status === 403) {
-      message = "TypeSafe refused this account/request.";
-    } else if (networkFailure) {
-      message = transport === "relay"
-        ? "Browser connection to the self-hosted relay failed before an HTTP response. Check the relay URL, its origin allowlist, and its deployment."
-        : "Browser connection blocked before TypeSafe returned an HTTP response. This is usually CORS or network policy for this origin, not an invalid API key. You can instead deploy the repository's locked-down self-hosted relay.";
+      message = "This TypeSafe key does not have access to Jev.";
+    } else if (error?.status === 429) {
+      message = "TypeSafe is rate-limiting this key. Wait briefly and try again.";
+    } else if (
+      error?.name === "AbortError" ||
+      isBrowserNetworkFailure(error) ||
+      error?.code === "INVALID_RELAY_HEALTH" ||
+      error?.code === "UNVERIFIED_RELAY_RESPONSE"
+    ) {
+      message = "The secure connection service is temporarily unavailable. Your key was not stored; please retry.";
     } else {
-      message = error?.message || "Connection test failed.";
+      message = error?.message || "The connection check could not be completed.";
     }
+
     setKeyStatus(message, "error");
     updateConnectionUi();
   } finally {
@@ -434,24 +463,19 @@ function disconnectKey() {
 
 els.openKeyButton.addEventListener("click", () => {
   els.modelSelect.value = state.model;
-  els.transportSelect.value = state.transport;
-  if (state.relayBaseUrl) els.relayUrlInput.value = state.relayBaseUrl;
-  updateTransportUi();
   els.browserConsent.checked = false;
-  setKeyStatus(state.connected ? "A key is connected in memory for this tab." : "");
+  setKeyStatus(
+    state.connected
+      ? "A TypeSafe key is connected in memory for this tab."
+      : "Your key will be sent only through the verified JEV relay and will not be stored.",
+  );
   els.keyDialog.showModal();
   window.setTimeout(() => els.apiKeyInput.focus(), 30);
 });
 els.closeKeyButton.addEventListener("click", () => setKeyStatus(""));
 els.connectButton.addEventListener("click", connectKey);
 els.disconnectButton.addEventListener("click", disconnectKey);
-els.transportSelect.addEventListener("change", () => {
-  if (state.connected) {
-    disconnectKey();
-    setKeyStatus("Transport changed. Reconnect so the key is never silently rerouted.", "success");
-  }
-  updateTransportUi();
-});
+
 els.modelSelect.addEventListener("change", () => {
   if (!state.connected) return;
   state.model = els.modelSelect.value;
@@ -503,8 +527,5 @@ if (new URLSearchParams(location.search).has("preview")) {
 }
 
 autoresize();
-els.transportSelect.value = state.transport;
-els.relayUrlInput.value = state.relayBaseUrl;
-updateTransportUi();
 updateSendState();
 updateConnectionUi();
