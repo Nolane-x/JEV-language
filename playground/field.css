@@ -23,7 +23,7 @@
       rgba(125, 87, 43, 0.04),
       transparent 72%
     );
-  opacity: calc(0.44 + (var(--pointer-active) * 0.5));
+  opacity: 0.44;
 }
 
 .ambient__grid {
@@ -40,7 +40,15 @@
       rgba(0, 0, 0, 0.28),
       transparent 75%
     );
-  opacity: calc(0.16 + (var(--pointer-active) * 0.26));
+  opacity: 0.16;
+}
+
+html[data-pointer-active="true"] .ambient__spotlight {
+  opacity: 0.94;
+}
+
+html[data-pointer-active="true"] .ambient__grid {
+  opacity: 0.42;
 }
 
 .ambient::before {
@@ -56,7 +64,11 @@
       transparent 100%
     );
   filter: drop-shadow(0 0 8px rgba(232, 181, 109, 0.32));
-  opacity: calc(var(--pointer-active) * 0.72);
+  opacity: 0;
+}
+
+html[data-pointer-active="true"] .ambient::before {
+  opacity: 0.72;
 }
 
 .shell::after {
