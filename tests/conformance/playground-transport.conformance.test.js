@@ -25,15 +25,30 @@ describe("Playground transport boundary", () => {
     ).toBe(DIRECT_SYSTEM_ONE_URL);
   });
 
-  it("ships the verified relay as the browser default", () => {
+  it("ships zero-key public Jev as the browser default", () => {
     expect(playgroundApp).toContain(
       'const DEFAULT_RELAY_URL = "https://jev-language-typesafe-relay.nolane-file.workers.dev";',
     );
-    expect(playgroundApp).toContain('transport: "relay"');
+    expect(playgroundApp).toContain('transport: "public"');
     expect(playgroundApp).toContain("relayBaseUrl: DEFAULT_RELAY_URL");
-    expect(playgroundHtml).toContain('<option value="relay" selected>Verified relay</option>');
+    expect(playgroundApp).toContain("connected: true");
+    expect(playgroundHtml).toContain(
+      '<option value="public" selected>Public Jev — no key required</option>',
+    );
     expect(playgroundHtml).toContain(
       'value="https://jev-language-typesafe-relay.nolane-file.workers.dev"',
+    );
+  });
+
+  it("resolves public gateway requests through the verified workers.dev origin", () => {
+    expect(
+      resolveApiEndpoint({
+        transport: "public",
+        relayBaseUrl: "https://jev-language-typesafe-relay.nolane-file.workers.dev",
+        path: "/v1/systemone",
+      }),
+    ).toBe(
+      "https://jev-language-typesafe-relay.nolane-file.workers.dev/v1/systemone",
     );
   });
 
@@ -87,6 +102,80 @@ describe("self-hosted TypeSafe relay", () => {
       {},
     );
     expect(denied.status).toBe(403);
+  });
+
+  it("serves public Jev through the Workers AI binding without a browser API key", async () => {
+    const run = vi.fn(async (model, input) => {
+      expect(model).toBe("typesafe/jev");
+      expect(input.state).toEqual({ message: "hello" });
+      expect(input.questions).toEqual({
+        greeting: {
+          type: "noul",
+          instructions: "Is this a greeting?",
+        },
+      });
+      return {
+        model: "jev-1.13.0",
+        answers: {
+          greeting: { type: "noul", noul: 0.99 },
+        },
+        usage: { input_tokens: 10, output_tokens: 1 },
+      };
+    });
+    const limit = vi.fn(async () => ({ success: true }));
+
+    const response = await handleRequest(
+      new Request("https://relay.example/v1/systemone", {
+        method: "POST",
+        headers: {
+          Origin: allowedOrigin,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          model: "jev-latest",
+          state: { message: "hello" },
+          questions: {
+            greeting: {
+              type: "noul",
+              instructions: "Is this a greeting?",
+            },
+          },
+        }),
+      }),
+      {
+        AI: { run },
+        PUBLIC_JEV_RATE_LIMITER: { limit },
+      },
+    );
+
+    expect(response.status).toBe(200);
+    expect(response.headers.get("access-control-allow-origin")).toBe(
+      allowedOrigin,
+    );
+    expect(response.headers.get("x-jev-provider")).toBe(
+      "cloudflare-workers-ai",
+    );
+    expect(run).toHaveBeenCalledTimes(1);
+    expect(limit).toHaveBeenCalledTimes(1);
+    const body = await response.json();
+    expect(body.model).toBe("jev-1.13.0");
+    expect(body.answers.greeting.noul).toBe(0.99);
+  });
+
+  it("serves the public model catalog without authorization", async () => {
+    const response = await handleRequest(
+      new Request("https://relay.example/v1/models", {
+        method: "GET",
+        headers: { Origin: allowedOrigin },
+      }),
+      {},
+    );
+
+    expect(response.status).toBe(200);
+    const body = await response.json();
+    expect(body.public).toBe(true);
+    expect(body.provider).toBe("cloudflare-workers-ai");
+    expect(body.models.map((model) => model.name)).toContain("jev-latest");
   });
 
   it("forwards only the whitelisted TypeSafe route and preserves bearer auth", async () => {
