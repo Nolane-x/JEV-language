@@ -10,6 +10,9 @@ import {
   type DialogueState,
 } from "../../dialogue-state/src/index.ts";
 import type {
+  ResponseSemanticPlan,
+} from "../../discourse-ir/src/index.ts";
+import type {
   ConversationRanker,
   ConversationStyleMemory,
 } from "../../realizer-core/src/index.ts";
@@ -47,11 +50,7 @@ export interface VerifiedDialogueResponseTurnInput {
 }
 
 export interface VerifiedDialogueResponseTurnResult {
-  plan: ReturnType<
-    typeof buildResponseSemanticPlanFromDialogueState
-  > extends Result<infer T>
-    ? T
-    : never;
+  plan: ResponseSemanticPlan;
   turn: VerifiedConversationTurnResult;
 }
 
