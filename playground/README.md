@@ -49,3 +49,22 @@ Serve this directory with any static server, for example:
 ```bash
 python -m http.server 8000 -d playground
 ```
+
+
+## M19 blinded evaluator
+
+`m19-evaluator.html` is the human-rating surface for the preregistered M19 natural-conversation study.
+
+It is intentionally separate from the BYOK chat runtime:
+
+- its CSP sets `connect-src 'none'`;
+- it performs no TypeSafe/relay request and has no analytics;
+- it does not use localStorage, sessionStorage, or cookies;
+- it loads a local `jl-m19-rating-worksheet-1` JSON file;
+- each stimulus shows the exact canonical conversation context plus one blinded response;
+- item/arm identifiers remain in the JSON for later import but are not shown as evaluator-facing system identities;
+- presentation order is deterministically shuffled from the study ID and pseudonymous evaluator ID;
+- ratings stay in tab memory until the evaluator explicitly exports the completed JSON;
+- export remains disabled until naturalness, semantic accuracy, multi-turn coherence, and template judgment are all present for every stimulus.
+
+Study operators prepare and freeze files with `npm run m19:prepare` and `npm run m19:freeze`. The browser evaluator never fabricates human data and does not mark M19 complete by itself.
