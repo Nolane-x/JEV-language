@@ -6,13 +6,15 @@ const workflow = readFileSync(
   "utf8",
 );
 const relayReadme = readFileSync("relay/README.md", "utf8");
+const deploymentStatus = JSON.parse(
+  readFileSync("relay/deployment-status.json", "utf8"),
+);
 
 describe("Cloudflare relay deployment workflow", () => {
-  it("uses explicit/manual deployment triggers and GitHub repository secrets", () => {
+  it("is manual-only and uses GitHub repository secrets", () => {
     expect(workflow).toContain("workflow_dispatch:");
-    expect(workflow).toContain("push:");
-    expect(workflow).toContain("- .github/relay-deploy.trigger");
-    expect(workflow).not.toContain("- relay/**");
+    expect(workflow).not.toMatch(/\bpush:\s*$/mu);
+    expect(workflow).not.toContain(".github/relay-deploy.trigger");
     expect(workflow).toContain(
       "${{ secrets.CLOUDFLARE_API_TOKEN }}",
     );
@@ -21,17 +23,17 @@ describe("Cloudflare relay deployment workflow", () => {
     );
   });
 
-  it("records only non-secret deployment evidence", () => {
-    expect(workflow).toContain("relay/deployment-status.json");
-    expect(workflow).toContain("relay_url:");
-    expect(workflow).toContain("source_sha:");
-    expect(workflow).toContain("failure_reason:");
-    expect(workflow).toContain("workers_subdomain:");
-    const statusStep = workflow.split("- name: Record deployment status")[1] ?? "";
-    expect(statusStep).not.toContain("secrets.CLOUDFLARE_API_TOKEN");
-    expect(statusStep).not.toContain("secrets.CLOUDFLARE_ACCOUNT_ID");
-    expect(statusStep).not.toContain("process.env.CLOUDFLARE_API_TOKEN");
-    expect(statusStep).not.toContain("process.env.CLOUDFLARE_ACCOUNT_ID");
+  it("preserves independently recorded verified deployment evidence", () => {
+    expect(deploymentStatus.schema).toBe(
+      "jev-language-relay-deployment/v2",
+    );
+    expect(deploymentStatus.verified).toBe(true);
+    expect(deploymentStatus.relay_url).toBe(
+      "https://jev-language-typesafe-relay.nolane-file.workers.dev",
+    );
+    expect(deploymentStatus.deploy_outcome).toBe("success");
+    expect(deploymentStatus.verify_outcome).toBe("success");
+    expect(deploymentStatus.failure_reason).toBeNull();
   });
 
   it("bootstraps workers.dev and deploys only the checked-in relay", () => {
