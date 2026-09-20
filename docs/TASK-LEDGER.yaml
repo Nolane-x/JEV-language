@@ -103,8 +103,31 @@ live_evaluation:
   conversation_multilingual_baseline_requests: 12
   conversation_stress_v2_requests: 18
   conversation_order_symmetry_v3_requests: 20
-  conversation_live_requests_total: 50
+  conversation_boundary_v4_requests: 20
+  conversation_live_requests_total: 70
   conversation_v3_preference_agreements: 20
   conversation_v3_order_invariant_pairs: 10
   conversation_v3_calibration_status: insufficient-errors
+  conversation_v4_clear_preference_agreements: 10
+  conversation_v4_clear_preference_requests: 10
+  conversation_v4_near_tie_abstentions: 9
+  conversation_v4_near_tie_requests: 10
+  conversation_v4_near_tie_false_certainty_rate: 0
+  conversation_v4_order_invariant_pairs: 8
+  conversation_v4_complete_base_pairs: 10
+  conversation_v4_status: evidence-frozen-calibration-analysis-open
   conversation_last_live_model: jev-1.13.0
+
+continuation:
+  read_first: docs/NEXT-AI-HANDOFF.md
+  active_milestone: M19-natural-conversation-research
+  next_priority:
+    - absorb-v4-evidence-into-NC-11
+    - freeze-real-M19-A-B-stimuli-for-NC-13
+    - collect-real-blinded-human-ratings-for-NC-14
+    - iterate-only-from-observed-failure-clusters-for-NC-15
+  must_not_fabricate:
+    - M19-arm-output
+    - human-rating
+    - preference-label-after-observation
+  browser_transport_state: production-relay-verified-browser-contract-v2
