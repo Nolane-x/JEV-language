@@ -357,8 +357,8 @@ describe("T481-T490 source-preserving transformation", () => {
           patches: [
             {
               sourceId: source.sourceId,
-              start: 24,
-              end: 25,
+              start: 25,
+              end: 26,
               replacement: "2",
               reason: "change-literal",
             },
