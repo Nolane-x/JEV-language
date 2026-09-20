@@ -1,0 +1,111 @@
+{
+  "schemaVersion": "jl-phenomenon-coverage-1",
+  "release": "v0.4-research-expanded",
+  "entries": [
+    {
+      "dimension": "semantics",
+      "status": "partial",
+      "evidenceRefs": [
+        "tests/conformance/t311-t320-scope-quantification.conformance.test.ts",
+        "tests/conformance/t321-t330-event-time-modality.conformance.test.ts",
+        "tests/conformance/t341-t350-presupposition-pragmatics.conformance.test.ts"
+      ],
+      "notes": "Deep semantic phenomena are verified in declared subsets; unrestricted open-domain semantics remain unsupported."
+    },
+    {
+      "dimension": "discourse",
+      "status": "partial",
+      "evidenceRefs": [
+        "tests/conformance/t361-t370-questions-dialogue-acts.conformance.test.ts",
+        "tests/conformance/t371-t380-reference-ellipsis.conformance.test.ts",
+        "tests/conformance/t381-t390-discourse-information-structure.conformance.test.ts"
+      ],
+      "notes": "Reference, correction, ellipsis, dialogue acts and discourse structure are verified; unrestricted discourse remains partial."
+    },
+    {
+      "dimension": "morphology",
+      "status": "partial",
+      "evidenceRefs": [
+        "tests/conformance/m8-vietnamese-language-pack.conformance.test.ts",
+        "tests/conformance/t401-t410-language-typology.conformance.test.ts"
+      ],
+      "notes": "English/Vietnamese and synthetic typology paths are covered, not arbitrary-language morphology."
+    },
+    {
+      "dimension": "syntax",
+      "status": "partial",
+      "evidenceRefs": [
+        "tests/conformance/m18-grammar-parser.conformance.test.ts",
+        "tests/conformance/t401-t410-language-typology.conformance.test.ts"
+      ],
+      "notes": "Packed grammar and typology extensions are verified for declared profiles."
+    },
+    {
+      "dimension": "parsing",
+      "status": "partial",
+      "evidenceRefs": [
+        "tests/conformance/m4-controlled-corpus.conformance.test.ts",
+        "tests/conformance/t411-t420-translation-parser-architecture.conformance.test.ts",
+        "tests/conformance/t421-t430-incremental-realization.conformance.test.ts"
+      ],
+      "notes": "Controlled, packed, translation-aware and incremental parser paths are verified."
+    },
+    {
+      "dimension": "generation",
+      "status": "partial",
+      "evidenceRefs": [
+        "tests/conformance/m6-bidirectional-variants.conformance.test.ts",
+        "tests/conformance/m6-template-leakage.benchmark.test.ts",
+        "tests/conformance/t421-t430-incremental-realization.conformance.test.ts"
+      ],
+      "notes": "Constrained generation is verified with anti-template evidence; unrestricted NLG is not claimed."
+    },
+    {
+      "dimension": "translation",
+      "status": "partial",
+      "evidenceRefs": [
+        "tests/conformance/m9-multilingual-semantic-equivalence.conformance.test.ts",
+        "tests/conformance/t411-t420-translation-parser-architecture.conformance.test.ts"
+      ],
+      "notes": "Semantic transfer/invariance is verified within declared EN/VI and synthetic-pack coverage."
+    },
+    {
+      "dimension": "program-ir",
+      "status": "partial",
+      "evidenceRefs": [
+        "tests/conformance/m10-program-ir.conformance.test.ts",
+        "tests/conformance/t451-t460-advanced-pir.conformance.test.ts"
+      ],
+      "notes": "Core and advanced PIR contracts are verified but do not claim every programming-language feature."
+    },
+    {
+      "dimension": "synthesis",
+      "status": "partial",
+      "evidenceRefs": [
+        "tests/property/t441-t450-synthesis-grammar.property.test.ts",
+        "tests/conformance/t461-t470-cegis.conformance.test.ts",
+        "tests/conformance/extended-m11-m20-gates.conformance.test.ts"
+      ],
+      "notes": "Typed grammar search and CEGIS are verified under explicit finite budgets and held-out cases."
+    },
+    {
+      "dimension": "verification",
+      "status": "partial",
+      "evidenceRefs": [
+        "tests/conformance/verification-hardening.conformance.test.ts",
+        "tests/conformance/t471-t480-solver-proof.conformance.test.ts",
+        "tests/conformance/semantic-preservation.conformance.test.ts"
+      ],
+      "notes": "Deterministic verification and bounded proof evidence are verified; richer external theories remain capability-bound."
+    },
+    {
+      "dimension": "formal-ir",
+      "status": "partial",
+      "evidenceRefs": [
+        "tests/conformance/m15-formal-data-action-ir.conformance.test.ts",
+        "tests/conformance/t491-t500-formal-action-evidence.conformance.test.ts"
+      ],
+      "notes": "Logic/Math/Query/Schema/Data/Action families are validated and rendered; not every external formalism is native."
+    }
+  ]
+}
