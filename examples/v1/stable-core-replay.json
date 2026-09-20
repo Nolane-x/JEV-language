@@ -1,0 +1,43 @@
+{
+  "schemaVersion": "jl-v1-stable-core-demo-1",
+  "id": "demo:v1-stable-core-replay",
+  "release": "1.0.0",
+  "zeroGenerativeAudit": {
+    "jevNative": true,
+    "generativeModelCalls": 0,
+    "generativeEmbeddingCalls": 0,
+    "externalGenerationServices": 0,
+    "violations": []
+  },
+  "records": [
+    {
+      "id": "prov:alpha",
+      "originType": "user-input",
+      "sourceRefs": [],
+      "transformation": "demo-input",
+      "trust": "user-content",
+      "metadata": {
+        "source": "example"
+      }
+    },
+    {
+      "id": "prov:beta",
+      "originType": "deterministic-derivation",
+      "sourceRefs": [
+        "prov:alpha"
+      ],
+      "transformation": "canonicalize",
+      "trust": "configured-trusted",
+      "metadata": {
+        "rule": "demo.v1"
+      }
+    }
+  ],
+  "expected": {
+    "snapshotIds": [
+      "prov:alpha",
+      "prov:beta"
+    ],
+    "canonicalDigest": "sha256:c2494a68fe9e19602375cc1db166e88c216579def9aedb1433e7693c4e52808a"
+  }
+}

@@ -2,12 +2,12 @@
   "schemaVersion": "1",
   "packages": {
     "core-types": {
-      "maturity": "candidate",
+      "maturity": "stable",
       "layer": 0,
       "dependencies": []
     },
     "provenance": {
-      "maturity": "candidate",
+      "maturity": "stable",
       "layer": 1,
       "dependencies": [
         "core-types"

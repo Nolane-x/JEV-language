@@ -1,0 +1,33 @@
+{
+  "schemaVersion": "jl-v1-benchmark-baseline-1",
+  "release": "1.0.0",
+  "profile": "stable-core",
+  "sourceCi": {
+    "runNumber": 340,
+    "commit": "a577cb33d6d00841f958c6f7d772b98e859a814e",
+    "testFilesPassed": 77,
+    "testFilesTotal": 77,
+    "testsPassed": 624,
+    "testsTotal": 624,
+    "boundariesPassed": true,
+    "typecheckPassed": true
+  },
+  "deterministicBaselines": [
+    {
+      "id": "core.canonical-json.replay",
+      "package": "core-types",
+      "metric": "expected-digest",
+      "expected": "sha256:c2494a68fe9e19602375cc1db166e88c216579def9aedb1433e7693c4e52808a"
+    },
+    {
+      "id": "provenance.snapshot.order",
+      "package": "provenance",
+      "metric": "expected-id-order",
+      "expected": [
+        "prov:alpha",
+        "prov:beta"
+      ]
+    }
+  ],
+  "note": "This baseline records correctness/replay baselines, not hardware-dependent latency claims."
+}

@@ -89,6 +89,19 @@ The `JEV Live Smoke` workflow is **manual-only**, requires an explicit `YES`, is
 
 Never commit API keys, credentials, opaque secret payloads, or live traces containing them. A typed interface guarantees structure—not truth—so capability claims require evidence from conformance/evaluation.
 
+## v1 stable-core profile
+
+The first stable ABI profile covers `core-types` and `provenance`. Its machine-readable evidence lives in `docs/v1.0-conformance.json`; API references, migration policy, benchmark baseline, limitations and an executable zero-generative replay demo are checked by the M20 conformance suite.
+
+Useful commands:
+
+```bash
+npm run test:v1-conformance
+npm run demo:v1-stable-core
+```
+
+This stable-core profile does not imply that every package is stable. Language, synthesis, backend and other research packages retain their explicit lower maturity levels until separately promoted.
+
 ## Status
 
-Research implementation in active development. The foundation is runnable; the complete 16k-line master specification is **not** yet fully implemented.
+The T001–T500 engineering task sequence and v0.4 release gates are verified. M19 blinded natural-conversation protocol tooling is implemented, but the research milestone still requires real human ratings. M20 v1 stable-core conformance passed deterministic CI with 77/77 test files and 624/624 tests; no synthetic human ratings are used to close M19.
