@@ -21,6 +21,8 @@ describe("conversation ranker boundary calibration v4", () => {
     expect(script).toContain("mirrored: false");
     expect(script).toContain("mirrored: true");
     expect(workflow).toContain('JEV_LIVE_MAX_REQUESTS: "20"');
+    expect(workflow).toContain("npm ci --ignore-scripts --no-audit --no-fund");
+    expect(workflow).not.toContain("npm install --ignore-scripts --no-audit --no-fund");
     expect(workflow).toContain(
       ".github/conversation-ranker-boundary-v4.trigger",
     );
