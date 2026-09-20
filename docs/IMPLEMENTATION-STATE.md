@@ -73,6 +73,8 @@ M0–M9 are verified at their milestone gates. M3 includes the required one-requ
 
 T441-T450 synthesis grammar foundation is implemented on a stacked branch with composite specification validation, environment specialization, G0-G3 hard grammar profiles, structured hole constraints, type-directed enumeration, constraint-directed pruning and deterministic property tests; verification is pending stacked-branch CI.
 
+T451-T460 advanced PIR is implemented on a stacked branch by formalizing existing advanced constructs and adding the missing task/concurrency, ownership/lifetime, exhaustiveness, closure-capture, and opaque reflection boundaries; verification is pending stacked CI.
+
 ## Implemented foundation
 
 - Strict TypeScript / Node 20+ baseline.
