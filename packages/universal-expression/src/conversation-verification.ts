@@ -136,3 +136,104 @@ export const certifyConversationSurfaceDraft = (
     },
   });
 };
+
+export interface ConversationSurfaceParserIdentity {
+  id: string;
+  version: string;
+}
+
+export type ConversationSurfaceParser = (
+  surface: string,
+  language: string,
+) =>
+  | Result<GraphSnapshot>
+  | Promise<Result<GraphSnapshot>>;
+
+export interface ParserBoundConversationCertificationInput {
+  draft: UnverifiedConversationSurfaceDraft;
+  sourceSemantics: GraphSnapshot;
+  parser: ConversationSurfaceParser;
+  parserIdentity: ConversationSurfaceParserIdentity;
+  profile?: PreservationProfile;
+  additionalEvidenceRefs?: string[];
+}
+
+export interface ParserBoundConversationCertification
+  extends ConversationSemanticCertification {
+  parser: ConversationSurfaceParserIdentity;
+}
+
+export const certifyConversationSurfaceDraftFromParser = async (
+  input: ParserBoundConversationCertificationInput,
+): Promise<Result<ParserBoundConversationCertification>> => {
+  if (
+    !nonEmpty(input.draft.surface) ||
+    !nonEmpty(input.draft.language) ||
+    !nonEmpty(input.parserIdentity.id) ||
+    !nonEmpty(input.parserIdentity.version)
+  ) {
+    return err(
+      new StructuredError(
+        "EXPRESSION_CONVERSATION_PARSER_CERTIFICATION_INPUT",
+        "Parser-bound conversation certification requires a surface, language, parser id, and parser version.",
+      ),
+    );
+  }
+
+  let recovered: Result<GraphSnapshot>;
+  try {
+    recovered = await input.parser(
+      input.draft.surface,
+      input.draft.language,
+    );
+  } catch (error) {
+    return err(
+      new StructuredError(
+        "EXPRESSION_CONVERSATION_PARSE_THROW",
+        "The conversation surface parser threw before semantic certification could run.",
+        {
+          parserId: input.parserIdentity.id,
+          parserVersion: input.parserIdentity.version,
+          cause: error instanceof Error ? error.message : String(error),
+        },
+      ),
+    );
+  }
+
+  if (!recovered.ok) {
+    return err(
+      new StructuredError(
+        "EXPRESSION_CONVERSATION_PARSE_FAILED",
+        "The exact conversation surface could not be parsed back to semantics, so it cannot be certified.",
+        {
+          parserId: input.parserIdentity.id,
+          parserVersion: input.parserIdentity.version,
+          cause: recovered.error.code,
+        },
+      ),
+    );
+  }
+
+  const parserEvidenceRef =
+    "evidence:conversation-parser:" +
+    input.parserIdentity.id +
+    "@" +
+    input.parserIdentity.version;
+
+  const certified = certifyConversationSurfaceDraft({
+    draft: input.draft,
+    sourceSemantics: input.sourceSemantics,
+    recoveredCandidateSemantics: recovered.value,
+    ...(input.profile === undefined ? {} : { profile: input.profile }),
+    additionalEvidenceRefs: [
+      parserEvidenceRef,
+      ...(input.additionalEvidenceRefs ?? []),
+    ],
+  });
+  if (!certified.ok) return err(certified.error);
+
+  return ok({
+    ...certified.value,
+    parser: structuredClone(input.parserIdentity),
+  });
+};
