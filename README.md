@@ -80,6 +80,7 @@ The `JEV Live Smoke` workflow is **manual-only**, requires an explicit `YES`, is
 
 ## Specification and state
 
+- **New AI / continuation entrypoint:** [docs/NEXT-AI-HANDOFF.md](docs/NEXT-AI-HANDOFF.md)
 - [SPEC-PIN.md](SPEC-PIN.md) pins the supplied v0.4 master specification and digest.
 - [docs/IMPLEMENTATION-STATE.md](docs/IMPLEMENTATION-STATE.md) is the authoritative progress snapshot.
 - [docs/TASK-LEDGER.yaml](docs/TASK-LEDGER.yaml) tracks implementation status without fake completion.
@@ -116,4 +117,4 @@ This stable-core profile does not imply that every package is stable. Language, 
 
 ## Status
 
-The T001–T500 engineering task sequence and v0.4 release gates are verified. M19 blinded natural-conversation protocol tooling is implemented, but the research milestone still requires real human ratings. M20 v1 stable-core conformance passed deterministic CI with 77/77 test files and 624/624 tests; no synthetic human ratings are used to close M19.
+The T001–T500 engineering task sequence and v0.4 release gates are verified. M19 blinded natural-conversation protocol tooling is implemented, but the research milestone still requires real observed A/B stimuli and real blinded human ratings. The current natural-conversation continuation state, live-evidence totals, verified relay/browser state, and exact next actions are pinned in `docs/NEXT-AI-HANDOFF.md`. No synthetic human ratings or fabricated M19 outputs may be used to close M19.
