@@ -235,7 +235,7 @@ jobs:
         run: |
           set -euo pipefail
 
-          recorded_at="$(date -u +'%Y-%m-%dT%H:%M:%SZ')"
+          export RECORDED_AT="$(date -u +'%Y-%m-%dT%H:%M:%SZ')"
           node <<'NODE'
           const fs = require("node:fs");
           const status = {
@@ -278,5 +278,3 @@ jobs:
 
           git commit -m "chore: freeze verified relay deployment status [skip ci]"
           git push origin HEAD:main
-        env:
-          RECORDED_AT: ${{ github.run_started_at }}
