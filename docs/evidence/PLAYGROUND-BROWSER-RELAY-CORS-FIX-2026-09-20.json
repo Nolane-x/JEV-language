@@ -1,0 +1,40 @@
+{
+  "schema": "jev-language-browser-relay-cors-fix/v1",
+  "observed_at": "2026-09-20T12:38:44.837Z",
+  "source_sha": "93b7ff5c26fc6820f69bdbfe234bb2c28d170dcb",
+  "root_cause": "The relay returned X-JEV-Relay: 1 but did not expose that non-safelisted response header through Access-Control-Expose-Headers, so browser JavaScript observed a null identity header and rejected a healthy relay as unverified.",
+  "fix": {
+    "access_control_expose_headers": [
+      "X-JEV-Relay",
+      "X-TypeSafe-Request-Id",
+      "Retry-After"
+    ],
+    "transient_connect_attempts": 3,
+    "identity_check_weakened": false,
+    "byok_persistence_changed": false
+  },
+  "deployment": {
+    "worker_url": "https://jev-language-typesafe-relay.nolane-file.workers.dev",
+    "worker_version_id": "735459af-a34b-4876-a933-8f9afd84d5a1",
+    "workflow_run_id": 35511196778,
+    "workflow_conclusion": "success",
+    "health_ok_verified": true,
+    "cors_origin_verified": "https://nolane-x.github.io",
+    "relay_identity_header_verified": true,
+    "relay_identity_exposure_verified": true,
+    "preflight_verified": true
+  },
+  "playground": {
+    "url": "https://nolane-x.github.io/JEV-language/",
+    "workflow_run_id": 35511196773,
+    "workflow_conclusion": "success",
+    "deployed_source_sha": "93b7ff5c26fc6820f69bdbfe234bb2c28d170dcb"
+  },
+  "tests": {
+    "pr_ci": "success",
+    "test_files_passed": 103,
+    "tests_passed": 761
+  },
+  "credential_persisted": false,
+  "authenticated_typesafe_request_spent_for_this_fix": false
+}

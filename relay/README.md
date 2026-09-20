@@ -15,6 +15,8 @@ The relay is intentionally narrow:
 
 The relay **does receive the user's Authorization header transiently in memory while forwarding the request**. Only use a relay deployment you control.
 
+Browser verification depends on `X-JEV-Relay: 1` being both present **and CORS-exposed**. The Worker therefore returns `Access-Control-Expose-Headers: X-JEV-Relay, X-TypeSafe-Request-Id, Retry-After`. This is a required part of the browser trust contract: a header that exists on the wire but is not exposed is unreadable to browser JavaScript.
+
 ## Deploy
 
 ### Recommended: GitHub Actions
