@@ -1,0 +1,80 @@
+name: Deploy TypeSafe Relay
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    name: Deploy locked-down relay
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Validate Cloudflare credentials
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: |
+          if [ -z "$CLOUDFLARE_API_TOKEN" ]; then
+            echo "::error::Missing repository secret CLOUDFLARE_API_TOKEN"
+            exit 1
+          fi
+          if [ -z "$CLOUDFLARE_ACCOUNT_ID" ]; then
+            echo "::error::Missing repository secret CLOUDFLARE_ACCOUNT_ID"
+            exit 1
+          fi
+
+      - name: Deploy relay
+        id: deploy
+        uses: cloudflare/wrangler-action@v4
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          workingDirectory: relay
+          command: deploy
+
+      - name: Verify deployed relay
+        env:
+          RELAY_URL: ${{ steps.deploy.outputs.deployment-url }}
+        run: |
+          if [ -z "$RELAY_URL" ]; then
+            echo "::error::Wrangler did not return a deployment URL"
+            exit 1
+          fi
+
+          echo "Relay URL: $RELAY_URL"
+
+          ok=0
+          for attempt in 1 2 3 4 5 6; do
+            if curl --fail --silent --show-error "$RELAY_URL/health" > /tmp/relay-health.json; then
+              ok=1
+              break
+            fi
+            sleep 3
+          done
+          if [ "$ok" -ne 1 ]; then
+            echo "::error::Relay health endpoint did not become reachable"
+            exit 1
+          fi
+
+          grep -q '"ok":true' /tmp/relay-health.json
+          grep -q '"stores_credentials":false' /tmp/relay-health.json
+
+          curl --fail --silent --show-error             --request OPTIONS             --header "Origin: https://nolane-x.github.io"             --header "Access-Control-Request-Method: GET"             --header "Access-Control-Request-Headers: Authorization,Accept"             --dump-header /tmp/relay-cors.headers             --output /dev/null             "$RELAY_URL/v1/models"
+
+          tr -d '\r' < /tmp/relay-cors.headers |             grep -i '^access-control-allow-origin: https://nolane-x.github.io$'
+
+          {
+            echo "## TypeSafe relay deployed"
+            echo
+            echo "Relay URL: \`$RELAY_URL\`"
+            echo
+            echo "- Health endpoint: verified"
+            echo "- GitHub Pages CORS preflight: verified"
+            echo "- TypeSafe API key: not used or stored by this workflow"
+          } >> "$GITHUB_STEP_SUMMARY"
