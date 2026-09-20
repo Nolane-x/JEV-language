@@ -85,6 +85,18 @@ The `JEV Live Smoke` workflow is **manual-only**, requires an explicit `YES`, is
 - [docs/TASK-LEDGER.yaml](docs/TASK-LEDGER.yaml) tracks implementation status without fake completion.
 - [docs/adr/](docs/adr/) records architectural decisions.
 
+## Playground
+
+A zero-install browser Playground is deployed at:
+
+https://nolane-x.github.io/JEV-language/
+
+It is a static GitHub Pages BYOK surface: users supply their own TypeSafe key, which stays in tab memory only. The current UI routes bounded yes/no and explicit-choice prompts through Jev and keeps unsupported free-form generation explicit rather than hiding another generator behind the chat surface.
+
+The NUI-driven interface uses an obsidian/editorial-instrument visual thesis with a warm-metal inspection-light field that follows the pointer, plus coarse-pointer and reduced-motion fallbacks. Provider success payloads are validated before rendering.
+
+Static deployment and deterministic conformance are verified. Authenticated browser CORS from the deployed origin is intentionally not claimed until observed with a real user-supplied key.
+
 ## Security
 
 Never commit API keys, credentials, opaque secret payloads, or live traces containing them. A typed interface guarantees structure—not truth—so capability claims require evidence from conformance/evaluation.
