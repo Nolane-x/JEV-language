@@ -165,6 +165,8 @@ describe("JEV Language Playground conformance", () => {
     expect(pages).toContain("actions/deploy-pages@v5");
     expect(pages).toContain("path: ./playground");
     expect(pages).toContain("pages: write");
-    expect(pages).toContain("id-token: write");\n    expect(pages).toContain("cancel-in-progress: false");\n    expect(pages).toContain("Pages setup diagnostic");
+    expect(pages).toContain("id-token: write");
+    expect(pages).toContain("cancel-in-progress: false");
+    expect(pages).toContain("Pages setup diagnostic");
   });
 });
