@@ -81,6 +81,28 @@ const preserveExactTerms = (
   terms: readonly string[],
 ): boolean => terms.every((term) => surface.includes(term));
 
+const capitalizeInitial = (value: string): string =>
+  value.length === 0
+    ? value
+    : value.charAt(0).toLocaleUpperCase("vi") + value.slice(1);
+
+const replaceSocialPlaceholder = (
+  surface: string,
+  placeholder: "{{speaker}}" | "{{addressee}}",
+  value: string,
+): string => {
+  const escaped = placeholder.replace(/[{}]/gu, "\\const preserveExactTerms = (
+  surface: string,
+  terms: readonly string[],
+): boolean => terms.every((term) => surface.includes(term));
+
+");
+  const sentenceStart = new RegExp(`(^|[.!?]\\s+)${escaped}`, "gu");
+  return surface
+    .replace(sentenceStart, (_match, prefix: string) => `${prefix}${capitalizeInitial(value)}`)
+    .replaceAll(placeholder, value);
+};
+
 const replacePlaceholders = (
   frame: VietnameseConversationFrame,
 ): Result<string> => {
@@ -95,7 +117,11 @@ const replacePlaceholders = (
         ),
       );
     }
-    surface = surface.replaceAll("{{speaker}}", frame.speakerFormHint!.trim());
+    surface = replaceSocialPlaceholder(
+      surface,
+      "{{speaker}}",
+      frame.speakerFormHint!.trim(),
+    );
   }
 
   if (surface.includes("{{addressee}}")) {
@@ -107,7 +133,8 @@ const replacePlaceholders = (
         ),
       );
     }
-    surface = surface.replaceAll(
+    surface = replaceSocialPlaceholder(
+      surface,
       "{{addressee}}",
       frame.addresseeFormHint!.trim(),
     );
