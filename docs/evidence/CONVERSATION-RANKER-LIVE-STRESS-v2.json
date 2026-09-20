@@ -1,0 +1,579 @@
+{
+  "schema": "jev-language-conversation-ranker-live-stress/v2",
+  "observed_at": "2026-09-20T10:49:28.549Z",
+  "source_sha": "4609fd97161932754acf20f4187399ee8dd47fd6",
+  "relay": "https://jev-language-typesafe-relay.nolane-file.workers.dev",
+  "origin": "https://nolane-x.github.io",
+  "request_budget": 18,
+  "requests_used": 18,
+  "credential_persisted": false,
+  "error_bodies_persisted": false,
+  "languages_tested": [
+    "vi",
+    "en",
+    "zh-Hans",
+    "ja",
+    "es",
+    "vi-en"
+  ],
+  "summary": {
+    "successful_requests": 18,
+    "passed_cases": 18,
+    "pass_rate": 1,
+    "input_tokens": 7645,
+    "output_tokens": 612
+  },
+  "language_summary": [
+    {
+      "language": "vi",
+      "cases": 6,
+      "successful_requests": 6,
+      "passed": 6
+    },
+    {
+      "language": "en",
+      "cases": 4,
+      "successful_requests": 4,
+      "passed": 4
+    },
+    {
+      "language": "zh-Hans",
+      "cases": 2,
+      "successful_requests": 2,
+      "passed": 2
+    },
+    {
+      "language": "ja",
+      "cases": 2,
+      "successful_requests": 2,
+      "passed": 2
+    },
+    {
+      "language": "es",
+      "cases": 2,
+      "successful_requests": 2,
+      "passed": 2
+    },
+    {
+      "language": "vi-en",
+      "cases": 2,
+      "successful_requests": 2,
+      "passed": 2
+    }
+  ],
+  "category_summary": [
+    {
+      "category": "naturalness",
+      "cases": 5,
+      "successful_requests": 5,
+      "passed": 5
+    },
+    {
+      "category": "correction",
+      "cases": 4,
+      "successful_requests": 4,
+      "passed": 4
+    },
+    {
+      "category": "register",
+      "cases": 2,
+      "successful_requests": 2,
+      "passed": 2
+    },
+    {
+      "category": "uncertainty",
+      "cases": 2,
+      "successful_requests": 2,
+      "passed": 2
+    },
+    {
+      "category": "code-switch",
+      "cases": 2,
+      "successful_requests": 2,
+      "passed": 2
+    },
+    {
+      "category": "unknown-term",
+      "cases": 2,
+      "successful_requests": 2,
+      "passed": 2
+    },
+    {
+      "category": "anti-template",
+      "cases": 1,
+      "successful_requests": 1,
+      "passed": 1
+    }
+  ],
+  "cases": [
+    {
+      "id": "vi-peer-naturalness",
+      "language": "vi",
+      "category": "naturalness",
+      "ok": true,
+      "passed": true,
+      "expected": "option_a",
+      "observed": {
+        "choice": "option_a",
+        "confidence": 1,
+        "probabilities": {
+          "option_b": 0,
+          "option_a": 1
+        },
+        "margin": 1
+      },
+      "model": "jev-1.13.0",
+      "usage": {
+        "input_tokens": 432,
+        "output_tokens": 34
+      },
+      "latency_ms": 486,
+      "request_id": "req_01a0be6f5efd7669b7e40f38daaae54b",
+      "relay_header_verified": true,
+      "cors_origin_verified": true
+    },
+    {
+      "id": "vi-correction-ack",
+      "language": "vi",
+      "category": "correction",
+      "ok": true,
+      "passed": true,
+      "expected": "option_a",
+      "observed": {
+        "choice": "option_a",
+        "confidence": 1,
+        "probabilities": {
+          "option_b": 0,
+          "option_a": 1
+        },
+        "margin": 1
+      },
+      "model": "jev-1.13.0",
+      "usage": {
+        "input_tokens": 428,
+        "output_tokens": 34
+      },
+      "latency_ms": 302,
+      "request_id": "req_01a0be6f604278b09461064a485b789e",
+      "relay_header_verified": true,
+      "cors_origin_verified": true
+    },
+    {
+      "id": "vi-teacher-register",
+      "language": "vi",
+      "category": "register",
+      "ok": true,
+      "passed": true,
+      "expected": "option_a",
+      "observed": {
+        "choice": "option_a",
+        "confidence": 1,
+        "probabilities": {
+          "option_b": 0,
+          "option_a": 1
+        },
+        "margin": 1
+      },
+      "model": "jev-1.13.0",
+      "usage": {
+        "input_tokens": 427,
+        "output_tokens": 34
+      },
+      "latency_ms": 293,
+      "request_id": "req_01a0be6f61447e39b5632740064f7e45",
+      "relay_header_verified": true,
+      "cors_origin_verified": true
+    },
+    {
+      "id": "vi-uncertainty",
+      "language": "vi",
+      "category": "uncertainty",
+      "ok": true,
+      "passed": true,
+      "expected": "option_a",
+      "observed": {
+        "choice": "option_a",
+        "confidence": 1,
+        "probabilities": {
+          "option_b": 0,
+          "option_a": 1
+        },
+        "margin": 1
+      },
+      "model": "jev-1.13.0",
+      "usage": {
+        "input_tokens": 427,
+        "output_tokens": 34
+      },
+      "latency_ms": 172,
+      "request_id": "req_01a0be6f620a72bd979c445d93ddac5f",
+      "relay_header_verified": true,
+      "cors_origin_verified": true
+    },
+    {
+      "id": "vi-dev-code-switch",
+      "language": "vi",
+      "category": "code-switch",
+      "ok": true,
+      "passed": true,
+      "expected": "option_a",
+      "observed": {
+        "choice": "option_a",
+        "confidence": 0.99,
+        "probabilities": {
+          "option_a": 1,
+          "option_b": 0
+        },
+        "margin": 1
+      },
+      "model": "jev-1.13.0",
+      "usage": {
+        "input_tokens": 419,
+        "output_tokens": 34
+      },
+      "latency_ms": 192,
+      "request_id": "req_01a0be6f62a97622899673b3f373c5e1",
+      "relay_header_verified": true,
+      "cors_origin_verified": true
+    },
+    {
+      "id": "vi-opaque-term",
+      "language": "vi",
+      "category": "unknown-term",
+      "ok": true,
+      "passed": true,
+      "expected": "option_a",
+      "observed": {
+        "choice": "option_a",
+        "confidence": 1,
+        "probabilities": {
+          "option_a": 1,
+          "option_b": 0
+        },
+        "margin": 1
+      },
+      "model": "jev-1.13.0",
+      "usage": {
+        "input_tokens": 428,
+        "output_tokens": 34
+      },
+      "latency_ms": 219,
+      "request_id": "req_01a0be6f63787eb694ca361284780929",
+      "relay_header_verified": true,
+      "cors_origin_verified": true
+    },
+    {
+      "id": "en-peer-naturalness",
+      "language": "en",
+      "category": "naturalness",
+      "ok": true,
+      "passed": true,
+      "expected": "option_a",
+      "observed": {
+        "choice": "option_a",
+        "confidence": 1,
+        "probabilities": {
+          "option_b": 0,
+          "option_a": 1
+        },
+        "margin": 1
+      },
+      "model": "jev-1.13.0",
+      "usage": {
+        "input_tokens": 412,
+        "output_tokens": 34
+      },
+      "latency_ms": 147,
+      "request_id": "req_01a0be6f6453705888d4b4fe60ee327a",
+      "relay_header_verified": true,
+      "cors_origin_verified": true
+    },
+    {
+      "id": "en-correction-ack",
+      "language": "en",
+      "category": "correction",
+      "ok": true,
+      "passed": true,
+      "expected": "option_a",
+      "observed": {
+        "choice": "option_a",
+        "confidence": 1,
+        "probabilities": {
+          "option_b": 0,
+          "option_a": 1
+        },
+        "margin": 1
+      },
+      "model": "jev-1.13.0",
+      "usage": {
+        "input_tokens": 404,
+        "output_tokens": 34
+      },
+      "latency_ms": 238,
+      "request_id": "req_01a0be6f64e77bf8a0c4eb3656ceb5c7",
+      "relay_header_verified": true,
+      "cors_origin_verified": true
+    },
+    {
+      "id": "en-uncertainty",
+      "language": "en",
+      "category": "uncertainty",
+      "ok": true,
+      "passed": true,
+      "expected": "option_a",
+      "observed": {
+        "choice": "option_a",
+        "confidence": 1,
+        "probabilities": {
+          "option_b": 0,
+          "option_a": 1
+        },
+        "margin": 1
+      },
+      "model": "jev-1.13.0",
+      "usage": {
+        "input_tokens": 403,
+        "output_tokens": 34
+      },
+      "latency_ms": 162,
+      "request_id": "req_01a0be6f65c876b6ad5bbfee9bb6606f",
+      "relay_header_verified": true,
+      "cors_origin_verified": true
+    },
+    {
+      "id": "en-anti-template",
+      "language": "en",
+      "category": "anti-template",
+      "ok": true,
+      "passed": true,
+      "expected": "option_a",
+      "observed": {
+        "choice": "option_a",
+        "confidence": 1,
+        "probabilities": {
+          "option_b": 0,
+          "option_a": 1
+        },
+        "margin": 1
+      },
+      "model": "jev-1.13.0",
+      "usage": {
+        "input_tokens": 423,
+        "output_tokens": 34
+      },
+      "latency_ms": 285,
+      "request_id": "req_01a0be6f66de7512bf343bfaa95aa01c",
+      "relay_header_verified": true,
+      "cors_origin_verified": true
+    },
+    {
+      "id": "zh-naturalness",
+      "language": "zh-Hans",
+      "category": "naturalness",
+      "ok": true,
+      "passed": true,
+      "expected": "option_a",
+      "observed": {
+        "choice": "option_a",
+        "confidence": 1,
+        "probabilities": {
+          "option_b": 0,
+          "option_a": 1
+        },
+        "margin": 1
+      },
+      "model": "jev-1.13.0",
+      "usage": {
+        "input_tokens": 435,
+        "output_tokens": 34
+      },
+      "latency_ms": 169,
+      "request_id": "req_01a0be6f678a7417aebb7beb851bd95a",
+      "relay_header_verified": true,
+      "cors_origin_verified": true
+    },
+    {
+      "id": "zh-correction",
+      "language": "zh-Hans",
+      "category": "correction",
+      "ok": true,
+      "passed": true,
+      "expected": "option_a",
+      "observed": {
+        "choice": "option_a",
+        "confidence": 1,
+        "probabilities": {
+          "option_b": 0,
+          "option_a": 1
+        },
+        "margin": 1
+      },
+      "model": "jev-1.13.0",
+      "usage": {
+        "input_tokens": 421,
+        "output_tokens": 34
+      },
+      "latency_ms": 148,
+      "request_id": "req_01a0be6f683472ecb31b3136941fbe47",
+      "relay_header_verified": true,
+      "cors_origin_verified": true
+    },
+    {
+      "id": "ja-register",
+      "language": "ja",
+      "category": "register",
+      "ok": true,
+      "passed": true,
+      "expected": "option_a",
+      "observed": {
+        "choice": "option_a",
+        "confidence": 1,
+        "probabilities": {
+          "option_b": 0,
+          "option_a": 1
+        },
+        "margin": 1
+      },
+      "model": "jev-1.13.0",
+      "usage": {
+        "input_tokens": 452,
+        "output_tokens": 34
+      },
+      "latency_ms": 240,
+      "request_id": "req_01a0be6f68cb7d96b8a838fa0375adde",
+      "relay_header_verified": true,
+      "cors_origin_verified": true
+    },
+    {
+      "id": "ja-casual",
+      "language": "ja",
+      "category": "naturalness",
+      "ok": true,
+      "passed": true,
+      "expected": "option_a",
+      "observed": {
+        "choice": "option_a",
+        "confidence": 1,
+        "probabilities": {
+          "option_b": 0,
+          "option_a": 1
+        },
+        "margin": 1
+      },
+      "model": "jev-1.13.0",
+      "usage": {
+        "input_tokens": 449,
+        "output_tokens": 34
+      },
+      "latency_ms": 207,
+      "request_id": "req_01a0be6f69be7e6394b4611be59725af",
+      "relay_header_verified": true,
+      "cors_origin_verified": true
+    },
+    {
+      "id": "es-naturalness",
+      "language": "es",
+      "category": "naturalness",
+      "ok": true,
+      "passed": true,
+      "expected": "option_a",
+      "observed": {
+        "choice": "option_a",
+        "confidence": 1,
+        "probabilities": {
+          "option_a": 1,
+          "option_b": 0
+        },
+        "margin": 1
+      },
+      "model": "jev-1.13.0",
+      "usage": {
+        "input_tokens": 419,
+        "output_tokens": 34
+      },
+      "latency_ms": 148,
+      "request_id": "req_01a0be6f6a86768d883533c5771b7658",
+      "relay_header_verified": true,
+      "cors_origin_verified": true
+    },
+    {
+      "id": "es-correction",
+      "language": "es",
+      "category": "correction",
+      "ok": true,
+      "passed": true,
+      "expected": "option_a",
+      "observed": {
+        "choice": "option_a",
+        "confidence": 1,
+        "probabilities": {
+          "option_b": 0,
+          "option_a": 1
+        },
+        "margin": 1
+      },
+      "model": "jev-1.13.0",
+      "usage": {
+        "input_tokens": 418,
+        "output_tokens": 34
+      },
+      "latency_ms": 147,
+      "request_id": "req_01a0be6f6b1f72b2bcdf457e9c3fdec6",
+      "relay_header_verified": true,
+      "cors_origin_verified": true
+    },
+    {
+      "id": "vi-en-contextual-code-switch",
+      "language": "vi-en",
+      "category": "code-switch",
+      "ok": true,
+      "passed": true,
+      "expected": "option_a",
+      "observed": {
+        "choice": "option_a",
+        "confidence": 1,
+        "probabilities": {
+          "option_b": 0,
+          "option_a": 1
+        },
+        "margin": 1
+      },
+      "model": "jev-1.13.0",
+      "usage": {
+        "input_tokens": 416,
+        "output_tokens": 34
+      },
+      "latency_ms": 170,
+      "request_id": "req_01a0be6f6bb278d887d00a5c9db18e60",
+      "relay_header_verified": true,
+      "cors_origin_verified": true
+    },
+    {
+      "id": "vi-en-unknown-project-name",
+      "language": "vi-en",
+      "category": "unknown-term",
+      "ok": true,
+      "passed": true,
+      "expected": "option_a",
+      "observed": {
+        "choice": "option_a",
+        "confidence": 1,
+        "probabilities": {
+          "option_a": 1,
+          "option_b": 0
+        },
+        "margin": 1
+      },
+      "model": "jev-1.13.0",
+      "usage": {
+        "input_tokens": 432,
+        "output_tokens": 34
+      },
+      "latency_ms": 179,
+      "request_id": "req_01a0be6f6c6878b8b9e3a656115352df",
+      "relay_header_verified": true,
+      "cors_origin_verified": true
+    }
+  ],
+  "interpretation": "This benchmark measures Jev as a bounded conversational naturalness/pragmatics ranker. It does not establish unrestricted string-generation or end-to-end conversation quality."
+}
