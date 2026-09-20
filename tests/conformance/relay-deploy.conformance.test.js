@@ -65,6 +65,15 @@ describe("Cloudflare relay deployment workflow", () => {
     expect(workflow).toContain(
       "Browser-readable X-JEV-Relay exposure: verified",
     );
+    expect(workflow).toContain(
+      "Observed browser contract v2 on attempt $attempt",
+    );
+    expect(workflow).toContain(
+      "Waiting for deployed relay contract propagation",
+    );
+    expect(workflow).toContain(
+      "expected browser contract did not propagate",
+    );
   });
 
   it("documents the secret-safe setup instead of repository plaintext credentials", () => {
