@@ -1,6 +1,6 @@
 # JEV Language Playground — GitHub Pages surface
 
-Status: **deployed and deterministic-CI verified; authenticated browser CORS check pending**
+Status: **deployed and deterministic-CI verified; direct TypeSafe browser transport is CORS-blocked; self-hosted relay transport implemented but not yet deployment-verified**
 
 Live URL:
 
@@ -34,9 +34,11 @@ The API key:
 - is not written to localStorage, sessionStorage, cookies, URL state, repository files, or analytics;
 - is cleared on disconnect or tab close.
 
-Requests go directly from the browser to `https://api.typesafe.ai`. If TypeSafe does not allow the GitHub Pages origin through CORS, the UI reports the connection failure rather than proxying or collecting the key.
+The default transport sends requests directly from the browser to `https://api.typesafe.ai`. The 2026-09-20 preflight probe established that this GitHub Pages origin is not currently allowed by the production API's CORS policy.
 
-The official TypeSafe JavaScript SDK recognizes explicit browser use through its `dangerouslyAllowBrowser` option, but that is not treated here as proof that this exact GitHub Pages origin is accepted by the production API. Authenticated CORS remains pending until one real BYOK connection is observed from the deployed page.
+The Playground now also exposes an explicit **Self-hosted relay** mode. The repository contains a Cloudflare Worker implementation in `relay/` with a fixed TypeSafe upstream, only `/v1/models` and `/v1/systemone`, an origin allowlist, no cache, and no credential persistence. The relay is not an anonymous public proxy and the browser accepts only HTTPS `*.workers.dev` relay origins or localhost.
+
+A relay deployment still sees the Authorization header transiently while forwarding it. The UI therefore requires the user to choose relay mode explicitly and warns that only a relay they control should be used. Changing transport clears the in-memory key and requires reconnecting.
 
 ## TypeSafe wire contract
 
@@ -100,7 +102,9 @@ GitHub Pages:
 
 The static application, repository integration, deterministic tests, and Pages deployment are verified.
 
-One external-provider property remains deliberately unclaimed: an authenticated browser request from the deployed GitHub Pages origin to TypeSafe. This requires a real user-supplied key in the page and must not be simulated by committing or exposing a credential.
+Direct browser transport is no longer an unknown: the provider CORS policy blocks the deployed GitHub Pages origin.
+
+The remaining live item is one authenticated BYOK request through a relay deployment controlled by the user, or a later provider-side CORS change that makes direct mode work. No credential will be committed, logged, or simulated to close this item.
 
 
 ## CORS preflight probe — 2026-09-20
@@ -122,3 +126,22 @@ Observed for both endpoints:
 Therefore the deployed GitHub Pages origin is not currently permitted to call the TypeSafe API directly from a browser. This is an external-provider CORS policy, not an API-key validation failure and not something static GitHub Pages can override.
 
 The frontend now distinguishes this network/CORS class from HTTP 401/403 failures. No public CORS proxy is used because forwarding user API keys through an untrusted proxy would violate the BYOK trust boundary.
+
+
+## Optional self-hosted relay
+
+Implementation:
+
+- `relay/worker.mjs`
+- `relay/wrangler.toml`
+- `relay/README.md`
+
+Security properties enforced in source and conformance tests:
+
+- fixed upstream `https://api.typesafe.ai`;
+- route allowlist: `GET /v1/models`, `POST /v1/systemone`;
+- exact browser-origin allowlist;
+- unknown paths rejected before upstream fetch;
+- no cookies, credential persistence, cache, or analytics;
+- CORS emitted only for approved origins;
+- direct transport remains the default and is still available if TypeSafe changes its CORS policy.

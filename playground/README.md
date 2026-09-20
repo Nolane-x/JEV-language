@@ -1,6 +1,6 @@
 # JEV Language Playground
 
-Static GitHub Pages chat surface for the experimental JEV Language project.\n\n## Live\n\nhttps://nolane-x.github.io/JEV-language/\n\nThe site is deployed from the `playground/` directory through GitHub Pages Actions. Static deployment and deterministic conformance are verified; authenticated browser CORS against TypeSafe remains a live BYOK check.
+Static GitHub Pages chat surface for the experimental JEV Language project.\n\n## Live\n\nhttps://nolane-x.github.io/JEV-language/\n\nThe site is deployed from the `playground/` directory through GitHub Pages Actions. Static deployment and deterministic conformance are verified. Direct browser calls to TypeSafe are currently blocked by the provider's CORS policy, so the Playground also supports an explicit self-hosted relay transport.
 
 ## Runtime model
 

@@ -12,13 +12,19 @@ import {
   validateSystemOneResponse,
   yesNoLike,
 } from "./runtime.js";
+import {
+  isBrowserNetworkFailure,
+  normalizeRelayBaseUrl,
+  resolveApiEndpoint,
+} from "./transport.js";
 
-const API_URL = "https://api.typesafe.ai/v1/systemone";
 const MAX_CONTEXT_TURNS = 10;
 
 const state = {
   apiKey: "",
   model: "jev-latest",
+  transport: "direct",
+  relayBaseUrl: "",
   connected: false,
   busy: false,
   turns: [],
@@ -32,7 +38,12 @@ const els = {
   closeKeyButton: document.querySelector("#closeKeyButton"),
   apiKeyInput: document.querySelector("#apiKeyInput"),
   modelSelect: document.querySelector("#modelSelect"),
+  transportSelect: document.querySelector("#transportSelect"),
+  relayUrlField: document.querySelector("#relayUrlField"),
+  relayUrlInput: document.querySelector("#relayUrlInput"),
+  keyPanelIntro: document.querySelector("#keyPanelIntro"),
   browserConsent: document.querySelector("#browserConsent"),
+  browserConsentText: document.querySelector("#browserConsentText"),
   toggleKeyVisibility: document.querySelector("#toggleKeyVisibility"),
   connectButton: document.querySelector("#connectButton"),
   disconnectButton: document.querySelector("#disconnectButton"),
@@ -57,10 +68,24 @@ function setKeyStatus(message = "", kind = "") {
   els.keyPanelStatus.dataset.state = kind;
 }
 
+function updateTransportUi() {
+  const relay = els.transportSelect.value === "relay";
+  els.relayUrlField.hidden = !relay;
+  els.keyPanelIntro.textContent = relay
+    ? "The key stays in this tab's JavaScript memory, but your self-hosted relay receives the Authorization header transiently while forwarding to TypeSafe. Use only a relay you control."
+    : "The key is never written to localStorage, cookies, the URL, or this repository. It disappears when this tab closes or you disconnect. Requests go directly from this page to TypeSafe.";
+  els.browserConsentText.textContent = relay
+    ? "I understand that the page runtime and the self-hosted relay I chose can see this API key while requests are in flight."
+    : "I understand that using an API key in a browser exposes it to the page runtime and developer tools.";
+}
+
 function updateConnectionUi() {
   els.keyButtonLabel.textContent = state.connected ? "Connected" : "Connect key";
   els.disconnectButton.hidden = !state.connected;
-  setRuntime(state.connected ? "connected" : "idle", state.connected ? state.model : "Local shell");
+  const connectedLabel = state.transport === "relay"
+    ? `${state.model} · relay`
+    : state.model;
+  setRuntime(state.connected ? "connected" : "idle", state.connected ? connectedLabel : "Local shell");
 }
 
 function updateSendState() {
@@ -143,7 +168,11 @@ async function callJev(questions, latest) {
   const timeout = setTimeout(() => controller.abort(), 15000);
   const started = performance.now();
   try {
-    const response = await fetch(API_URL, {
+    const response = await fetch(resolveApiEndpoint({
+      transport: state.transport,
+      relayBaseUrl: state.relayBaseUrl,
+      path: "/v1/systemone",
+    }), {
       method: "POST",
       mode: "cors",
       headers: {
@@ -273,7 +302,7 @@ async function submitMessage(text) {
     const result = await resolvePrompt(clean);
     replaceLoadingMessage(loading, result.text, result.details);
     state.turns.push({ role: "assistant", text: result.text });
-    setRuntime(state.connected ? "connected" : "idle", state.connected ? state.model : "Local shell");
+    updateConnectionUi();
   } catch (error) {
     const status = error?.status;
     let message = "The request failed without a trustworthy result.";
@@ -307,12 +336,31 @@ async function connectKey() {
     return;
   }
 
+  const transport = els.transportSelect.value;
+  let relayBaseUrl = "";
+  if (transport === "relay") {
+    try {
+      relayBaseUrl = normalizeRelayBaseUrl(els.relayUrlInput.value);
+    } catch (error) {
+      setKeyStatus(error?.message || "Invalid relay URL.", "error");
+      return;
+    }
+  }
+
   els.connectButton.disabled = true;
   els.connectButton.textContent = "Checking…";
-  setKeyStatus("Checking the key directly with TypeSafe…");
+  setKeyStatus(
+    transport === "relay"
+      ? "Checking the key through your self-hosted relay…"
+      : "Checking the key directly with TypeSafe…",
+  );
 
   try {
-    const response = await fetch("https://api.typesafe.ai/v1/models", {
+    const response = await fetch(resolveApiEndpoint({
+      transport,
+      relayBaseUrl,
+      path: "/v1/models",
+    }), {
       method: "GET",
       mode: "cors",
       headers: {
@@ -344,6 +392,8 @@ async function connectKey() {
 
     state.apiKey = key;
     state.model = els.modelSelect.value;
+    state.transport = transport;
+    state.relayBaseUrl = relayBaseUrl;
     state.connected = true;
     els.apiKeyInput.value = "";
     setKeyStatus("Connected in memory. No browser storage was written.", "success");
@@ -353,17 +403,16 @@ async function connectKey() {
   } catch (error) {
     state.apiKey = "";
     state.connected = false;
-    const isNetworkFailure =
-      error instanceof TypeError &&
-      /failed to fetch|networkerror|load failed/i.test(error.message || "");
+    const networkFailure = isBrowserNetworkFailure(error);
     let message;
     if (error?.status === 401) {
       message = "TypeSafe rejected this API key. Check that the key is valid.";
     } else if (error?.status === 403) {
       message = "TypeSafe refused this account/request.";
-    } else if (isNetworkFailure) {
-      message =
-        "Browser connection blocked before TypeSafe returned an HTTP response. This is usually CORS or network policy for this origin, not an invalid API key.";
+    } else if (networkFailure) {
+      message = transport === "relay"
+        ? "Browser connection to the self-hosted relay failed before an HTTP response. Check the relay URL, its origin allowlist, and its deployment."
+        : "Browser connection blocked before TypeSafe returned an HTTP response. This is usually CORS or network policy for this origin, not an invalid API key. You can instead deploy the repository's locked-down self-hosted relay.";
     } else {
       message = error?.message || "Connection test failed.";
     }
@@ -384,6 +433,9 @@ function disconnectKey() {
 
 els.openKeyButton.addEventListener("click", () => {
   els.modelSelect.value = state.model;
+  els.transportSelect.value = state.transport;
+  if (state.relayBaseUrl) els.relayUrlInput.value = state.relayBaseUrl;
+  updateTransportUi();
   els.browserConsent.checked = false;
   setKeyStatus(state.connected ? "A key is connected in memory for this tab." : "");
   els.keyDialog.showModal();
@@ -392,6 +444,18 @@ els.openKeyButton.addEventListener("click", () => {
 els.closeKeyButton.addEventListener("click", () => setKeyStatus(""));
 els.connectButton.addEventListener("click", connectKey);
 els.disconnectButton.addEventListener("click", disconnectKey);
+els.transportSelect.addEventListener("change", () => {
+  if (state.connected) {
+    disconnectKey();
+    setKeyStatus("Transport changed. Reconnect so the key is never silently rerouted.", "success");
+  }
+  updateTransportUi();
+});
+els.modelSelect.addEventListener("change", () => {
+  if (!state.connected) return;
+  state.model = els.modelSelect.value;
+  updateConnectionUi();
+});
 els.toggleKeyVisibility.addEventListener("click", () => {
   const show = els.apiKeyInput.type === "password";
   els.apiKeyInput.type = show ? "text" : "password";
@@ -438,5 +502,6 @@ if (new URLSearchParams(location.search).has("preview")) {
 }
 
 autoresize();
+updateTransportUi();
 updateSendState();
 updateConnectionUi();

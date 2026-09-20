@@ -8,7 +8,7 @@
     <meta name="referrer" content="no-referrer" />
     <meta
       http-equiv="Content-Security-Policy"
-      content="default-src 'self'; connect-src https://api.typesafe.ai; img-src 'self' data:; style-src 'self'; script-src 'self'; object-src 'none'; base-uri 'none'; form-action 'self'"
+      content="default-src 'self'; connect-src https://api.typesafe.ai https://*.workers.dev http://localhost:* http://127.0.0.1:*; img-src 'self' data:; style-src 'self'; script-src 'self'; object-src 'none'; base-uri 'none'; form-action 'self'"
     />
     <meta
       name="description"
@@ -100,9 +100,24 @@
           </button>
         </div>
 
-        <p class="key-panel__intro">
+        <p class="key-panel__intro" id="keyPanelIntro">
           The key is never written to localStorage, cookies, the URL, or this repository. It disappears when this tab closes or you disconnect. Requests go directly from this page to TypeSafe.
         </p>
+
+        <label class="field">
+          <span>Transport</span>
+          <select id="transportSelect">
+            <option value="direct">Direct TypeSafe</option>
+            <option value="relay">Self-hosted relay</option>
+          </select>
+        </label>
+
+        <label class="field" id="relayUrlField" hidden>
+          <span>Relay origin</span>
+          <span class="field__control">
+            <input id="relayUrlInput" type="url" placeholder="https://your-relay.workers.dev" autocomplete="off" autocapitalize="off" spellcheck="false" />
+          </span>
+        </label>
 
         <label class="field">
           <span>TypeSafe API key</span>
@@ -125,7 +140,7 @@
 
         <label class="consent-row">
           <input id="browserConsent" type="checkbox" />
-          <span>I understand that using an API key in a browser exposes it to the page runtime and developer tools.</span>
+          <span id="browserConsentText">I understand that using an API key in a browser exposes it to the page runtime and developer tools.</span>
         </label>
 
         <div class="key-panel__status" id="keyPanelStatus" role="status"></div>
