@@ -1090,3 +1090,5 @@ export * from "./v1-conformance.ts";
 export * from "./conversation-candidate-recall.ts";
 
 export * from "./conversation-ranker-calibration.ts";
+
+export * from "./m19-observed-stimulus.ts";
