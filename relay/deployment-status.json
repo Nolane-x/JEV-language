@@ -1,0 +1,9 @@
+{
+  "schema": "jev-language-relay-deployment/v1",
+  "verified": false,
+  "relay_url": null,
+  "deploy_outcome": "failure",
+  "verify_outcome": "skipped",
+  "source_sha": "9bbb16bf91d189035ac003675ce74bf032cc2858",
+  "recorded_at": "2026-09-20T08:00:30.797Z"
+}
