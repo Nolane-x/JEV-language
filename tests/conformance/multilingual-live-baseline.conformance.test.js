@@ -9,6 +9,12 @@ const script = readFileSync(
   "scripts/multilingual-live-baseline.ts",
   "utf8",
 );
+const evidence = JSON.parse(
+  readFileSync(
+    "docs/evidence/MULTILINGUAL-LIVE-BASELINE.json",
+    "utf8",
+  ),
+);
 
 describe("multilingual live baseline contract", () => {
   it("hard-limits the authorized benchmark to twelve requests", () => {
@@ -51,8 +57,44 @@ describe("multilingual live baseline contract", () => {
     expect(script).toContain("deterministic_surface_probes");
   });
 
-  it("keeps automatic execution narrowly scoped to a temporary trigger", () => {
-    expect(workflow).toContain(".github/multilingual-live-baseline.trigger");
-    expect(workflow).not.toContain("paths-ignore:");
+  it("is manual-only after the one-shot evidence run", () => {
+    expect(workflow).toContain("workflow_dispatch:");
+    expect(workflow).toContain("contents: read");
+    expect(workflow).not.toMatch(/^\s*push:/mu);
+    expect(workflow).not.toContain("git push");
+    expect(workflow).not.toContain(".github/multilingual-live-baseline.trigger");
+  });
+
+  it("locks the observed multilingual baseline without upgrading its claim", () => {
+    expect(evidence.schema).toBe(
+      "jev-language-multilingual-live-baseline/v1",
+    );
+    expect(evidence.source_sha).toBe(
+      "97e150294bc185d60b7939c4c2988cfcdcdc42d4",
+    );
+    expect(evidence.requests_used).toBe(12);
+    expect(evidence.summary.successful_requests).toBe(12);
+    expect(evidence.summary.passed_cases).toBe(12);
+    expect(evidence.summary.pass_rate).toBe(1);
+    expect(evidence.summary.input_tokens).toBe(4662);
+    expect(evidence.summary.output_tokens).toBe(324);
+    expect(evidence.credential_persisted).toBe(false);
+    expect(evidence.error_bodies_persisted).toBe(false);
+    expect(evidence.jev_language_surface_packs).toEqual(["en", "vi"]);
+    expect(evidence.missing_surface_packs_for_live_languages).toEqual([
+      "zh-Hans",
+      "es",
+      "ja",
+    ]);
+    expect(evidence.cases).toHaveLength(12);
+    expect(
+      evidence.cases.every(
+        (entry) =>
+          entry.ok === true &&
+          entry.passed === true &&
+          entry.relay_header_verified === true &&
+          entry.cors_origin_verified === true,
+      ),
+    ).toBe(true);
   });
 });
