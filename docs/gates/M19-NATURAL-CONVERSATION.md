@@ -1,8 +1,8 @@
 # M19 — Natural-conversation research gate
 
-Status: **protocol implemented; human research data pending**.
+Status: **protocol verified; human research data pending**.
 
-This milestone is experimental. Completion means that the preregistered measurements were actually collected and reported. It does **not** mean the measured naturalness was positive.
+This milestone is experimental. Completion means that the preregistered measurements were actually collected and reported. It does **not** mean the measured naturalness was positive.\n\nVerified protocol evidence: CI #336 passed package boundaries, strict TypeScript typecheck, 76/76 test files, and 617/617 tests.
 
 ## Required measurements
 
