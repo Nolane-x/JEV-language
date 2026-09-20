@@ -1,0 +1,355 @@
+{
+  "schema": "jev-language-multilingual-live-baseline/v1",
+  "observed_at": "2026-09-20T09:23:14.236Z",
+  "source_sha": "97e150294bc185d60b7939c4c2988cfcdcdc42d4",
+  "relay": "https://jev-language-typesafe-relay.nolane-file.workers.dev",
+  "origin": "https://nolane-x.github.io",
+  "request_budget": 12,
+  "requests_used": 12,
+  "credential_persisted": false,
+  "error_bodies_persisted": false,
+  "languages_tested": [
+    "en",
+    "vi",
+    "zh-Hans",
+    "es",
+    "ja",
+    "vi-en"
+  ],
+  "jev_language_surface_packs": [
+    "en",
+    "vi"
+  ],
+  "missing_surface_packs_for_live_languages": [
+    "zh-Hans",
+    "es",
+    "ja"
+  ],
+  "summary": {
+    "successful_requests": 12,
+    "passed_cases": 12,
+    "pass_rate": 1,
+    "input_tokens": 4662,
+    "output_tokens": 324
+  },
+  "language_summary": [
+    {
+      "language": "en",
+      "cases": 2,
+      "successful_requests": 2,
+      "passed": 2
+    },
+    {
+      "language": "vi",
+      "cases": 3,
+      "successful_requests": 3,
+      "passed": 3
+    },
+    {
+      "language": "zh-Hans",
+      "cases": 2,
+      "successful_requests": 2,
+      "passed": 2
+    },
+    {
+      "language": "es",
+      "cases": 2,
+      "successful_requests": 2,
+      "passed": 2
+    },
+    {
+      "language": "ja",
+      "cases": 2,
+      "successful_requests": 2,
+      "passed": 2
+    },
+    {
+      "language": "vi-en",
+      "cases": 1,
+      "successful_requests": 1,
+      "passed": 1
+    }
+  ],
+  "cases": [
+    {
+      "id": "en-meaning-preservation",
+      "language": "en",
+      "kind": "noul",
+      "ok": true,
+      "passed": true,
+      "expected": true,
+      "observed": 0.97,
+      "model": "jev-1.13.0",
+      "usage": {
+        "input_tokens": 342,
+        "output_tokens": 20
+      },
+      "latency_ms": 514,
+      "request_id": "req_01a0be206f14764f9e7ca3f8c4bb9d3b",
+      "relay_header_verified": true,
+      "cors_origin_verified": true
+    },
+    {
+      "id": "en-naturalness",
+      "language": "en",
+      "kind": "choice",
+      "ok": true,
+      "passed": true,
+      "expected": "option_a",
+      "observed": {
+        "choice": "option_a",
+        "confidence": 1,
+        "probabilities": {
+          "option_b": 0,
+          "option_a": 1
+        }
+      },
+      "model": "jev-1.13.0",
+      "usage": {
+        "input_tokens": 386,
+        "output_tokens": 34
+      },
+      "latency_ms": 351,
+      "request_id": "req_01a0be20709273f1bed98982d6ddac71",
+      "relay_header_verified": true,
+      "cors_origin_verified": true
+    },
+    {
+      "id": "vi-meaning-preservation",
+      "language": "vi",
+      "kind": "noul",
+      "ok": true,
+      "passed": true,
+      "expected": true,
+      "observed": 0.97,
+      "model": "jev-1.13.0",
+      "usage": {
+        "input_tokens": 367,
+        "output_tokens": 20
+      },
+      "latency_ms": 215,
+      "request_id": "req_01a0be2071e07c1a97163c376f265b8d",
+      "relay_header_verified": true,
+      "cors_origin_verified": true
+    },
+    {
+      "id": "vi-naturalness",
+      "language": "vi",
+      "kind": "choice",
+      "ok": true,
+      "passed": true,
+      "expected": "option_a",
+      "observed": {
+        "choice": "option_a",
+        "confidence": 0.99,
+        "probabilities": {
+          "option_a": 1,
+          "option_b": 0
+        }
+      },
+      "model": "jev-1.13.0",
+      "usage": {
+        "input_tokens": 392,
+        "output_tokens": 34
+      },
+      "latency_ms": 342,
+      "request_id": "req_01a0be2072c27bdab9331e8589673c2e",
+      "relay_header_verified": true,
+      "cors_origin_verified": true
+    },
+    {
+      "id": "zh-meaning-preservation",
+      "language": "zh-Hans",
+      "kind": "noul",
+      "ok": true,
+      "passed": true,
+      "expected": true,
+      "observed": 0.9,
+      "model": "jev-1.13.0",
+      "usage": {
+        "input_tokens": 364,
+        "output_tokens": 20
+      },
+      "latency_ms": 172,
+      "request_id": "req_01a0be2073aa788db246903d7b9716d3",
+      "relay_header_verified": true,
+      "cors_origin_verified": true
+    },
+    {
+      "id": "zh-naturalness",
+      "language": "zh-Hans",
+      "kind": "choice",
+      "ok": true,
+      "passed": true,
+      "expected": "option_a",
+      "observed": {
+        "choice": "option_a",
+        "confidence": 1,
+        "probabilities": {
+          "option_a": 1,
+          "option_b": 0
+        }
+      },
+      "model": "jev-1.13.0",
+      "usage": {
+        "input_tokens": 413,
+        "output_tokens": 34
+      },
+      "latency_ms": 179,
+      "request_id": "req_01a0be20745d7afc852b5619d0a950a9",
+      "relay_header_verified": true,
+      "cors_origin_verified": true
+    },
+    {
+      "id": "es-meaning-preservation",
+      "language": "es",
+      "kind": "noul",
+      "ok": true,
+      "passed": true,
+      "expected": true,
+      "observed": 0.97,
+      "model": "jev-1.13.0",
+      "usage": {
+        "input_tokens": 351,
+        "output_tokens": 20
+      },
+      "latency_ms": 235,
+      "request_id": "req_01a0be20750b71a4af7007dcd609e394",
+      "relay_header_verified": true,
+      "cors_origin_verified": true
+    },
+    {
+      "id": "es-naturalness",
+      "language": "es",
+      "kind": "choice",
+      "ok": true,
+      "passed": true,
+      "expected": "option_a",
+      "observed": {
+        "choice": "option_a",
+        "confidence": 0.99,
+        "probabilities": {
+          "option_a": 1,
+          "option_b": 0
+        }
+      },
+      "model": "jev-1.13.0",
+      "usage": {
+        "input_tokens": 391,
+        "output_tokens": 34
+      },
+      "latency_ms": 142,
+      "request_id": "req_01a0be20760576dabf6615f48f4ebab3",
+      "relay_header_verified": true,
+      "cors_origin_verified": true
+    },
+    {
+      "id": "ja-meaning-preservation",
+      "language": "ja",
+      "kind": "noul",
+      "ok": true,
+      "passed": true,
+      "expected": true,
+      "observed": 0.87,
+      "model": "jev-1.13.0",
+      "usage": {
+        "input_tokens": 381,
+        "output_tokens": 20
+      },
+      "latency_ms": 169,
+      "request_id": "req_01a0be20768573e8ae5d9e6c8f41031d",
+      "relay_header_verified": true,
+      "cors_origin_verified": true
+    },
+    {
+      "id": "ja-naturalness",
+      "language": "ja",
+      "kind": "choice",
+      "ok": true,
+      "passed": true,
+      "expected": "option_a",
+      "observed": {
+        "choice": "option_a",
+        "confidence": 1,
+        "probabilities": {
+          "option_b": 0,
+          "option_a": 1
+        }
+      },
+      "model": "jev-1.13.0",
+      "usage": {
+        "input_tokens": 434,
+        "output_tokens": 34
+      },
+      "latency_ms": 131,
+      "request_id": "req_01a0be20772e76e0bafb29085a05cc60",
+      "relay_header_verified": true,
+      "cors_origin_verified": true
+    },
+    {
+      "id": "vi-multiturn-reference",
+      "language": "vi",
+      "kind": "noul",
+      "ok": true,
+      "passed": true,
+      "expected": true,
+      "observed": 0.88,
+      "model": "jev-1.13.0",
+      "usage": {
+        "input_tokens": 435,
+        "output_tokens": 20
+      },
+      "latency_ms": 160,
+      "request_id": "req_01a0be2077b3740d98a347f66289b2f7",
+      "relay_header_verified": true,
+      "cors_origin_verified": true
+    },
+    {
+      "id": "vi-en-code-switch-naturalness",
+      "language": "vi-en",
+      "kind": "choice",
+      "ok": true,
+      "passed": true,
+      "expected": "option_a",
+      "observed": {
+        "choice": "option_a",
+        "confidence": 0.8,
+        "probabilities": {
+          "option_a": 0.9,
+          "option_b": 0.1
+        }
+      },
+      "model": "jev-1.13.0",
+      "usage": {
+        "input_tokens": 406,
+        "output_tokens": 34
+      },
+      "latency_ms": 136,
+      "request_id": "req_01a0be20785a75a79c58e77b42de86b4",
+      "relay_header_verified": true,
+      "cors_origin_verified": true
+    }
+  ],
+  "deterministic_surface_probes": [
+    {
+      "source": "The service deletes exactly 3 files.",
+      "en": "The service deletes exactly 3 files.",
+      "vi": "Dịch vụ xóa đúng 3 tệp."
+    },
+    {
+      "source": "If deletion is prohibited, the service must not delete more than 3 files.",
+      "en": "If deletion is prohibited, the service must not delete more than 3 files.",
+      "vi": "Nếu việc xóa bị cấm, dịch vụ không được xóa quá 3 tệp."
+    },
+    {
+      "source": "The service must not delete more than 3 files because deletion is prohibited.",
+      "en": "The service must not delete more than 3 files because deletion is prohibited.",
+      "vi": "Dịch vụ không được xóa quá 3 tệp vì việc xóa bị cấm."
+    },
+    {
+      "source": "According to the service, the service deletes exactly 3 files.",
+      "en": "According to the service, the service deletes exactly 3 files.",
+      "vi": "Theo dịch vụ, dịch vụ xóa đúng 3 tệp."
+    }
+  ]
+}
