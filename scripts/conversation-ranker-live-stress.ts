@@ -1,3 +1,5 @@
+export {};
+
 const RELAY_URL =
   process.env.JEV_RELAY_URL ??
   "https://jev-language-typesafe-relay.nolane-file.workers.dev";
