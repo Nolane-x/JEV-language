@@ -108,14 +108,14 @@
           <span>Transport</span>
           <select id="transportSelect">
             <option value="direct">Direct TypeSafe</option>
-            <option value="relay">Self-hosted relay</option>
+            <option value="relay" selected>Verified relay</option>
           </select>
         </label>
 
         <label class="field" id="relayUrlField" hidden>
           <span>Relay origin</span>
           <span class="field__control">
-            <input id="relayUrlInput" type="url" placeholder="https://your-relay.workers.dev" autocomplete="off" autocapitalize="off" spellcheck="false" />
+            <input id="relayUrlInput" type="url" value="https://jev-language-typesafe-relay.nolane-file.workers.dev" placeholder="https://your-relay.workers.dev" autocomplete="off" autocapitalize="off" spellcheck="false" />
           </span>
         </label>
 

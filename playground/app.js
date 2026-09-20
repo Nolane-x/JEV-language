@@ -19,12 +19,13 @@ import {
 } from "./transport.js";
 
 const MAX_CONTEXT_TURNS = 10;
+const DEFAULT_RELAY_URL = "https://jev-language-typesafe-relay.nolane-file.workers.dev";
 
 const state = {
   apiKey: "",
   model: "jev-latest",
-  transport: "direct",
-  relayBaseUrl: "",
+  transport: "relay",
+  relayBaseUrl: DEFAULT_RELAY_URL,
   connected: false,
   busy: false,
   turns: [],
@@ -502,6 +503,8 @@ if (new URLSearchParams(location.search).has("preview")) {
 }
 
 autoresize();
+els.transportSelect.value = state.transport;
+els.relayUrlInput.value = state.relayBaseUrl;
 updateTransportUi();
 updateSendState();
 updateConnectionUi();
