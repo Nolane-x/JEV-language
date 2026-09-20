@@ -24,7 +24,7 @@ describe("Vietnamese conversational microgrammar", () => {
     if (!result.ok) return;
 
     const surfaces = result.value.map((item) => item.surface);
-    expect(surfaces).toContain("em hiểu rồi. em sẽ sửa phần đó.");
+    expect(surfaces).toContain("Em hiểu rồi. Em sẽ sửa phần đó.");
     expect(surfaces.some((surface) => surface.startsWith("Dạ,"))).toBe(true);
     expect(surfaces.some((surface) => surface.endsWith("ạ."))).toBe(true);
     expect(surfaces.some((surface) => surface.includes("mình"))).toBe(false);
