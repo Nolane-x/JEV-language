@@ -5,3 +5,5 @@ browser-cors-expose-fix: 2026-09-20T12:35Z
 reason: expose X-JEV-Relay to browser JS and reverify GitHub Pages CORS
 browser-contract-v2: 2026-09-20T12:43Z
 reason: verify all browser-readable relay responses before trusting HTTP status
+propagation-aware-verification-v3: 2026-09-20T12:48Z
+reason: wait for deployed browser contract before declaring relay verification failure
