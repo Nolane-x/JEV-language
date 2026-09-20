@@ -17,6 +17,30 @@ The relay **does receive the user's Authorization header transiently in memory w
 
 ## Deploy
 
+### Recommended: GitHub Actions
+
+Do **not** commit a Cloudflare token or account ID into repository files.
+
+In GitHub, open **Settings → Secrets and variables → Actions** and create these repository secrets:
+
+- `CLOUDFLARE_ACCOUNT_ID` — your Cloudflare account ID;
+- `CLOUDFLARE_API_TOKEN` — a narrowly scoped token allowed to create/deploy this Worker.
+
+Then open **Actions → Deploy TypeSafe Relay → Run workflow**.
+
+The workflow:
+
+1. checks that both secrets exist;
+2. deploys `relay/wrangler.toml` with the official Cloudflare Wrangler action;
+3. obtains the resulting `workers.dev` deployment URL;
+4. verifies `/health`;
+5. verifies a browser-style CORS preflight from `https://nolane-x.github.io`;
+6. prints the verified relay URL in the GitHub Actions job summary.
+
+Cloudflare explicitly recommends storing `CLOUDFLARE_API_TOKEN` in CI/CD secrets rather than in the repository.
+
+### Local alternative
+
 From this directory:
 
 ```bash
