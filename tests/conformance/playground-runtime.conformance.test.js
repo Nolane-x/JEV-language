@@ -11,7 +11,7 @@ import {
 
 const app = readFileSync("playground/app.js", "utf8");
 const html = readFileSync("playground/index.html", "utf8");
-const css = readFileSync("playground/styles.css", "utf8");
+const css = readFileSync("playground/styles.css", "utf8");\nconst fieldCss = readFileSync("playground/field.css", "utf8");\nconst fieldJs = readFileSync("playground/field.js", "utf8");
 const pages = readFileSync(".github/workflows/pages.yml", "utf8");
 
 describe("JEV Language Playground conformance", () => {
@@ -76,6 +76,7 @@ describe("JEV Language Playground conformance", () => {
   it("ships a self-contained CSP-constrained static shell", () => {
     expect(html).toContain("Content-Security-Policy");
     expect(html).toContain("connect-src https://api.typesafe.ai");
+    expect(html).toContain('<script type="module" src="./field.js"></script>');
     expect(html).toContain('<script type="module" src="./app.js"></script>');
     expect(html).not.toMatch(/<script[^>]+src=["']https?:\/\//iu);
     expect(html).not.toMatch(/<link[^>]+href=["']https?:\/\//iu);
@@ -85,10 +86,20 @@ describe("JEV Language Playground conformance", () => {
   it("preserves pointer effects with accessibility fallbacks", () => {
     expect(css).toContain("--mx: 50vw");
     expect(css).toContain("--my: 48vh");
-    expect(css).toContain("radial-gradient(620px circle at var(--mx) var(--my)");
-    expect(css).toContain("@media (prefers-reduced-motion: reduce)");
+    expect(fieldCss).toContain("--trail-x: 50vw");
+    expect(fieldCss).toContain("radial-gradient(");
+    expect(fieldCss).toContain("@media (hover: none), (pointer: coarse)");
+    expect(fieldCss).toContain("@media (prefers-reduced-motion: reduce)");
     expect(css).toContain("@media (prefers-contrast: more)");
     expect(css).toContain(":focus-visible");
+  });
+
+  it("uses an inertial local illumination field without touch-only dependency", () => {
+    expect(fieldJs).toContain('matchMedia("(hover: hover) and (pointer: fine)")');
+    expect(fieldJs).toContain('matchMedia("(prefers-reduced-motion: reduce)")');
+    expect(fieldJs).toContain('root.style.setProperty("--trail-x"');
+    expect(fieldJs).toContain('surface.dataset.fieldNear = "true"');
+    expect(fieldJs).toContain('event.pointerType === "touch"');
   });
 
   it("deploys exactly the static playground directory through GitHub Pages", () => {
