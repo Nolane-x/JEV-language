@@ -1,6 +1,6 @@
 # JEV Language Playground — GitHub Pages surface
 
-Status: **base Pages deployment verified; direct TypeSafe browser transport CORS-blocked; self-hosted relay backend deployment verified; authenticated BYOK request still unverified**
+Status: **base Pages deployment verified; direct TypeSafe browser transport CORS-blocked; self-hosted relay deployment verified; authenticated relay request verified**
 
 Live URL:
 
@@ -39,6 +39,12 @@ The default transport is now the verified self-hosted relay at `https://jev-lang
 The repository relay in `relay/` has a fixed TypeSafe upstream, only `/v1/models` and `/v1/systemone`, an origin allowlist, no cache, and no credential persistence. It is not an anonymous public proxy and the browser accepts only HTTPS `*.workers.dev` relay origins or localhost.
 
 A relay deployment still sees the Authorization header transiently while forwarding it. The UI therefore requires the user to choose relay mode explicitly and warns that only a relay they control should be used. Changing transport clears the in-memory key and requires reconnecting.
+
+## Authenticated relay evidence
+
+A real authenticated one-request smoke was completed on 2026-09-20 through the deployed relay using the existing GitHub Actions secret `TYPESAFE_API_KEY`. The key value was neither printed nor persisted. The observed response carried `X-JEV-Relay: 1`, returned `Access-Control-Allow-Origin: https://nolane-x.github.io`, validated as a `jev-1.13.0` Noul answer, and reported 372 input tokens plus 20 output tokens. The run was hard-limited to exactly one request with no retry loop.
+
+Sanitized evidence is frozen at `docs/evidence/PLAYGROUND-RELAY-LIVE-SMOKE.json` (recording commit `553a373`). The temporary push trigger and write permission used only to capture that one-shot evidence are removed after closure; the retained live-smoke workflow is manual-only.
 
 ## TypeSafe wire contract
 
