@@ -6,17 +6,17 @@ Static GitHub Pages chat surface for the experimental JEV Language project.
 
 https://nolane-x.github.io/JEV-language/
 
-The site is published from the `playground/` directory through GitHub Pages Actions. The base Pages deployment was previously verified. The relay backend is now independently deployment-verified at `https://jev-language-typesafe-relay.nolane-file.workers.dev` with health and GitHub Pages CORS preflight checks passing. This revision makes that verified relay the browser default; Direct TypeSafe remains available as a fallback if the provider later permits the Pages origin.
+The site is published from the `playground/` directory through GitHub Pages Actions. The browser has one production connection route: the verified BYOK relay at `https://jev-language-typesafe-relay.nolane-file.workers.dev`. Users still provide their own TypeSafe API key, but the browser never calls TypeSafe directly, so provider-side browser CORS is removed from the normal user path.
 
 ## Runtime model
 
 - users bring their own TypeSafe API key;
 - the key is kept only in JavaScript memory for the current tab;
-- **Verified relay** is the default transport and targets `https://jev-language-typesafe-relay.nolane-file.workers.dev`;
+- the verified relay is the only production browser transport and targets `https://jev-language-typesafe-relay.nolane-file.workers.dev`;
+- the browser first verifies the relay health contract, then verifies the user's key through `GET /v1/models`;
 - the relay forwards only `GET /v1/models` and `POST /v1/systemone` to the fixed TypeSafe upstream;
-- **Direct TypeSafe** remains selectable, but the deployed GitHub Pages origin is currently blocked by TypeSafe's provider-side CORS policy;
-- the checked-in relay fixes the upstream to TypeSafe, permits only the two required paths, enforces an origin allowlist, disables caching, and does not persist credentials;
-- changing transport clears the in-memory key and requires reconnecting;
+- direct browser TypeSafe access is deliberately absent from the user UI because the deployed Pages origin is blocked by TypeSafe's provider-side CORS policy;
+- the checked-in relay fixes the upstream to TypeSafe, permits only the required paths, enforces an origin allowlist, disables caching, and does not persist credentials;
 - no API key is persisted to localStorage, sessionStorage, cookies, or URL state;
 - successful provider payloads are runtime-validated before rendering.
 

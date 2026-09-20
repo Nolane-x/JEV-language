@@ -58,12 +58,25 @@ export async function handleRequest(request, env = {}) {
   const origins = allowedOrigins(env);
 
   if (url.pathname === "/health" && request.method === "GET") {
+    if (origin && !origins.has(origin)) {
+      return json(
+        { error: { message: "Origin is not allowed by this relay." } },
+        403,
+        { "Vary": "Origin" },
+      );
+    }
     return json({
       ok: true,
       relay: "jev-language-typesafe",
       upstream: UPSTREAM_ORIGIN,
       stores_credentials: false,
-    }, 200);
+    }, 200, origin ? {
+      ...corsHeaders(origin),
+      "X-JEV-Relay": "1",
+      "Cross-Origin-Resource-Policy": "cross-origin",
+    } : {
+      "X-JEV-Relay": "1",
+    });
   }
 
   if (!origin || !origins.has(origin)) {
