@@ -120,6 +120,8 @@ if (
 const evidence = {
   schema: "jev-language-playground-relay-live-smoke/v1",
   ok: true,
+  observed_at: new Date().toISOString(),
+  source_sha: process.env.GITHUB_SHA ?? null,
   relay: RELAY_URL,
   origin: EXPECTED_ORIGIN,
   relay_header_verified: true,
