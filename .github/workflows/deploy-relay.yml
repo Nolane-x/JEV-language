@@ -2,14 +2,9 @@ name: Deploy TypeSafe Relay
 
 on:
   workflow_dispatch:
-  push:
-    branches:
-      - main
-    paths:
-      - .github/relay-deploy.trigger
 
 permissions:
-  contents: write
+  contents: read
 
 jobs:
   deploy:
@@ -184,50 +179,3 @@ jobs:
             echo "- GitHub Pages CORS preflight: verified"
             echo "- TypeSafe API key: not used or stored by this workflow"
           } >> "$GITHUB_STEP_SUMMARY"
-
-      - name: Record deployment status
-        if: always()
-        env:
-          RELAY_URL: ${{ steps.deploy.outputs.deployment-url }}
-          SUBDOMAIN: ${{ steps.subdomain.outputs.subdomain }}
-          SUBDOMAIN_CREATED: ${{ steps.subdomain.outputs.created }}
-          SUBDOMAIN_OUTCOME: ${{ steps.subdomain.outcome }}
-          SUBDOMAIN_FAILURE: ${{ steps.subdomain.outputs.failure-reason }}
-          DEPLOY_OUTCOME: ${{ steps.deploy.outcome }}
-          DEPLOY_FAILURE: ${{ steps.deploy.outputs.failure-reason }}
-          VERIFY_OUTCOME: ${{ steps.verify.outcome }}
-        run: |
-          node <<'NODE'
-          const fs = require("node:fs");
-          const status = {
-            schema: "jev-language-relay-deployment/v2",
-            verified:
-              process.env.DEPLOY_OUTCOME === "success" &&
-              process.env.VERIFY_OUTCOME === "success",
-            relay_url: process.env.RELAY_URL || null,
-            workers_subdomain: process.env.SUBDOMAIN || null,
-            workers_subdomain_created: process.env.SUBDOMAIN_CREATED === "true",
-            subdomain_outcome: process.env.SUBDOMAIN_OUTCOME || "not-run",
-            deploy_outcome: process.env.DEPLOY_OUTCOME || "not-run",
-            verify_outcome: process.env.VERIFY_OUTCOME || "not-run",
-            failure_reason:
-              process.env.DEPLOY_FAILURE ||
-              process.env.SUBDOMAIN_FAILURE ||
-              null,
-            source_sha: process.env.GITHUB_SHA,
-            recorded_at: new Date().toISOString(),
-          };
-          fs.writeFileSync(
-            "relay/deployment-status.json",
-            JSON.stringify(status, null, 2) + "\n",
-          );
-          NODE
-
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add relay/deployment-status.json
-          if git diff --cached --quiet; then
-            exit 0
-          fi
-          git commit -m "chore: record relay deployment status [skip ci]"
-          git push origin HEAD:main
