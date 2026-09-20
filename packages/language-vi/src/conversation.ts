@@ -165,169 +165,7 @@ const withFinalParticle = (
   particle: "ạ" | "nhé",
 ): string => {
   const { body, terminal } = stripTerminal(surface);
-  if (new RegExp(`(?:^|\\s)${particle}import {
-  err,
-  ok,
-  StructuredError,
-  type JsonValue,
-  type Result,
-} from "../../core-types/src/index.ts";
-import type {
-  ConversationSurfaceDraft,
-} from "../../realizer-core/src/index.ts";
-
-export type VietnameseConversationRelation =
-  | "peer"
-  | "teacher"
-  | "senior"
-  | "junior"
-  | "close"
-  | "customer"
-  | "service"
-  | "stranger"
-  | "unknown";
-
-export type VietnameseConversationAct =
-  | "answer"
-  | "acknowledge"
-  | "correct"
-  | "clarify"
-  | "ask"
-  | "instruct"
-  | "social"
-  | "other";
-
-export interface VietnameseConversationFrame {
-  id: string;
-  content: string;
-  language?: "vi" | "vi-en";
-  relation: VietnameseConversationRelation;
-  register: "intimate" | "casual" | "neutral" | "professional" | "formal" | "unknown";
-  politeness: number;
-  dialogueAct: VietnameseConversationAct;
-  speakerFormHint?: string;
-  addresseeFormHint?: string;
-  allowSpeakerEllipsis?: boolean;
-  allowDiscourseMarker?: boolean;
-  allowSentenceFinalParticle?: boolean;
-  allowTopicCommentReshape?: boolean;
-  preserveTerms?: string[];
-  annotations?: Record<string, JsonValue>;
-}
-
-export interface VietnameseConversationProposal {
-  id: string;
-  surface: string;
-  language: "vi" | "vi-en";
-  register: VietnameseConversationFrame["register"];
-  sourceFamily:
-    | "direct"
-    | "speaker-ellipsis"
-    | "respectful-ack"
-    | "casual-ack"
-    | "respectful-particle"
-    | "peer-softener"
-    | "topic-comment";
-  constructionIds: string[];
-  sourceFrameId: string;
-  preserveTerms: string[];
-  annotations?: Record<string, JsonValue>;
-}
-
-const nonEmpty = (value: string): boolean => value.trim().length > 0;
-const probability = (value: number): boolean =>
-  Number.isFinite(value) && value >= 0 && value <= 1;
-
-const normalize = (surface: string): string =>
-  surface
-    .normalize("NFC")
-    .trim()
-    .replace(/\s+/gu, " ")
-    .replace(/\s+([.,!?;:])/gu, "$1");
-
-const preserveExactTerms = (
-  surface: string,
-  terms: readonly string[],
-): boolean => terms.every((term) => surface.includes(term));
-
-const capitalizeInitial = (value: string): string =>
-  value.length === 0
-    ? value
-    : value.charAt(0).toLocaleUpperCase("vi") + value.slice(1);
-
-const replaceSocialPlaceholder = (
-  surface: string,
-  placeholder: "{{speaker}}" | "{{addressee}}",
-  value: string,
-): string => {
-  const escaped = placeholder.replace(/[{}]/gu, "\\$&");
-  const sentenceStart = new RegExp(`(^|[.!?]\\s+)${escaped}`, "gu");
-  return surface
-    .replace(
-      sentenceStart,
-      (_match, prefix: string) => `${prefix}${capitalizeInitial(value)}`,
-    )
-    .replaceAll(placeholder, value);
-};
-
-const replacePlaceholders = (
-  frame: VietnameseConversationFrame,
-): Result<string> => {
-  let surface = frame.content;
-
-  if (surface.includes("{{speaker}}")) {
-    if (!nonEmpty(frame.speakerFormHint ?? "")) {
-      return err(
-        new StructuredError(
-          "LANG_VI_CONVERSATION_SPEAKER_HINT_REQUIRED",
-          "Vietnamese conversation templates using {{speaker}} require an explicit speaker form; the microgrammar does not guess social pronouns.",
-        ),
-      );
-    }
-    surface = replaceSocialPlaceholder(
-      surface,
-      "{{speaker}}",
-      frame.speakerFormHint!.trim(),
-    );
-  }
-
-  if (surface.includes("{{addressee}}")) {
-    if (!nonEmpty(frame.addresseeFormHint ?? "")) {
-      return err(
-        new StructuredError(
-          "LANG_VI_CONVERSATION_ADDRESSEE_HINT_REQUIRED",
-          "Vietnamese conversation templates using {{addressee}} require an explicit addressee form; the microgrammar does not guess gendered or relational pronouns.",
-        ),
-      );
-    }
-    surface = replaceSocialPlaceholder(
-      surface,
-      "{{addressee}}",
-      frame.addresseeFormHint!.trim(),
-    );
-  }
-
-  return ok(normalize(surface));
-};
-
-const withPrefix = (prefix: string, surface: string): string =>
-  normalize(
-    `${prefix}, ${surface.charAt(0).toLocaleLowerCase("vi")}${surface.slice(1)}`,
-  );
-
-const stripTerminal = (surface: string): {
-  body: string;
-  terminal: string;
-} => {
-  const match = surface.match(/([.!?])$/u);
-  if (match === null) return { body: surface, terminal: "." };
-  return {
-    body: surface.slice(0, -1).trimEnd(),
-    terminal: match[1] ?? ".",
-  };
-};
-
-, "u").test(body)) return surface;
+  if (new RegExp(`(?:^|\\s)${particle}$`, "u").test(body)) return surface;
   return normalize(`${body} ${particle}${terminal}`);
 };
 
@@ -347,7 +185,6 @@ const topicCommentReshape = (surface: string): string | undefined => {
     `Còn phần ${topic} thì ${speaker.toLocaleLowerCase("vi")} chưa ${verb}${terminal}`,
   );
 };
-
 const respectfulRelation = (
   relation: VietnameseConversationRelation,
 ): boolean =>
@@ -534,7 +371,6 @@ export const generateVietnameseConversationProposals = (
       );
     }
   }
-
   const deduplicated = [
     ...new Map(
       output
