@@ -1,19 +1,33 @@
-# JEV Language self-hosted TypeSafe relay
+# JEV Language public gateway
 
-This optional Cloudflare Worker exists because the production TypeSafe API currently does not return `Access-Control-Allow-Origin` for the deployed GitHub Pages origin.
+This Cloudflare Worker gives the browser a stable Jev path without exposing provider credentials and without depending on TypeSafe browser CORS.
 
-The relay is intentionally narrow:
+## Default public path
 
-- fixed upstream: `https://api.typesafe.ai`;
+The public Playground calls this Worker with **no API key**. The Worker invokes Cloudflare Workers AI through an `AI` binding using the fixed model:
+
+```text
+typesafe/jev
+```
+
+Public mode is intentionally narrow:
+
+- fixed browser origins;
 - fixed routes: `GET /v1/models` and `POST /v1/systemone`;
-- origin allowlist;
+- fixed Jev model surface;
+- bounded request size and question count;
+- Cloudflare Worker rate limiting;
 - no arbitrary target URL;
-- no credential persistence;
+- no browser/provider credential requirement;
 - no cookies;
 - no cache;
-- no analytics or logging code in this repository.
+- no credential persistence.
 
-The relay **does receive the user's Authorization header transiently in memory while forwarding the request**. Only use a relay deployment you control.
+## Advanced BYOK compatibility
+
+If an allowed request explicitly includes an `Authorization` header, the same routes retain the prior TypeSafe BYOK behavior and forward only to the fixed upstream `https://api.typesafe.ai`. The key exists only in request memory while the Worker forwards that request.
+
+This compatibility path is for advanced testing. Ordinary visitors should stay on **Public Jev**.
 
 ## Deploy
 
@@ -21,50 +35,37 @@ The relay **does receive the user's Authorization header transiently in memory w
 
 Do **not** commit a Cloudflare token or account ID into repository files.
 
-In GitHub, open **Settings → Secrets and variables → Actions** and create these repository secrets:
+Repository Actions secrets:
 
-- `CLOUDFLARE_ACCOUNT_ID` — your Cloudflare account ID;
-- `CLOUDFLARE_API_TOKEN` — a narrowly scoped token allowed to create/deploy this Worker.
+- `CLOUDFLARE_ACCOUNT_ID`
+- `CLOUDFLARE_API_TOKEN`
 
-Then open **Actions → Deploy TypeSafe Relay → Run workflow**.
+The deploy workflow runs manually and also on `main` changes under `relay/**` or the deployment workflow itself. It:
 
-The workflow:
+1. validates Cloudflare deployment credentials;
+2. ensures the account has a `workers.dev` subdomain;
+3. deploys the Worker with the Workers AI and rate-limit bindings;
+4. verifies `/health`;
+5. verifies GitHub Pages CORS;
+6. executes one bounded anonymous Jev smoke request;
+7. rejects the deployment gate unless a typed Noul answer is returned.
 
-1. checks that both secrets exist;
-2. checks whether the Cloudflare account already has a `workers.dev` subdomain and creates a deterministic one if the account is new;
-3. deploys `relay/wrangler.toml` with Wrangler CLI;
-4. obtains the resulting `workers.dev` deployment URL;
-5. verifies `/health` with first-deploy propagation retries;
-6. verifies a browser-style CORS preflight from `https://nolane-x.github.io`;
-7. records only non-secret deployment evidence so failures can be diagnosed without exposing credentials.
-
-Cloudflare explicitly recommends storing `CLOUDFLARE_API_TOKEN` in CI/CD secrets rather than in the repository.
+The smoke uses no TypeSafe API key.
 
 ### Local alternative
-
-From this directory:
 
 ```bash
 npx wrangler deploy
 ```
 
-Before production use, set `ALLOWED_ORIGINS` to the exact browser origins that should be allowed. The checked-in default permits the public JEV Language GitHub Pages origin and two local preview origins.
-
-After deployment, Cloudflare returns a URL similar to:
-
-```text
-https://jev-language-typesafe-relay.<your-subdomain>.workers.dev
-```
-
-Choose **Self-hosted relay** in the Playground and paste only that origin. Do not add `/v1/models` or `/v1/systemone`; the Playground appends the only two allowed paths.
+The checked-in origin allowlist permits the public JEV Language GitHub Pages origin and the two local preview origins.
 
 ## Security notes
 
-This is not an anonymous public CORS proxy. Requests from origins outside the allowlist are rejected, arbitrary paths are rejected, and the upstream host cannot be changed by the browser request.
+The Worker is not an open forwarding proxy. An attacker cannot choose an upstream URL or arbitrary route. Public inference is still a billable/shared resource, so rate limiting and bounded request validation are part of the production boundary rather than optional UI behavior.
 
-If TypeSafe later allows the GitHub Pages origin directly, prefer **Direct TypeSafe** mode and remove the relay from the request path.
+The origin allowlist is a browser boundary, not a complete abuse-control mechanism; rate limiting remains required because non-browser clients can forge an `Origin` header.
 
+## First-deploy bootstrap
 
-### First-deploy bootstrap
-
-A newly created Cloudflare account may not have a `workers.dev` account subdomain yet. Interactive Wrangler can prompt for one, but CI cannot answer that prompt. The deployment workflow therefore checks the account subdomain first and, only when none exists, creates a deterministic `nolane-<account-prefix>.workers.dev` account subdomain through the Cloudflare API. An existing account subdomain is never replaced.
+A newly created Cloudflare account may not have a `workers.dev` account subdomain yet. The deployment workflow checks for one and creates a deterministic account subdomain only when none exists. An existing account subdomain is never replaced.
