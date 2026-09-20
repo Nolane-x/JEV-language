@@ -302,7 +302,7 @@ async function submitMessage(text) {
     const result = await resolvePrompt(clean);
     replaceLoadingMessage(loading, result.text, result.details);
     state.turns.push({ role: "assistant", text: result.text });
-    setRuntime(state.connected ? "connected" : "idle", state.connected ? state.model : "Local shell");
+    updateConnectionUi();
   } catch (error) {
     const status = error?.status;
     let message = "The request failed without a trustworthy result.";
