@@ -2,12 +2,6 @@ name: Deploy Jev Gateway
 
 on:
   workflow_dispatch:
-  push:
-    branches:
-      - main
-    paths:
-      - "relay/**"
-      - ".github/workflows/deploy-relay.yml"
 
 permissions:
   contents: read
@@ -153,7 +147,7 @@ jobs:
             exit 1
           fi
 
-          echo "Relay URL: $RELAY_URL"
+          echo "Gateway URL: $RELAY_URL"
 
           ok=0
           for attempt in $(seq 1 20); do
@@ -176,6 +170,19 @@ jobs:
 
           tr -d '\r' < /tmp/relay-cors.headers |             grep -i '^access-control-allow-origin: https://nolane-x.github.io
 
+          {
+            echo "## Jev gateway deployed"
+            echo
+            echo "Relay URL: $RELAY_URL"
+            echo
+            echo "- workers.dev bootstrap: verified"
+            echo "- Health endpoint + Workers AI binding: verified"
+            echo "- GitHub Pages CORS preflight: verified"
+            echo "- Anonymous public Jev inference: verified"
+            echo "- Browser TypeSafe API key: not required for public mode"
+            echo "- One bounded Jev deployment probe was executed"
+          } >> "$GITHUB_STEP_SUMMARY"
+
 
           curl --fail --silent --show-error \
             --request POST \
@@ -189,6 +196,17 @@ jobs:
           tr -d '\r' < /tmp/public-jev.headers | \
             grep -i '^x-jev-provider: cloudflare-workers-ai
 
+          {
+            echo "## TypeSafe relay deployed"
+            echo
+            echo "Relay URL: $RELAY_URL"
+            echo
+            echo "- workers.dev bootstrap: verified"
+            echo "- Health endpoint: verified"
+            echo "- GitHub Pages CORS preflight: verified"
+            echo "- TypeSafe API key: not used or stored by this workflow"
+          } >> "$GITHUB_STEP_SUMMARY"
+
 
           node <<'NODE'
           const fs = require("node:fs");
@@ -201,14 +219,12 @@ jobs:
           NODE
 
           {
-            echo "## Jev gateway deployed"
+            echo "## TypeSafe relay deployed"
             echo
-            echo "Gateway URL: $RELAY_URL"
+            echo "Relay URL: $RELAY_URL"
             echo
             echo "- workers.dev bootstrap: verified"
-            echo "- Health endpoint + Workers AI binding: verified"
+            echo "- Health endpoint: verified"
             echo "- GitHub Pages CORS preflight: verified"
-            echo "- Anonymous public Jev inference: verified"
-            echo "- Browser TypeSafe API key: not required for public mode"
-            echo "- One bounded Jev deployment probe was executed"
+            echo "- TypeSafe API key: not used or stored by this workflow"
           } >> "$GITHUB_STEP_SUMMARY"
