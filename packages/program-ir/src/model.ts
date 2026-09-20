@@ -111,6 +111,25 @@ export interface HoleBudget {
   maxCost?: number;
 }
 
+export interface ProgramHoleScope {
+  visibleSymbols: ProgramRef[];
+  allowGlobalSymbols: boolean;
+  functionRef?: ProgramRef;
+}
+
+export interface ProgramHoleEffectConstraints {
+  allowed: PirEffectKind[];
+  forbidden: PirEffectKind[];
+}
+
+export interface ProgramHoleConstraintSet {
+  allowedCandidateFamilies?: string[];
+  forbiddenCandidateFamilies?: string[];
+  requiredCapabilities?: string[];
+  maxCandidateCost?: number;
+  deterministicOnly?: boolean;
+}
+
 export interface ProgramHole {
   id: HoleId;
   expectedType?: PirType;
@@ -118,6 +137,13 @@ export interface ProgramHole {
   requiredFacts: SemanticId[];
   forbiddenFacts: SemanticId[];
   scopeSymbols: ProgramRef[];
+  /**
+   * Structured scope/effect/constraint surface for synthesis grammar expansion.
+   * Legacy scopeSymbols/expectedEffect remain normative compatibility fields.
+   */
+  scope?: ProgramHoleScope;
+  effectConstraints?: ProgramHoleEffectConstraints;
+  constraints?: ProgramHoleConstraintSet;
   purpose?: SemanticId;
   budget: HoleBudget;
   sourceBinding?: SourceBinding;
