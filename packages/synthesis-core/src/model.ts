@@ -1,7 +1,8 @@
-import type { JsonValue } from "../../core-types/src/index.ts";
+import type { JsonValue, SemanticId } from "../../core-types/src/index.ts";
 import type {
   EffectSpec,
   HoleId,
+  PirEffectKind,
   PirExpression,
   PirProgram,
   PirStatement,
@@ -73,17 +74,75 @@ export interface BranchSeed {
   cost?: number;
 }
 
+export interface EnvironmentSymbolCandidate {
+  id: ProgramRef;
+  type: PirType;
+  effects?: EffectSpec[];
+  cost?: number;
+  capabilities?: string[];
+}
+
 export interface ProgramEnvironment {
   literals: LiteralCandidate[];
   callables: CallableCandidate[];
   branchSeeds: BranchSeed[];
+  symbols?: EnvironmentSymbolCandidate[];
+  backend?: string;
+  capabilities?: string[];
+  libraries?: string[];
+  allowedEffects?: PirEffectKind[];
+  forbiddenEffects?: PirEffectKind[];
+  semanticFacts?: SemanticId[];
+  maxCandidateCost?: number;
 }
+
+export type ProgramSpecification =
+  | {
+      kind: "requirements";
+      requirements: string[];
+    }
+  | {
+      kind: "examples";
+      examples: Array<{
+        id: string;
+        input: JsonValue;
+        expected: JsonValue;
+      }>;
+    }
+  | {
+      kind: "type-contract";
+      parameters: PirType[];
+      returns: PirType;
+    }
+  | {
+      kind: "effect-contract";
+      allowed: PirEffectKind[];
+      forbidden: PirEffectKind[];
+    }
+  | {
+      kind: "semantic-contract";
+      requiredFacts: SemanticId[];
+      forbiddenFacts: SemanticId[];
+    }
+  | {
+      kind: "composite";
+      parts: ProgramSpecification[];
+    };
+
+export type SynthesisGrammarProfileName = "G0" | "G1" | "G2" | "G3";
 
 export interface SynthesisProblem {
   id: string;
   program: PirProgram;
   environment: ProgramEnvironment;
+  /**
+   * Compatibility list retained from the M11 bootstrap. New callers SHOULD
+   * prefer specification so requirements can coexist with examples/types/
+   * effects without flattening them into prose.
+   */
   requirements: string[];
+  specification?: ProgramSpecification;
+  grammarProfile?: SynthesisGrammarProfileName;
 }
 
 export interface ExpansionStep {
