@@ -22,6 +22,7 @@ const DEFAULT_RELAY_URL = "https://jev-language-typesafe-relay.nolane-file.worke
 const CONNECT_TIMEOUT_MS = 12000;
 const REQUEST_TIMEOUT_MS = 30000;
 const RELAY_CONNECT_ATTEMPTS = 3;
+const RELAY_BROWSER_CONTRACT = "jev-relay-browser-v2";
 const RELAY_RETRY_DELAYS_MS = [280, 850];
 
 const state = {
@@ -226,10 +227,6 @@ async function relayFetch(path, {
       payload = { raw: bodyText };
     }
 
-    if (!response.ok) {
-      throw makeHttpError(response, payload);
-    }
-
     if (response.headers.get("x-jev-relay") !== "1") {
       const error = new Error(
         "The secure relay answered, but the browser could not read its verification header.",
@@ -237,6 +234,10 @@ async function relayFetch(path, {
       error.code = "UNVERIFIED_RELAY_RESPONSE";
       error.relayResponded = true;
       throw error;
+    }
+
+    if (!response.ok) {
+      throw makeHttpError(response, payload);
     }
 
     return { response, payload };
@@ -252,7 +253,8 @@ async function verifyRelayHealth() {
   if (
     payload?.ok !== true ||
     payload?.relay !== "jev-language-typesafe" ||
-    payload?.stores_credentials !== false
+    payload?.stores_credentials !== false ||
+    payload?.browser_contract !== RELAY_BROWSER_CONTRACT
   ) {
     const error = new Error("The secure relay health response was not valid.");
     error.code = "INVALID_RELAY_HEALTH";
