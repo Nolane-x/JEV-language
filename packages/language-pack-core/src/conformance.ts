@@ -209,6 +209,7 @@ export const validateLanguagePackFeatureManifest = (
       extension.language !== manifest.language ||
       !extension.namespace.startsWith(requiredPrefix) ||
       extension.namespace === requiredPrefix ||
+      extension.extensionKeys.length === 0 ||
       !uniqueStrings(extension.extensionKeys)
     ) {
       diagnostics.push(
@@ -224,6 +225,7 @@ export const validateLanguagePackFeatureManifest = (
 
   const mixed = manifest.mixedLanguage;
   if (
+    !["forbid", "explicit-only", "evidence-based"].includes(mixed.mode) ||
     !nonEmpty(mixed.defaultLanguage) ||
     !uniqueStrings(mixed.allowedLanguages) ||
     !mixed.allowedLanguages.includes(mixed.defaultLanguage) ||
@@ -236,8 +238,14 @@ export const validateLanguagePackFeatureManifest = (
   }
 
   const fallback = manifest.lexicalFallback;
+  const fallbackActions = new Set<LexicalFallbackAction>([
+    "preserve",
+    "borrow",
+    "transliterate",
+  ]);
   if (
     !uniqueStrings(fallback.order) ||
+    fallback.order.some((action) => !fallbackActions.has(action)) ||
     fallback.order.length === 0 ||
     (fallback.preserveOriginal && !fallback.order.includes("preserve")) ||
     (!fallback.allowBorrowing && fallback.order.includes("borrow")) ||
@@ -270,7 +278,9 @@ export const validateLocaleFormattingProfile = (
     !Number.isSafeInteger(profile.groupSize) ||
     profile.groupSize < 1 ||
     !nonEmpty(profile.dateSeparator) ||
-    !nonEmpty(profile.timeSeparator)
+    !nonEmpty(profile.timeSeparator) ||
+    !["ymd", "dmy", "mdy"].includes(profile.dateOrder) ||
+    !["preserve", "omit"].includes(profile.timezoneDisplay)
   ) {
     return err(
       new StructuredError(
@@ -737,6 +747,7 @@ export const runLanguagePackConformance = (
   add(
     "locale-profiles",
     localesValid &&
+      profile.locales.length > 0 &&
       declaredLocales.size === localeIds.size &&
       [...declaredLocales].every((id) => localeIds.has(id)),
     "declared locale profile ids must exactly match valid supplied profiles",
@@ -744,9 +755,11 @@ export const runLanguagePackConformance = (
 
   const strategyIds = profile.numberStrategies.map((item) => item.id);
   const strategiesValid =
+    profile.numberStrategies.length > 0 &&
     uniqueStrings(strategyIds) &&
     profile.numberStrategies.every(
       (strategy) =>
+        ["decimal", "percent", "scientific"].includes(strategy.style) &&
         Number.isSafeInteger(strategy.minimumFractionDigits) &&
         Number.isSafeInteger(strategy.maximumFractionDigits) &&
         strategy.minimumFractionDigits >= 0 &&
