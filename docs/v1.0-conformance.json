@@ -38,11 +38,13 @@
           "docs/known-limitations-v1.json"
         ],
         "replayable-demos": [
-          "examples/v1/stable-core-replay.json"
+          "examples/v1/stable-core-replay.json",
+          "scripts/replay-v1-stable-core.ts"
         ],
         "zero-generative-audit": [
           "examples/v1/stable-core-replay.json",
-          "tests/conformance/m20-v1-conformance.conformance.test.ts"
+          "tests/conformance/m20-v1-conformance.conformance.test.ts",
+          "scripts/replay-v1-stable-core.ts"
         ]
       }
     },
@@ -76,11 +78,13 @@
           "docs/known-limitations-v1.json"
         ],
         "replayable-demos": [
-          "examples/v1/stable-core-replay.json"
+          "examples/v1/stable-core-replay.json",
+          "scripts/replay-v1-stable-core.ts"
         ],
         "zero-generative-audit": [
           "examples/v1/stable-core-replay.json",
-          "tests/conformance/m20-v1-conformance.conformance.test.ts"
+          "tests/conformance/m20-v1-conformance.conformance.test.ts",
+          "scripts/replay-v1-stable-core.ts"
         ]
       }
     }
