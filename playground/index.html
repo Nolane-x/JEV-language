@@ -12,7 +12,7 @@
     />
     <meta
       name="description"
-      content="JEV Language Playground — a browser-side playground for TypeSafe Jev and the JEV Language experimental runtime."
+      content="JEV Language Playground — a public Jev-powered playground for the JEV Language experimental runtime, with optional advanced BYOK transports."
     />
     <title>JEV Language Playground</title>
     <link rel="stylesheet" href="./styles.css" />
@@ -43,7 +43,7 @@
           </span>
           <button class="key-button reactive" id="openKeyButton" type="button">
             <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15.5 7.5a5 5 0 1 0-3.9 4.87L14 14.77V17h2v2h2v2h3v-4.24l-6.63-6.63A5 5 0 0 0 15.5 7.5Zm-5 1.5a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3Z"/></svg>
-            <span id="keyButtonLabel">Connect key</span>
+            <span id="keyButtonLabel">Public Jev</span>
           </button>
         </div>
       </header>
@@ -84,7 +84,7 @@
             </button>
           </div>
         </form>
-        <p class="privacy-note">Your API key is kept in this tab’s memory only. Browser-side BYOK is visible to this page and developer tools.</p>
+        <p class="privacy-note">Public Jev needs no API key. Advanced BYOK modes remain available in Connection settings.</p>
       </div>
     </div>
 
@@ -92,8 +92,8 @@
       <form method="dialog" class="key-panel reactive" id="keyForm">
         <div class="key-panel__head">
           <div>
-            <span class="panel-kicker">Browser-side BYOK</span>
-            <h2 id="keyDialogTitle">Connect TypeSafe</h2>
+            <span class="panel-kicker">Jev access</span>
+            <h2 id="keyDialogTitle">Connection</h2>
           </div>
           <button class="icon-button" id="closeKeyButton" value="cancel" aria-label="Close API key dialog" type="submit">
             <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m7 7 10 10M17 7 7 17"/></svg>
@@ -101,14 +101,15 @@
         </div>
 
         <p class="key-panel__intro" id="keyPanelIntro">
-          The key is never written to localStorage, cookies, the URL, or this repository. It disappears when this tab closes or you disconnect. Requests go directly from this page to TypeSafe.
+          Public Jev is ready without an API key. Requests are sent to the project gateway, which invokes Jev through Cloudflare Workers AI.
         </p>
 
         <label class="field">
           <span>Transport</span>
           <select id="transportSelect">
-            <option value="direct">Direct TypeSafe</option>
-            <option value="relay" selected>Verified relay</option>
+            <option value="public" selected>Public Jev — no key required</option>
+            <option value="relay">TypeSafe BYOK via verified relay</option>
+            <option value="direct">Direct TypeSafe — advanced</option>
           </select>
         </label>
 
@@ -119,7 +120,7 @@
           </span>
         </label>
 
-        <label class="field">
+        <label class="field" id="apiKeyField" hidden>
           <span>TypeSafe API key</span>
           <span class="field__control">
             <input id="apiKeyInput" type="password" placeholder="Paste your key" autocomplete="off" autocapitalize="off" spellcheck="false" />
@@ -138,7 +139,7 @@
           </select>
         </label>
 
-        <label class="consent-row">
+        <label class="consent-row" id="browserConsentRow" hidden>
           <input id="browserConsent" type="checkbox" />
           <span id="browserConsentText">I understand that using an API key in a browser exposes it to the page runtime and developer tools.</span>
         </label>
@@ -147,7 +148,7 @@
 
         <div class="key-panel__actions">
           <button class="secondary-button" id="disconnectButton" type="button" hidden>Disconnect</button>
-          <button class="primary-button reactive" id="connectButton" type="button">Connect</button>
+          <button class="primary-button reactive" id="connectButton" type="button">Apply</button>
         </div>
       </form>
     </dialog>
