@@ -16,6 +16,10 @@ import {
   type ConversationCandidateSet,
   type ConversationalCandidate,
 } from "./conversation-candidates.ts";
+import {
+  scoreConversationStyleRepetition,
+  type ConversationStyleMemory,
+} from "./conversation-style-memory.ts";
 
 export interface ConversationSurfaceDraft {
   id: string;
@@ -59,6 +63,7 @@ export interface BuildConversationCandidateSetInput {
   drafts: readonly ConversationSurfaceDraft[];
   opaqueTerms?: readonly string[];
   maxCandidates?: number;
+  styleMemory?: ConversationStyleMemory;
 }
 
 export interface BuiltConversationCandidateSet {
@@ -122,10 +127,12 @@ const registerPenalty = (
 const deterministicDraftCost = (
   plan: ResponseSemanticPlan,
   draft: ConversationSurfaceDraft,
+  styleMemory?: ConversationStyleMemory,
 ): number =>
   finiteCost(draft.baseCost) +
   registerPenalty(plan.social.register, draft.register) +
-  Math.max(0, draft.surface.length - 640) / 640;
+  Math.max(0, draft.surface.length - 640) / 640 +
+  scoreConversationStyleRepetition(styleMemory, draft).penalty;
 
 const validateDraft = (
   draft: ConversationSurfaceDraft,
@@ -155,6 +162,7 @@ const roundRobinFamilies = (
   drafts: readonly ConversationSurfaceDraft[],
   plan: ResponseSemanticPlan,
   maxCandidates: number,
+  styleMemory?: ConversationStyleMemory,
 ): ConversationSurfaceDraft[] => {
   const byFamily = new Map<string, ConversationSurfaceDraft[]>();
   for (const draft of drafts) {
@@ -165,7 +173,8 @@ const roundRobinFamilies = (
   for (const bucket of byFamily.values()) {
     bucket.sort(
       (a, b) =>
-        deterministicDraftCost(plan, a) - deterministicDraftCost(plan, b) ||
+        deterministicDraftCost(plan, a, styleMemory) -
+          deterministicDraftCost(plan, b, styleMemory) ||
         a.id.localeCompare(b.id),
     );
   }
@@ -285,7 +294,12 @@ export const buildConversationCandidateSet = (
     );
   }
 
-  const emitted = roundRobinFamilies(eligible, plan.value, maxCandidates);
+  const emitted = roundRobinFamilies(
+    eligible,
+    plan.value,
+    maxCandidates,
+    input.styleMemory,
+  );
   const emittedIds = new Set(emitted.map((draft) => draft.id));
   for (const draft of eligible) {
     if (!emittedIds.has(draft.id)) {
@@ -306,7 +320,15 @@ export const buildConversationCandidateSet = (
     annotations: {
       sourceFamily: draft.sourceFamily,
       constructionIds: [...draft.constructionIds],
-      deterministicPreRankCost: deterministicDraftCost(plan.value, draft),
+      deterministicPreRankCost: deterministicDraftCost(
+        plan.value,
+        draft,
+        input.styleMemory,
+      ),
+      styleRepetitionPenalty: scoreConversationStyleRepetition(
+        input.styleMemory,
+        draft,
+      ).penalty,
       ...(draft.annotations ?? {}),
     },
   }));
