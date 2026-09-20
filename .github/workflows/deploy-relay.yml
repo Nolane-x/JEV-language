@@ -173,6 +173,7 @@ jobs:
 
           grep -q '"ok":true' /tmp/relay-health.json
           grep -q '"stores_credentials":false' /tmp/relay-health.json
+          grep -q '"browser_contract":"jev-relay-browser-v2"' /tmp/relay-health.json
           grep -qiF 'access-control-allow-origin: https://nolane-x.github.io' /tmp/relay-health.headers
           grep -qiF 'x-jev-relay: 1' /tmp/relay-health.headers
           grep -qiF 'access-control-expose-headers:' /tmp/relay-health.headers
@@ -190,6 +191,12 @@ jobs:
           grep -qiF 'access-control-allow-origin: https://nolane-x.github.io' /tmp/relay-cors.headers
           grep -qiE 'access-control-expose-headers:.*x-jev-relay' /tmp/relay-cors.headers
 
+          authless_code="$(curl --silent --show-error             --header "Origin: https://nolane-x.github.io"             --dump-header /tmp/relay-authless.headers             --output /tmp/relay-authless.json             --write-out '%{http_code}'             "$RELAY_URL/v1/models")"
+          test "$authless_code" = "401"
+          grep -qiF 'x-jev-relay: 1' /tmp/relay-authless.headers
+          grep -qiE 'access-control-expose-headers:.*x-jev-relay' /tmp/relay-authless.headers
+          grep -q 'Authorization header is required' /tmp/relay-authless.json
+
           {
             echo "## TypeSafe relay deployed"
             echo
@@ -198,6 +205,8 @@ jobs:
             echo "- workers.dev bootstrap: verified"
             echo "- Browser health endpoint + relay identity: verified"
             echo "- Browser-readable X-JEV-Relay exposure: verified"
+            echo "- Browser contract jev-relay-browser-v2: verified"
+            echo "- Verified 401 error envelope: verified"
             echo "- GitHub Pages CORS preflight: verified"
             echo "- TypeSafe API key: not used or stored by this workflow"
           } >> "$GITHUB_STEP_SUMMARY"
