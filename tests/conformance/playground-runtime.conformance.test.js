@@ -139,7 +139,8 @@ describe("JEV Language Playground conformance", () => {
     expect(transportJs).toContain("https://api.typesafe.ai/v1/systemone");
     expect(app).toContain('state.apiKey = ""');
     expect(app).toContain("resolveApiEndpoint");
-    expect(html).toContain('value="relay">Self-hosted relay</option>');
+    expect(html).toContain('<option value="relay" selected>Verified relay</option>');
+    expect(html).toContain('value="https://jev-language-typesafe-relay.nolane-file.workers.dev"');
     expect(html).toContain("https://*.workers.dev");
   });
 
