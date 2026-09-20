@@ -21,6 +21,14 @@ describe("Cloudflare relay deployment workflow", () => {
     );
   });
 
+  it("records only non-secret deployment evidence", () => {
+    expect(workflow).toContain("relay/deployment-status.json");
+    expect(workflow).toContain("relay_url:");
+    expect(workflow).toContain("source_sha:");
+    expect(workflow).not.toContain("CLOUDFLARE_API_TOKEN:");
+    expect(workflow).not.toContain("CLOUDFLARE_ACCOUNT_ID:");
+  });
+
   it("deploys only the checked-in relay with the official Wrangler action", () => {
     expect(workflow).toContain("cloudflare/wrangler-action@v4");
     expect(workflow).toContain("workingDirectory: relay");
