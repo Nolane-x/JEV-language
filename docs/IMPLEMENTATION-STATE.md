@@ -63,7 +63,7 @@ next_tasks:
   - continue T431-T440 language-pack conformance after incremental realization verification
   - continue M18 language expansion beyond the verified grammar/parser wave
   - expand M16 multi-target adapters beyond the controlled delete-limit semantic subset
-last_verified_main_commit: c797ee19a0f393556b41a3de4871a08ed97e708b
+last_verified_main_commit: c35ad996db3dab3195641c57ffcd2528deea24ea
 last_verified_pr_head: c9f62afa28791ffc6ad0dbb1902267163b759ddd
 ```
 
@@ -75,7 +75,7 @@ T441-T450 synthesis grammar foundation is implemented on a stacked branch with c
 
 T451-T460 advanced PIR passed deterministic CI with 69/69 test files and 562/562 tests and is merged. T461-T470 CEGIS is implemented on the active branch with search-strategy abstraction, hierarchical expansion, evidence-bearing counterexamples, shrinking, held-out partitioning, bounded grammar widening and an acceptance case where a failed first candidate is corrected on the next iteration; verification is pending CI.
 
-T471-T480 solver/proof is implemented on a stacked branch with solver-neutral ABI, SAT/UNSAT/UNKNOWN/TIMEOUT taxonomy, proof/theory registries, bounded evidence, symbolic-execution and termination hooks, a scripted mock, and a real bounded exhaustive Boolean solver; verification is pending stacked CI.
+T471-T480 solver/proof passed deterministic CI with 71/71 test files and 583/583 tests and is merged. T481-T490 source-preserving transformation is implemented on the active branch with source pipeline traces, stable anchors, comment/format preservation, minimal-diff scoring, stale-conflict detection, atomic multi-file patching, structural semantic diff, completeness matrices and preservation benchmarks; verification is pending CI.
 
 ## Implemented foundation
 
