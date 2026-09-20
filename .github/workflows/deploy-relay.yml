@@ -175,6 +175,8 @@ jobs:
           grep -q '"stores_credentials":false' /tmp/relay-health.json
           grep -qiF 'access-control-allow-origin: https://nolane-x.github.io' /tmp/relay-health.headers
           grep -qiF 'x-jev-relay: 1' /tmp/relay-health.headers
+          grep -qiF 'access-control-expose-headers:' /tmp/relay-health.headers
+          grep -qiE 'access-control-expose-headers:.*x-jev-relay' /tmp/relay-health.headers
 
           curl --fail --silent --show-error \
             --request OPTIONS \
@@ -186,6 +188,7 @@ jobs:
             "$RELAY_URL/v1/models"
 
           grep -qiF 'access-control-allow-origin: https://nolane-x.github.io' /tmp/relay-cors.headers
+          grep -qiE 'access-control-expose-headers:.*x-jev-relay' /tmp/relay-cors.headers
 
           {
             echo "## TypeSafe relay deployed"
@@ -194,6 +197,7 @@ jobs:
             echo
             echo "- workers.dev bootstrap: verified"
             echo "- Browser health endpoint + relay identity: verified"
+            echo "- Browser-readable X-JEV-Relay exposure: verified"
             echo "- GitHub Pages CORS preflight: verified"
             echo "- TypeSafe API key: not used or stored by this workflow"
           } >> "$GITHUB_STEP_SUMMARY"

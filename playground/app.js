@@ -21,6 +21,8 @@ const MAX_CONTEXT_TURNS = 10;
 const DEFAULT_RELAY_URL = "https://jev-language-typesafe-relay.nolane-file.workers.dev";
 const CONNECT_TIMEOUT_MS = 12000;
 const REQUEST_TIMEOUT_MS = 30000;
+const RELAY_CONNECT_ATTEMPTS = 3;
+const RELAY_RETRY_DELAYS_MS = [280, 850];
 
 const state = {
   apiKey: "",
@@ -159,6 +161,36 @@ function makeHttpError(response, body, fallback) {
   return error;
 }
 
+function isTransientRelayFailure(error) {
+  return (
+    error?.name === "AbortError" ||
+    isBrowserNetworkFailure(error) ||
+    [502, 503, 504].includes(error?.status)
+  );
+}
+
+function wait(ms) {
+  return new Promise((resolve) => window.setTimeout(resolve, ms));
+}
+
+async function withRelayRetry(task, {
+  attempts = RELAY_CONNECT_ATTEMPTS,
+  onRetry = () => {},
+} = {}) {
+  let lastError;
+  for (let attempt = 1; attempt <= attempts; attempt += 1) {
+    try {
+      return await task(attempt);
+    } catch (error) {
+      lastError = error;
+      if (!isTransientRelayFailure(error) || attempt >= attempts) throw error;
+      onRetry(error, attempt + 1, attempts);
+      await wait(RELAY_RETRY_DELAYS_MS[Math.min(attempt - 1, RELAY_RETRY_DELAYS_MS.length - 1)]);
+    }
+  }
+  throw lastError;
+}
+
 async function relayFetch(path, {
   apiKey = "",
   method = "GET",
@@ -199,8 +231,11 @@ async function relayFetch(path, {
     }
 
     if (response.headers.get("x-jev-relay") !== "1") {
-      const error = new Error("The secure relay response could not be verified.");
+      const error = new Error(
+        "The secure relay answered, but the browser could not read its verification header.",
+      );
       error.code = "UNVERIFIED_RELAY_RESPONSE";
+      error.relayResponded = true;
       throw error;
     }
 
@@ -390,13 +425,31 @@ async function connectKey() {
   setKeyStatus("Checking the secure JEV relay…");
 
   try {
-    await verifyRelayHealth();
+    await withRelayRetry(
+      () => verifyRelayHealth(),
+      {
+        onRetry: (_error, nextAttempt, attempts) => {
+          setKeyStatus(
+            `Secure relay did not answer yet. Retrying ${nextAttempt}/${attempts}…`,
+          );
+        },
+      },
+    );
     setKeyStatus("Relay ready. Verifying your TypeSafe key…");
 
-    const { payload } = await relayFetch("/v1/models", {
-      apiKey: key,
-      timeoutMs: CONNECT_TIMEOUT_MS,
-    });
+    const { payload } = await withRelayRetry(
+      () => relayFetch("/v1/models", {
+        apiKey: key,
+        timeoutMs: CONNECT_TIMEOUT_MS,
+      }),
+      {
+        onRetry: (_error, nextAttempt, attempts) => {
+          setKeyStatus(
+            `TypeSafe verification was interrupted. Retrying ${nextAttempt}/${attempts}…`,
+          );
+        },
+      },
+    );
 
     const models = validateModelsResponse(payload);
     const names = models
@@ -435,13 +488,16 @@ async function connectKey() {
       message = "This TypeSafe key does not have access to Jev.";
     } else if (error?.status === 429) {
       message = "TypeSafe is rate-limiting this key. Wait briefly and try again.";
+    } else if (error?.code === "UNVERIFIED_RELAY_RESPONSE") {
+      message = "The secure relay answered, but browser verification was blocked. The key was not stored. Reload the page and try again.";
+    } else if (error?.code === "INVALID_RELAY_HEALTH") {
+      message = "The secure relay answered with an unexpected health response. The key was not stored; please retry shortly.";
     } else if (
       error?.name === "AbortError" ||
       isBrowserNetworkFailure(error) ||
-      error?.code === "INVALID_RELAY_HEALTH" ||
-      error?.code === "UNVERIFIED_RELAY_RESPONSE"
+      [502, 503, 504].includes(error?.status)
     ) {
-      message = "The secure connection service is temporarily unavailable. Your key was not stored; please retry.";
+      message = "The secure relay could not be reached after several attempts. Your key was not stored; please retry.";
     } else {
       message = error?.message || "The connection check could not be completed.";
     }

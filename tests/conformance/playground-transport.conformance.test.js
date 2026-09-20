@@ -100,6 +100,9 @@ describe("self-hosted TypeSafe relay", () => {
       allowedOrigin,
     );
     expect(response.headers.get("x-jev-relay")).toBe("1");
+    expect(
+      response.headers.get("access-control-expose-headers"),
+    ).toContain("X-JEV-Relay");
     const body = await response.json();
     expect(body).toMatchObject({
       ok: true,
@@ -167,6 +170,12 @@ describe("self-hosted TypeSafe relay", () => {
     );
     expect(response.headers.get("cache-control")).toBe("no-store");
     expect(response.headers.get("x-jev-relay")).toBe("1");
+    expect(
+      response.headers.get("access-control-expose-headers"),
+    ).toContain("X-JEV-Relay");
+    expect(
+      response.headers.get("access-control-expose-headers"),
+    ).toContain("X-TypeSafe-Request-Id");
     expect(upstream).toHaveBeenCalledTimes(1);
   });
 
