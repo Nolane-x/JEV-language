@@ -74,6 +74,15 @@ export async function handleRequest(request, env = {}) {
     );
   }
 
+  const expectedMethod = ROUTES.get(url.pathname);
+  if (!expectedMethod) {
+    return json(
+      { error: { message: "This relay only exposes /v1/models and /v1/systemone." } },
+      404,
+      corsHeaders(origin),
+    );
+  }
+
   if (request.method === "OPTIONS") {
     return new Response(null, {
       status: 204,
@@ -82,15 +91,6 @@ export async function handleRequest(request, env = {}) {
         "Cache-Control": "no-store",
       },
     });
-  }
-
-  const expectedMethod = ROUTES.get(url.pathname);
-  if (!expectedMethod) {
-    return json(
-      { error: { message: "This relay only exposes /v1/models and /v1/systemone." } },
-      404,
-      corsHeaders(origin),
-    );
   }
 
   if (request.method !== expectedMethod) {
