@@ -791,6 +791,7 @@ export const validateOpaqueMetaOperation = (
     operation.backend.trim() === "" ||
     !["reflection", "metaprogramming"].includes(operation.kind) ||
     operation.executable !== false ||
+    operation.evidenceRefs.length === 0 ||
     !uniqueNonEmpty(operation.evidenceRefs)
   ) {
     return err(
