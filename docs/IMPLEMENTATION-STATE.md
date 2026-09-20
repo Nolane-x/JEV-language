@@ -63,7 +63,7 @@ next_tasks:
   - continue T431-T440 language-pack conformance after incremental realization verification
   - continue M18 language expansion beyond the verified grammar/parser wave
   - expand M16 multi-target adapters beyond the controlled delete-limit semantic subset
-last_verified_main_commit: 39259aa3dca873a4b68bb89b1cba5a1737636244
+last_verified_main_commit: c797ee19a0f393556b41a3de4871a08ed97e708b
 last_verified_pr_head: c9f62afa28791ffc6ad0dbb1902267163b759ddd
 ```
 
@@ -73,7 +73,7 @@ M0–M9 are verified at their milestone gates. M3 includes the required one-requ
 
 T441-T450 synthesis grammar foundation is implemented on a stacked branch with composite specification validation, environment specialization, G0-G3 hard grammar profiles, structured hole constraints, type-directed enumeration, constraint-directed pruning and deterministic property tests; verification is pending stacked-branch CI.
 
-T451-T460 advanced PIR is implemented on a stacked branch by formalizing existing advanced constructs and adding the missing task/concurrency, ownership/lifetime, exhaustiveness, closure-capture, and opaque reflection boundaries; verification is pending stacked CI.
+T451-T460 advanced PIR passed deterministic CI with 69/69 test files and 562/562 tests and is merged. T461-T470 CEGIS is implemented on the active branch with search-strategy abstraction, hierarchical expansion, evidence-bearing counterexamples, shrinking, held-out partitioning, bounded grammar widening and an acceptance case where a failed first candidate is corrected on the next iteration; verification is pending CI.
 
 ## Implemented foundation
 
