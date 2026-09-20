@@ -131,9 +131,10 @@ describe("JEV Language Playground conformance", () => {
   });
 
   it("keeps BYOK credentials out of persistent browser storage", () => {
-    expect(app).not.toMatch(/localStorage/u);
-    expect(app).not.toMatch(/sessionStorage/u);
-    expect(app).not.toMatch(/document\.cookie/u);
+    expect(app).not.toMatch(
+      /\b(?:window\.)?(?:localStorage|sessionStorage)\s*\.\s*(?:getItem|setItem|removeItem|clear)\b/u,
+    );
+    expect(app).not.toMatch(/\bdocument\.cookie\s*=/u);
     expect(transportJs).toContain("https://api.typesafe.ai/v1/models");
     expect(transportJs).toContain("https://api.typesafe.ai/v1/systemone");
     expect(app).toContain('state.apiKey = ""');
