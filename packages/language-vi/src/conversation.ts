@@ -91,15 +91,13 @@ const replaceSocialPlaceholder = (
   placeholder: "{{speaker}}" | "{{addressee}}",
   value: string,
 ): string => {
-  const escaped = placeholder.replace(/[{}]/gu, "\\const preserveExactTerms = (
-  surface: string,
-  terms: readonly string[],
-): boolean => terms.every((term) => surface.includes(term));
-
-");
+  const escaped = placeholder.replace(/[{}]/gu, "\\$&");
   const sentenceStart = new RegExp(`(^|[.!?]\\s+)${escaped}`, "gu");
   return surface
-    .replace(sentenceStart, (_match, prefix: string) => `${prefix}${capitalizeInitial(value)}`)
+    .replace(
+      sentenceStart,
+      (_match, prefix: string) => `${prefix}${capitalizeInitial(value)}`,
+    )
     .replaceAll(placeholder, value);
 };
 
