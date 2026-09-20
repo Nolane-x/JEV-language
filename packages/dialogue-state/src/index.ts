@@ -6,3 +6,5 @@ export * from "./ellipsis.ts";
 export * from "./dialogue-acts.ts";
 
 export * from "./reference-ellipsis-extended.ts";
+
+export * from "./response-plan-builder.ts";
