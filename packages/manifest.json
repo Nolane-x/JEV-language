@@ -176,6 +176,7 @@
       "maturity": "prototype",
       "layer": 9,
       "dependencies": [
+        "core-types",
         "grammar-core",
         "morphology-core",
         "lexicon-core",

@@ -685,3 +685,5 @@ export const vietnameseLanguageExtensions = {
   aspectMarker: vietnameseAspectMarker,
   address: chooseVietnameseAddressStrategy,
 } as const;
+
+export * from "./conversation.ts";
