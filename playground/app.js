@@ -24,9 +24,9 @@ const DEFAULT_RELAY_URL = "https://jev-language-typesafe-relay.nolane-file.worke
 const state = {
   apiKey: "",
   model: "jev-latest",
-  transport: "relay",
+  transport: "public",
   relayBaseUrl: DEFAULT_RELAY_URL,
-  connected: false,
+  connected: true,
   busy: false,
   turns: [],
 };
@@ -38,6 +38,8 @@ const els = {
   keyDialog: document.querySelector("#keyDialog"),
   closeKeyButton: document.querySelector("#closeKeyButton"),
   apiKeyInput: document.querySelector("#apiKeyInput"),
+  apiKeyField: document.querySelector("#apiKeyField"),
+  browserConsentRow: document.querySelector("#browserConsentRow"),
   modelSelect: document.querySelector("#modelSelect"),
   transportSelect: document.querySelector("#transportSelect"),
   relayUrlField: document.querySelector("#relayUrlField"),
@@ -70,21 +72,43 @@ function setKeyStatus(message = "", kind = "") {
 }
 
 function updateTransportUi() {
-  const relay = els.transportSelect.value === "relay";
+  const transport = els.transportSelect.value;
+  const publicMode = transport === "public";
+  const relay = transport === "relay";
+
   els.relayUrlField.hidden = !relay;
+  els.apiKeyField.hidden = publicMode;
+  els.browserConsentRow.hidden = publicMode;
+  els.modelSelect.closest(".field").hidden = publicMode;
+
+  if (publicMode) {
+    els.keyPanelIntro.textContent =
+      "Public Jev needs no API key. The project gateway invokes Jev through Cloudflare Workers AI and keeps provider credentials out of the browser.";
+    els.connectButton.textContent = "Use public Jev";
+    return;
+  }
+
   els.keyPanelIntro.textContent = relay
-    ? "The key stays in this tab's JavaScript memory, but your self-hosted relay receives the Authorization header transiently while forwarding to TypeSafe. Use only a relay you control."
-    : "The key is never written to localStorage, cookies, the URL, or this repository. It disappears when this tab closes or you disconnect. Requests go directly from this page to TypeSafe.";
+    ? "Advanced BYOK mode: the key stays in this tab's JavaScript memory, while the verified relay receives it only in flight and forwards it to TypeSafe."
+    : "Advanced direct mode: the key remains in this tab only, but browser CORS policy may block TypeSafe before a request reaches the provider.";
   els.browserConsentText.textContent = relay
-    ? "I understand that the page runtime and the self-hosted relay I chose can see this API key while requests are in flight."
+    ? "I understand that the page runtime and the verified relay can see this API key while a request is in flight."
     : "I understand that using an API key in a browser exposes it to the page runtime and developer tools.";
+  els.connectButton.textContent = "Connect";
 }
 
 function updateConnectionUi() {
-  els.keyButtonLabel.textContent = state.connected ? "Connected" : "Connect key";
+  if (state.transport === "public" && state.connected) {
+    els.keyButtonLabel.textContent = "Public Jev";
+    els.disconnectButton.hidden = true;
+    setRuntime("connected", "Jev · public gateway");
+    return;
+  }
+
+  els.keyButtonLabel.textContent = state.connected ? "BYOK connected" : "Connection";
   els.disconnectButton.hidden = !state.connected;
   const connectedLabel = state.transport === "relay"
-    ? `${state.model} · relay`
+    ? `${state.model} · BYOK relay`
     : state.model;
   setRuntime(state.connected ? "connected" : "idle", state.connected ? connectedLabel : "Local shell");
 }
@@ -161,8 +185,8 @@ function buildState(latest) {
 }
 
 async function callJev(questions, latest) {
-  if (!state.connected || !state.apiKey) {
-    throw new Error("Connect a TypeSafe API key before sending a decision-shaped prompt.");
+  if (!state.connected || (state.transport !== "public" && !state.apiKey)) {
+    throw new Error("Jev is not connected.");
   }
 
   const controller = new AbortController();
@@ -177,7 +201,9 @@ async function callJev(questions, latest) {
       method: "POST",
       mode: "cors",
       headers: {
-        Authorization: `Bearer ${state.apiKey}`,
+        ...(state.transport === "public"
+          ? {}
+          : { Authorization: `Bearer ${state.apiKey}` }),
         Accept: "application/json",
         "Content-Type": "application/json",
       },
@@ -307,17 +333,37 @@ async function submitMessage(text) {
   } catch (error) {
     const status = error?.status;
     let message = "The request failed without a trustworthy result.";
-    if (error?.name === "AbortError") message = "The TypeSafe request timed out. Nothing was inferred from the failed call.";
-    else if (status === 401) message = "That API key was rejected by TypeSafe. Reconnect with a valid key.";
-    else if (status === 403) message = "TypeSafe refused this request for the connected account.";
-    else if (status === 429) message = "TypeSafe rate-limited this request. Try again after the account limit resets.";
-    else if (error?.message) message = error.message;
+    if (state.transport === "public") {
+      if (error?.name === "AbortError") {
+        message = "Jev is taking longer than expected. Please try again.";
+      } else if (status === 429) {
+        message = "Public Jev is busy right now. Please try again shortly.";
+      } else {
+        message = "Jev is temporarily unavailable. Please try again in a moment.";
+      }
+    } else if (error?.name === "AbortError") {
+      message = "The TypeSafe request timed out. Nothing was inferred from the failed call.";
+    } else if (status === 401) {
+      message = "That API key was rejected by TypeSafe. Reconnect with a valid key.";
+    } else if (status === 403) {
+      message = "TypeSafe refused this request for the connected account.";
+    } else if (status === 429) {
+      message = "TypeSafe rate-limited this request. Try again after the account limit resets.";
+    } else if (error?.message) {
+      message = error.message;
+    }
 
-    replaceLoadingMessage(loading, message, {
-      error: true,
-      status: status ?? null,
-      message: error?.message ?? String(error),
-    });
+    replaceLoadingMessage(
+      loading,
+      message,
+      state.transport === "public"
+        ? null
+        : {
+            error: true,
+            status: status ?? null,
+            message: error?.message ?? String(error),
+          },
+    );
     setRuntime("error", "Request failed");
   } finally {
     state.busy = false;
@@ -327,18 +373,20 @@ async function submitMessage(text) {
 }
 
 async function connectKey() {
-  const key = els.apiKeyInput.value.trim();
-  if (!key) {
+  const transport = els.transportSelect.value;
+  const publicMode = transport === "public";
+  const key = publicMode ? "" : els.apiKeyInput.value.trim();
+
+  if (!publicMode && !key) {
     setKeyStatus("Paste an API key first.", "error");
     return;
   }
-  if (!els.browserConsent.checked) {
+  if (!publicMode && !els.browserConsent.checked) {
     setKeyStatus("Acknowledge the browser-side key exposure before connecting.", "error");
     return;
   }
 
-  const transport = els.transportSelect.value;
-  let relayBaseUrl = "";
+  let relayBaseUrl = DEFAULT_RELAY_URL;
   if (transport === "relay") {
     try {
       relayBaseUrl = normalizeRelayBaseUrl(els.relayUrlInput.value);
@@ -349,11 +397,13 @@ async function connectKey() {
   }
 
   els.connectButton.disabled = true;
-  els.connectButton.textContent = "Checking…";
+  els.connectButton.textContent = publicMode ? "Checking…" : "Checking…";
   setKeyStatus(
-    transport === "relay"
-      ? "Checking the key through your self-hosted relay…"
-      : "Checking the key directly with TypeSafe…",
+    publicMode
+      ? "Checking public Jev…"
+      : transport === "relay"
+        ? "Checking the key through the verified relay…"
+        : "Checking the key directly with TypeSafe…",
   );
 
   try {
@@ -365,14 +415,14 @@ async function connectKey() {
       method: "GET",
       mode: "cors",
       headers: {
-        Authorization: `Bearer ${key}`,
+        ...(publicMode ? {} : { Authorization: `Bearer ${key}` }),
         Accept: "application/json",
       },
     });
     const payload = await response.json().catch(() => ({}));
     if (!response.ok) {
       throw Object.assign(
-        new Error(payload?.error?.message || payload?.message || `TypeSafe returned HTTP ${response.status}.`),
+        new Error(payload?.error?.message || payload?.message || `Jev returned HTTP ${response.status}.`),
         { status: response.status },
       );
     }
@@ -388,32 +438,44 @@ async function connectKey() {
         option.textContent = name;
         return option;
       }));
-      els.modelSelect.value = names.includes(previous) ? previous : (names.includes("jev-latest") ? "jev-latest" : names[0]);
+      els.modelSelect.value = names.includes(previous)
+        ? previous
+        : (names.includes("jev-latest") ? "jev-latest" : names[0]);
     }
 
     state.apiKey = key;
-    state.model = els.modelSelect.value;
+    state.model = els.modelSelect.value || "jev-latest";
     state.transport = transport;
     state.relayBaseUrl = relayBaseUrl;
     state.connected = true;
     els.apiKeyInput.value = "";
-    setKeyStatus("Connected in memory. No browser storage was written.", "success");
+    setKeyStatus(
+      publicMode
+        ? "Public Jev is ready. No API key is required."
+        : "Connected in memory. No browser storage was written.",
+      "success",
+    );
     updateConnectionUi();
     window.setTimeout(() => els.keyDialog.close(), 320);
     els.composerInput.focus();
   } catch (error) {
     state.apiKey = "";
-    state.connected = false;
+    state.connected = state.transport === "public";
     const networkFailure = isBrowserNetworkFailure(error);
     let message;
-    if (error?.status === 401) {
+    if (publicMode) {
+      message =
+        error?.status === 429
+          ? "Public Jev is busy right now. Please try again shortly."
+          : "Public Jev could not be reached right now. Your browser does not need an API key; please retry in a moment.";
+    } else if (error?.status === 401) {
       message = "TypeSafe rejected this API key. Check that the key is valid.";
     } else if (error?.status === 403) {
       message = "TypeSafe refused this account/request.";
     } else if (networkFailure) {
       message = transport === "relay"
-        ? "Browser connection to the self-hosted relay failed before an HTTP response. Check the relay URL, its origin allowlist, and its deployment."
-        : "Browser connection blocked before TypeSafe returned an HTTP response. This is usually CORS or network policy for this origin, not an invalid API key. You can instead deploy the repository's locked-down self-hosted relay.";
+        ? "The BYOK relay could not be reached. Public Jev remains available without a key."
+        : "Direct browser access to TypeSafe is blocked on this origin. Use Public Jev instead.";
     } else {
       message = error?.message || "Connection test failed.";
     }
@@ -421,14 +483,19 @@ async function connectKey() {
     updateConnectionUi();
   } finally {
     els.connectButton.disabled = false;
-    els.connectButton.textContent = "Connect";
+    els.connectButton.textContent =
+      els.transportSelect.value === "public" ? "Use public Jev" : "Connect";
   }
 }
 
 function disconnectKey() {
   state.apiKey = "";
-  state.connected = false;
-  setKeyStatus("Disconnected. The in-memory key was cleared.", "success");
+  state.transport = "public";
+  state.relayBaseUrl = DEFAULT_RELAY_URL;
+  state.connected = true;
+  els.transportSelect.value = "public";
+  updateTransportUi();
+  setKeyStatus("BYOK disconnected. Public Jev is active again.", "success");
   updateConnectionUi();
 }
 
@@ -438,7 +505,13 @@ els.openKeyButton.addEventListener("click", () => {
   if (state.relayBaseUrl) els.relayUrlInput.value = state.relayBaseUrl;
   updateTransportUi();
   els.browserConsent.checked = false;
-  setKeyStatus(state.connected ? "A key is connected in memory for this tab." : "");
+  setKeyStatus(
+    state.transport === "public"
+      ? "Public Jev is active. No API key is required."
+      : state.connected
+        ? "A BYOK key is connected in memory for this tab."
+        : "",
+  );
   els.keyDialog.showModal();
   window.setTimeout(() => els.apiKeyInput.focus(), 30);
 });
@@ -446,11 +519,25 @@ els.closeKeyButton.addEventListener("click", () => setKeyStatus(""));
 els.connectButton.addEventListener("click", connectKey);
 els.disconnectButton.addEventListener("click", disconnectKey);
 els.transportSelect.addEventListener("change", () => {
-  if (state.connected) {
-    disconnectKey();
-    setKeyStatus("Transport changed. Reconnect so the key is never silently rerouted.", "success");
+  const next = els.transportSelect.value;
+  if (next === "public") {
+    state.apiKey = "";
+    state.transport = "public";
+    state.relayBaseUrl = DEFAULT_RELAY_URL;
+    state.connected = true;
+    setKeyStatus("Public Jev selected. No API key is required.", "success");
+    updateTransportUi();
+    updateConnectionUi();
+    return;
+  }
+
+  if (state.transport !== next) {
+    state.apiKey = "";
+    state.connected = false;
+    setKeyStatus("Advanced transport selected. Connect explicitly so a key is never silently rerouted.");
   }
   updateTransportUi();
+  updateConnectionUi();
 });
 els.modelSelect.addEventListener("change", () => {
   if (!state.connected) return;
