@@ -101,3 +101,24 @@ GitHub Pages:
 The static application, repository integration, deterministic tests, and Pages deployment are verified.
 
 One external-provider property remains deliberately unclaimed: an authenticated browser request from the deployed GitHub Pages origin to TypeSafe. This requires a real user-supplied key in the page and must not be simulated by committing or exposing a credential.
+
+
+## CORS preflight probe — 2026-09-20
+
+A one-shot GitHub Actions probe sent browser-equivalent preflight requests with:
+
+- Origin: `https://nolane-x.github.io`
+- `OPTIONS https://api.typesafe.ai/v1/models`
+- `OPTIONS https://api.typesafe.ai/v1/systemone`
+
+Observed for both endpoints:
+
+- HTTP status: `400`
+- `Access-Control-Allow-Methods`: present
+- `Access-Control-Allow-Headers`: present, including `Authorization` and `Content-Type`
+- `Access-Control-Allow-Credentials: true`
+- **no `Access-Control-Allow-Origin` header**
+
+Therefore the deployed GitHub Pages origin is not currently permitted to call the TypeSafe API directly from a browser. This is an external-provider CORS policy, not an API-key validation failure and not something static GitHub Pages can override.
+
+The frontend now distinguishes this network/CORS class from HTTP 401/403 failures. No public CORS proxy is used because forwarding user API keys through an untrusted proxy would violate the BYOK trust boundary.

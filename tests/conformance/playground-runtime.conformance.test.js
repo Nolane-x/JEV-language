@@ -124,6 +124,11 @@ describe("JEV Language Playground conformance", () => {
     ).toContain("needs a yes/no proposition or explicit alternatives");
   });
 
+  it("distinguishes browser network/CORS failure from invalid API keys", () => {
+    expect(app).toContain("Browser connection blocked before TypeSafe returned an HTTP response");
+    expect(app).toContain("not an invalid API key");
+  });
+
   it("keeps BYOK credentials out of persistent browser storage", () => {
     expect(app).not.toMatch(/localStorage/u);
     expect(app).not.toMatch(/sessionStorage/u);
@@ -131,6 +136,10 @@ describe("JEV Language Playground conformance", () => {
     expect(app).toContain("https://api.typesafe.ai/v1/models");
     expect(app).toContain("https://api.typesafe.ai/v1/systemone");
     expect(app).toContain('state.apiKey = ""');
+  });
+
+  it("does not ship literal backslash-n text in HTML", () => {
+    expect(html).not.toContain("\\n");
   });
 
   it("ships a self-contained CSP-constrained static shell", () => {
@@ -152,6 +161,13 @@ describe("JEV Language Playground conformance", () => {
     expect(fieldCss).toContain("@media (prefers-reduced-motion: reduce)");
     expect(css).toContain("@media (prefers-contrast: more)");
     expect(css).toContain(":focus-visible");
+  });
+
+  it("pins the lead light directly to the pointer while only the trail lags", () => {
+    expect(fieldJs).toContain("lead.x = target.x");
+    expect(fieldJs).toContain("lead.y = target.y");
+    expect(fieldJs).not.toContain("(target.x - lead.x) * 0.38");
+    expect(fieldCss).toContain(".ambient__spotlight { inset: 0 !important; }");
   });
 
   it("uses an inertial local illumination field without touch-only dependency", () => {

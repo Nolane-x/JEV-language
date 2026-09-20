@@ -37,10 +37,10 @@ function tick() {
     return;
   }
 
-  lead.x += (target.x - lead.x) * 0.38;
-  lead.y += (target.y - lead.y) * 0.38;
-  trail.x += (lead.x - trail.x) * 0.11;
-  trail.y += (lead.y - trail.y) * 0.11;
+  lead.x = target.x;
+  lead.y = target.y;
+  trail.x += (lead.x - trail.x) * 0.12;
+  trail.y += (lead.y - trail.y) * 0.12;
 
   writeField();
 
@@ -96,15 +96,23 @@ function onPointerMove(event) {
 
   target.x = event.clientX;
   target.y = event.clientY;
+  lead.x = target.x;
+  lead.y = target.y;
   active = true;
 
+  writeField();
   localField(event);
   ensureTick();
 }
 
 function onPointerEnter(event) {
   if (event.pointerType === "touch" || !finePointer.matches) return;
+  target.x = event.clientX;
+  target.y = event.clientY;
+  lead.x = target.x;
+  lead.y = target.y;
   active = true;
+  writeField();
   ensureTick();
 }
 
