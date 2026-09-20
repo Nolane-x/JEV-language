@@ -91,11 +91,11 @@ A zero-install browser Playground is deployed at:
 
 https://nolane-x.github.io/JEV-language/
 
-It is a static GitHub Pages BYOK surface: users supply their own TypeSafe key, which stays in tab memory only. The current UI routes bounded yes/no and explicit-choice prompts through Jev and keeps unsupported free-form generation explicit rather than hiding another generator behind the chat surface.
+It is a static GitHub Pages BYOK surface: every user supplies their own TypeSafe key, which stays in tab memory only. The browser does not call TypeSafe directly; all production browser requests go through the project's fixed, locked-down relay, which forwards the user's Authorization header transiently to TypeSafe without persisting it.
 
 The NUI-driven interface uses an obsidian/editorial-instrument visual thesis with a warm-metal inspection-light field that follows the pointer, plus coarse-pointer and reduced-motion fallbacks. Provider success payloads are validated before rendering.
 
-The static Pages shell was previously deployment-verified. A browser-equivalent preflight probe on 2026-09-20 then proved that direct TypeSafe requests from the GitHub Pages origin are blocked by the provider's current CORS policy. PR #70 therefore added an explicit self-hosted relay transport; the deployed relay is now the Playground default. The relay was subsequently live-verified with the existing `TYPESAFE_API_KEY` GitHub secret: exactly one authenticated `/v1/systemone` request traversed the verified Worker, returned `X-JEV-Relay: 1`, preserved the GitHub Pages CORS origin, and produced a valid `jev-1.13.0` Noul response. Sanitized evidence is committed at `docs/evidence/PLAYGROUND-RELAY-LIVE-SMOKE.json`; the API key itself was not printed or persisted.
+The static Pages shell was previously deployment-verified. A browser-equivalent preflight probe on 2026-09-20 proved that direct TypeSafe requests from the GitHub Pages origin are blocked by provider-side CORS. The production browser path therefore uses only the verified Worker relay. The UI no longer asks users to choose between direct and relay transports: it health-checks the fixed relay, validates the user's TypeSafe key through it, and then sends Jev requests through that same route. The relay was live-verified with a one-request smoke and does not persist the forwarded key.
 
 ## Security
 
