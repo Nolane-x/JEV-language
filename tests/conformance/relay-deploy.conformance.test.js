@@ -25,7 +25,7 @@ describe("Cloudflare relay deployment workflow", () => {
 
   it("preserves independently recorded verified deployment evidence", () => {
     expect(deploymentStatus.schema).toBe(
-      "jev-language-relay-deployment/v3",
+      "jev-language-relay-deployment/v4",
     );
     expect(deploymentStatus.verified).toBe(true);
     expect(deploymentStatus.relay_url).toBe(
@@ -33,13 +33,16 @@ describe("Cloudflare relay deployment workflow", () => {
     );
     expect(deploymentStatus.deploy_outcome).toBe("success");
     expect(deploymentStatus.verify_outcome).toBe("success");
+    expect(deploymentStatus.browser_contract).toBe(
+      "jev-relay-browser-v2",
+    );
     expect(deploymentStatus.browser_identity_header_exposed).toBe(true);
     expect(deploymentStatus.exposed_headers).toContain("X-JEV-Relay");
+    expect(deploymentStatus.verified_error_envelopes).toContain(401);
     expect(deploymentStatus.relay_version_id).toBe(
-      "735459af-a34b-4876-a933-8f9afd84d5a1",
+      "dc717439-9d27-4e88-bd6b-f7e3b5400ce6",
     );
-    expect(deploymentStatus.deployment_run_id).toBe(35511196778);
-    expect(deploymentStatus.pages_deployment_run_id).toBe(35511196773);
+    expect(deploymentStatus.deployment_run_id).toBe(35511807310);
     expect(deploymentStatus.failure_reason).toBeNull();
   });
 
@@ -73,6 +76,13 @@ describe("Cloudflare relay deployment workflow", () => {
     );
     expect(workflow).toContain(
       "expected browser contract did not propagate",
+    );
+    expect(workflow).toContain("Freeze verified deployment status");
+    expect(workflow).toContain(
+      'schema: "jev-language-relay-deployment/v4"',
+    );
+    expect(workflow).toContain(
+      'git push origin HEAD:main',
     );
     expect(workflow).toContain(
       "authless_code=\"$(curl --silent --show-error --header 'Origin: https://nolane-x.github.io'",
