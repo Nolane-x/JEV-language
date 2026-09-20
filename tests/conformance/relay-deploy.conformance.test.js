@@ -11,10 +11,10 @@ const deploymentStatus = JSON.parse(
 );
 
 describe("Cloudflare relay deployment workflow", () => {
-  it("is manual-only and uses GitHub repository secrets", () => {
+  it("requires an explicit manual or one-shot trigger and uses GitHub repository secrets", () => {
     expect(workflow).toContain("workflow_dispatch:");
-    expect(workflow).not.toMatch(/\bpush:\s*$/mu);
-    expect(workflow).not.toContain(".github/relay-deploy.trigger");
+    expect(workflow).toMatch(/\bpush:\s*$/mu);
+    expect(workflow).toContain('.github/relay-deploy.trigger');
     expect(workflow).toContain(
       "${{ secrets.CLOUDFLARE_API_TOKEN }}",
     );
@@ -44,8 +44,9 @@ describe("Cloudflare relay deployment workflow", () => {
     expect(workflow).not.toContain("cloudflare/wrangler-action@v4");
   });
 
-  it("verifies health and the GitHub Pages CORS origin after deployment", () => {
+  it("verifies browser health identity and the GitHub Pages CORS origin after deployment", () => {
     expect(workflow).toContain("$RELAY_URL/health");
+    expect(workflow).toContain("x-jev-relay: 1");
     expect(workflow).toContain(
       "Origin: https://nolane-x.github.io",
     );
