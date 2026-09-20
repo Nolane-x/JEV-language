@@ -107,6 +107,37 @@ describe("Vietnamese conversational microgrammar", () => {
     }
   });
 
+  it("adds bounded topic-comment reshaping only when explicitly enabled", () => {
+    const enabled = generateVietnameseConversationProposals({
+      id: "vi:topic-comment",
+      content: "Mình chưa kiểm tra phần mobile.",
+      relation: "peer",
+      register: "casual",
+      politeness: 0.4,
+      dialogueAct: "answer",
+      allowTopicCommentReshape: true,
+    });
+    expect(enabled.ok).toBe(true);
+    if (!enabled.ok) return;
+    expect(enabled.value.map((item) => item.surface)).toContain(
+      "Còn phần mobile thì mình chưa kiểm tra.",
+    );
+
+    const disabled = generateVietnameseConversationProposals({
+      id: "vi:topic-comment:disabled",
+      content: "Mình chưa kiểm tra phần mobile.",
+      relation: "peer",
+      register: "casual",
+      politeness: 0.4,
+      dialogueAct: "answer",
+    });
+    expect(disabled.ok).toBe(true);
+    if (!disabled.ok) return;
+    expect(
+      disabled.value.some((item) => item.sourceFamily === "topic-comment"),
+    ).toBe(false);
+  });
+
   it("requires independent semantic evidence before proposals can enter the ranking lattice", () => {
     const result = generateVietnameseConversationProposals({
       id: "vi:promotion",

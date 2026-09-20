@@ -29,6 +29,8 @@ export interface EnglishConversationFrame {
   allowContractions?: boolean;
   allowDiscourseMarker?: boolean;
   allowCompactFollowup?: boolean;
+  allowCalibratedHedge?: boolean;
+  epistemicStatus?: "uncertain" | "probable" | "certain" | "unknown";
   preserveTerms?: string[];
   annotations?: Record<string, JsonValue>;
 }
@@ -43,7 +45,8 @@ export interface EnglishConversationProposal {
     | "contracted"
     | "correction-ack"
     | "casual-ack"
-    | "compact-followup";
+    | "compact-followup"
+    | "calibrated-hedge";
   constructionIds: string[];
   sourceFrameId: string;
   preserveTerms: string[];
@@ -139,6 +142,16 @@ const compactFollowup = (surface: string): string | undefined => {
     if (pattern.test(surface)) return normalize(surface.replace(pattern, replacement));
   }
   return undefined;
+};
+
+const calibratedHedge = (surface: string): string | undefined => {
+  const match = surface.match(
+    /^The current evidence points to (.+?)(?:[.!?])$/u,
+  );
+  if (match === null) return undefined;
+  const proposition = match[1]?.trim();
+  if (!proposition) return undefined;
+  return normalize(`It looks like ${proposition}, but I'm not certain yet.`);
 };
 
 export const generateEnglishConversationProposals = (
@@ -250,6 +263,29 @@ export const generateEnglishConversationProposals = (
           compact,
           "compact-followup",
           ["construction:en:conversation:compact-followup"],
+        ),
+      );
+    }
+  }
+
+  if (
+    frame.allowCalibratedHedge === true &&
+    frame.epistemicStatus === "uncertain" &&
+    ["answer", "clarify"].includes(frame.dialogueAct)
+  ) {
+    const hedged = calibratedHedge(base);
+    if (
+      hedged !== undefined &&
+      hedged !== base &&
+      preserveExactTerms(hedged, terms)
+    ) {
+      output.push(
+        proposal(
+          frame,
+          `${frame.id}:calibrated-hedge`,
+          hedged,
+          "calibrated-hedge",
+          ["construction:en:conversation:calibrated-hedge"],
         ),
       );
     }

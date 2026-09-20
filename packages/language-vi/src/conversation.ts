@@ -43,6 +43,7 @@ export interface VietnameseConversationFrame {
   allowSpeakerEllipsis?: boolean;
   allowDiscourseMarker?: boolean;
   allowSentenceFinalParticle?: boolean;
+  allowTopicCommentReshape?: boolean;
   preserveTerms?: string[];
   annotations?: Record<string, JsonValue>;
 }
@@ -58,7 +59,8 @@ export interface VietnameseConversationProposal {
     | "respectful-ack"
     | "casual-ack"
     | "respectful-particle"
-    | "peer-softener";
+    | "peer-softener"
+    | "topic-comment";
   constructionIds: string[];
   sourceFrameId: string;
   preserveTerms: string[];
@@ -167,6 +169,22 @@ const withFinalParticle = (
   return normalize(`${body} ${particle}${terminal}`);
 };
 
+const topicCommentReshape = (surface: string): string | undefined => {
+  const match = surface.match(
+    /^(Mình|Tôi|Em|Anh|Chị) chưa (kiểm tra|xem|thử) phần (.+?)([.!?])$/u,
+  );
+  if (match === null) return undefined;
+
+  const speaker = match[1];
+  const verb = match[2];
+  const topic = match[3]?.trim();
+  const terminal = match[4] ?? ".";
+  if (!speaker || !verb || !topic) return undefined;
+
+  return normalize(
+    `Còn phần ${topic} thì ${speaker.toLocaleLowerCase("vi")} chưa ${verb}${terminal}`,
+  );
+};
 const respectfulRelation = (
   relation: VietnameseConversationRelation,
 ): boolean =>
@@ -332,6 +350,27 @@ export const generateVietnameseConversationProposals = (
     );
   }
 
+  if (
+    frame.allowTopicCommentReshape === true &&
+    ["answer", "clarify"].includes(frame.dialogueAct)
+  ) {
+    const reshaped = topicCommentReshape(base);
+    if (
+      reshaped !== undefined &&
+      reshaped !== base &&
+      preserveExactTerms(reshaped, terms)
+    ) {
+      output.push(
+        proposal(
+          frame,
+          `${frame.id}:topic-comment`,
+          reshaped,
+          "topic-comment",
+          ["construction:vi:conversation:topic-comment"],
+        ),
+      );
+    }
+  }
   const deduplicated = [
     ...new Map(
       output

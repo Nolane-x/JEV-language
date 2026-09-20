@@ -109,6 +109,40 @@ describe("English conversational microgrammar", () => {
     }
   });
 
+  it("adds calibrated hedging only for explicitly uncertain evidence", () => {
+    const uncertain = generateEnglishConversationProposals({
+      id: "en:hedge:uncertain",
+      content: "The current evidence points to a timeout.",
+      relation: "peer",
+      register: "neutral",
+      politeness: 0.4,
+      dialogueAct: "answer",
+      allowCalibratedHedge: true,
+      epistemicStatus: "uncertain",
+    });
+    expect(uncertain.ok).toBe(true);
+    if (!uncertain.ok) return;
+    expect(uncertain.value.map((item) => item.surface)).toContain(
+      "It looks like a timeout, but I'm not certain yet.",
+    );
+
+    const certain = generateEnglishConversationProposals({
+      id: "en:hedge:certain",
+      content: "The current evidence points to a timeout.",
+      relation: "peer",
+      register: "neutral",
+      politeness: 0.4,
+      dialogueAct: "answer",
+      allowCalibratedHedge: true,
+      epistemicStatus: "certain",
+    });
+    expect(certain.ok).toBe(true);
+    if (!certain.ok) return;
+    expect(
+      certain.value.some((item) => item.sourceFamily === "calibrated-hedge"),
+    ).toBe(false);
+  });
+
   it("requires independent semantic evidence before promotion into ranking", () => {
     const result = generateEnglishConversationProposals({
       id: "en:promotion",
